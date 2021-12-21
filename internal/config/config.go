@@ -26,8 +26,8 @@ func Load() (*Config, error) {
 
 	// COMPANY EMAIL
 	err := bindString(&config.Github.Key, githubKeyEnvName)
+	fmt.Println(config.Github.Key)
 	if err != nil {
-		fmt.Println(config.Github.Key)
 		return nil, err
 	}
 
