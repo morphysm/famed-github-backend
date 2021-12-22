@@ -2,7 +2,9 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/kudos-github-backend/internal/client"
 	"github.com/morphysm/kudos-github-backend/internal/config"
+	"github.com/morphysm/kudos-github-backend/internal/github"
 	"github.com/morphysm/kudos-github-backend/internal/health"
 )
 
@@ -19,6 +21,18 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	//	AllowOrigins: []string{"https://www.morphysm.com"},
 	//	AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	//}))
+	// TODO move to config
+	const appID = "160183"
+	client := client.NewClient("https://api.github.com", config.Github.Key, appID)
+	githubHandler := github.NewHandler(client)
+
+	// GitHubRoutes endpoints exposed for Github requests.
+	githubGroup := e.Group("/github")
+	{
+		GitHubRoutes(
+			githubGroup, githubHandler,
+		)
+	}
 
 	// Health endpoints exposed for heartbeat.
 	healthGroup := e.Group("/health")

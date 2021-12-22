@@ -22,7 +22,7 @@ func TestHealthCheckServiceAvailable(t *testing.T) {
 	healthHandler := health.NewHandler()
 
 	// WHEN
-	err := healthHandler.Health(context)
+	err := healthHandler.GetHealth(context)
 
 	// THEN
 	assert.Nil(t, err)

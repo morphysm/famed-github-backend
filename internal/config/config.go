@@ -1,7 +1,5 @@
 package config
 
-import "fmt"
-
 type Config struct {
 	App struct {
 		Host string
@@ -26,7 +24,6 @@ func Load() (*Config, error) {
 
 	// COMPANY EMAIL
 	err := bindString(&config.Github.Key, githubKeyEnvName)
-	fmt.Println(config.Github.Key)
 	if err != nil {
 		return nil, err
 	}

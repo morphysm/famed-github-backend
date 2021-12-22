@@ -7,7 +7,7 @@ import (
 )
 
 type HTTPHandler interface {
-	Health(c echo.Context) error
+	GetHealth(c echo.Context) error
 }
 
 // healthHandler represents the handler for the health endpoints.
@@ -25,8 +25,8 @@ type healthStatus struct {
 	Version string `json:"version"`
 }
 
-// Health returns a json with the service version
-func (healthHandler *healthHandler) Health(c echo.Context) error {
+// GetHealth returns a json with the service version
+func (healthHandler *healthHandler) GetHealth(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthStatus{
 		Version: "0.0.1",
 	})
