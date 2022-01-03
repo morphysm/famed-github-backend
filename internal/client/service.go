@@ -14,19 +14,19 @@ type Client interface {
 }
 
 type githubClient struct {
-	baseURL   string
-	apiKey    string
-	appID 	  string
-	client    *http.Client
+	baseURL string
+	apiKey  string
+	appID   string
+	client  *http.Client
 }
 
 // NewClient returns a new instance of the Github client
 func NewClient(baseURL string, apiKey string, appID string) Client {
 	return &githubClient{
-		baseURL:	baseURL,
-		apiKey:    	apiKey,
-		appID: 		appID,
-		client:    	&http.Client{},
+		baseURL: baseURL,
+		apiKey:  apiKey,
+		appID:   appID,
+		client:  &http.Client{},
 	}
 }
 
@@ -39,9 +39,8 @@ func (c *githubClient) execute(ctx context.Context, method string, path string, 
 	}
 
 	// Set headers
-	req.Header.Add(http.CanonicalHeaderKey("api-key"), c.apiKey)
 	req.Header.Add(http.CanonicalHeaderKey("Accept"), "application/vnd.github.v3+json")
-	req.Header.Add(http.CanonicalHeaderKey("Authorization"), "Bearer " + token)
+	req.Header.Add(http.CanonicalHeaderKey("Authorization"), "Bearer "+token)
 	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
 		req.Header.Add(http.CanonicalHeaderKey("Content-Type"), "application/json;charset=UTF-8")
 	}
@@ -68,4 +67,3 @@ func (c *githubClient) execute(ctx context.Context, method string, path string, 
 
 	return resp, nil
 }
-

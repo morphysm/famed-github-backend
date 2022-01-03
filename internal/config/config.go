@@ -6,10 +6,9 @@ type Config struct {
 		Port string
 	}
 
-	Github struct{
+	Github struct {
 		Key string
 	}
-
 }
 
 const (
@@ -22,7 +21,7 @@ func Load() (*Config, error) {
 	config.App.Host = "127.0.0.1"
 	config.App.Port = "8080"
 
-	// COMPANY EMAIL
+	// GitHub api key
 	err := bindString(&config.Github.Key, githubKeyEnvName)
 	if err != nil {
 		return nil, err
