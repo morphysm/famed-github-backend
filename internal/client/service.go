@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
-	"net/http"
-	"time"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -46,9 +47,20 @@ func NewClient(baseURL string, apiKey string, appID string) (Client, error) {
 // token generates a GitHub App token
 func (c *githubClient) token() (string, error) {
 	t := jwt.New()
-	t.Set(jwt.IssuerKey, c.appID)
-	t.Set(jwt.IssuedAtKey, time.Now().Add(-time.Minute).Unix())
-	t.Set(jwt.ExpirationKey, time.Now().Add(time.Minute*5).Unix())
+	err := t.Set(jwt.IssuerKey, c.appID)
+	if err != nil {
+		return "nil", err
+	}
+
+	err = t.Set(jwt.IssuedAtKey, time.Now().Add(-time.Minute).Unix())
+	if err != nil {
+		return "nil", err
+	}
+
+	err = t.Set(jwt.ExpirationKey, time.Now().Add(time.Minute*5).Unix())
+	if err != nil {
+		return "nil", err
+	}
 
 	token, err := jwt.Sign(t, jwa.RS256, c.apiKey)
 	return string(token[:]), err

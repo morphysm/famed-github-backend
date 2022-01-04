@@ -2,6 +2,7 @@ package github
 
 import (
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/kudos-github-backend/internal/client"
 )
 
