@@ -7,6 +7,7 @@ import (
 
 type HTTPHandler interface {
 	GetInstallations(c echo.Context) error
+	GetAccessTokens(c echo.Context) error
 }
 
 // githubHandler represents the handler for the github endpoints.

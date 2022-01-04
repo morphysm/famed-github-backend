@@ -23,7 +23,11 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	//}))
 	// TODO move to config
 	const appID = "160183"
-	client := client.NewClient("https://api.github.com", config.Github.Key, appID)
+	client, err := client.NewClient("https://api.github.com", config.Github.Key, appID)
+	if err != nil {
+		return nil, err
+	}
+
 	githubHandler := github.NewHandler(client)
 
 	// GitHubRoutes endpoints exposed for Github requests.

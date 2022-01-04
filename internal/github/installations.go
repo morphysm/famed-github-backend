@@ -9,7 +9,7 @@ import (
 func (gH *githubHandler) GetInstallations(c echo.Context) error {
 	installations, err := gH.githubClient.GetInstallations(c.Request().Context())
 	if err != nil {
-		return err
+		return echo.ErrBadGateway.SetInternal(err)
 	}
 
 	return c.JSON(http.StatusOK, installations)

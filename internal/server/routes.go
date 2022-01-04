@@ -10,6 +10,7 @@ import (
 // GitHubRoutes defines endpoints exposed to serve relay calls to the Github api.
 func GitHubRoutes(g *echo.Group, handler github.HTTPHandler) {
 	g.GET("/installations", handler.GetInstallations)
+	g.GET("/installations/:installation_id/access_tokens", handler.GetAccessTokens)
 }
 
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.
