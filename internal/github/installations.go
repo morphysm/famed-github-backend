@@ -7,7 +7,7 @@ import (
 )
 
 func (gH *githubHandler) GetInstallations(c echo.Context) error {
-	installations, err := gH.githubClient.GetInstallations(c.Request().Context())
+	installations, err := gH.githubAppClient.GetInstallations(c.Request().Context())
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}

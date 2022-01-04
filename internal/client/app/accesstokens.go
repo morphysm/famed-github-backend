@@ -1,4 +1,4 @@
-package client
+package app
 
 import (
 	"context"
@@ -140,7 +140,7 @@ type AccessTokensRequest struct {
 	RepositoryIDs []int `json:"repository_ids"`
 }
 
-func (c *githubClient) GetAccessTokens(ctx context.Context, installationID string, repositoryIDs []int) (AccessTokensResponse, error) {
+func (c *githubAppClient) GetAccessTokens(ctx context.Context, installationID int, repositoryIDs []int) (AccessTokensResponse, error) {
 	var (
 		body []byte
 		resp AccessTokensResponse
@@ -159,7 +159,7 @@ func (c *githubClient) GetAccessTokens(ctx context.Context, installationID strin
 		}
 	}
 
-	path := fmt.Sprintf("/app/installations/%s/access_tokens", installationID)
+	path := fmt.Sprintf("/app/installations/%d/access_tokens", installationID)
 	_, err = c.execute(ctx, http.MethodPost, path, appToken, body, &resp)
 	if err != nil {
 		return resp, err

@@ -3,7 +3,8 @@ package server
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/kudos-github-backend/internal/client"
+	"github.com/morphysm/kudos-github-backend/internal/client/app"
+	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/config"
 	"github.com/morphysm/kudos-github-backend/internal/github"
 	"github.com/morphysm/kudos-github-backend/internal/health"
@@ -18,18 +19,25 @@ func newServer() *echo.Echo {
 func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	e := newServer()
 
-	//e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	//	AllowOrigins: []string{"https://www.morphysm.com"},
-	//	AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-	//}))
+	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	//	 AllowOrigins: []string{"https://www.morphysm.com"},
+	//	 AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	// }))
 	// TODO move to config
 	const appID = "160183"
-	client, err := client.NewClient("https://api.github.com", config.Github.Key, appID)
+	appClient, err := app.NewClient("https://api.github.com", config.Github.Key, appID)
 	if err != nil {
 		return nil, err
 	}
 
-	githubHandler := github.NewHandler(client)
+	const owner = "morphysm"
+	const installationID = 21534367
+	installationClient, err := installation.NewClient("https://api.github.com", appClient, owner, installationID)
+	if err != nil {
+		return nil, err
+	}
+
+	githubHandler := github.NewHandler(appClient, installationClient)
 
 	// GitHubRoutes endpoints exposed for Github requests.
 	githubGroup := e.Group("/github")

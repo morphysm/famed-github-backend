@@ -1,4 +1,4 @@
-package client
+package app
 
 import (
 	"context"
@@ -49,7 +49,7 @@ type Installation struct {
 	SuspendedBy            interface{}       `json:"suspended_by"`
 }
 
-func (c *githubClient) GetInstallations(ctx context.Context) (InstallationResponse, error) {
+func (c *githubAppClient) GetInstallations(ctx context.Context) (InstallationResponse, error) {
 	var resp InstallationResponse
 
 	appToken, err := c.token()
