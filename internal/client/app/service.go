@@ -78,6 +78,7 @@ func (c *githubAppClient) execute(ctx context.Context, method string, path strin
 	// Set headers
 	req.Header.Add("Accept", "application/vnd.github.v3+json")
 	req.Header.Add("Authorization", "Bearer "+token)
+
 	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
 		req.Header.Add("Content-Type", "application/json;charset=UTF-8")
 	}
@@ -97,10 +98,6 @@ func (c *githubAppClient) execute(ctx context.Context, method string, path strin
 	}
 
 	defer resp.Body.Close()
-	//TODO Handle non 2xx codes
-	//buf, bodyErr := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(buf))
-	//fmt.Println(bodyErr)
 	dec := json.NewDecoder(resp.Body)
 	err = dec.Decode(object)
 	if err != nil {

@@ -8,12 +8,12 @@ import (
 )
 
 func (gH *githubHandler) GetLabels(c echo.Context) error {
-	repoID := c.Param("repo_id")
-	if repoID == "" {
+	repoName := c.Param("repo_name")
+	if repoName == "" {
 		return echo.ErrBadRequest.SetInternal(errors.New("missing repo id path parameter"))
 	}
 
-	labelResp, err := gH.githubInstallationClient.GetLabels(c.Request().Context(), repoID)
+	labelResp, err := gH.githubInstallationClient.GetLabels(c.Request().Context(), repoName)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}

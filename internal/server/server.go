@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/app"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
@@ -37,7 +38,10 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	githubHandler := github.NewHandler(appClient, installationClient)
+	githubHandler := github.NewHandler(appClient, installationClient, config.Github.KudoLabel)
+
+	// Logger
+	e.Use(middleware.Logger())
 
 	// GitHubRoutes endpoints exposed for Github requests.
 	githubGroup := e.Group("/github")

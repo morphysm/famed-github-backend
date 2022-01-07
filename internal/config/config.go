@@ -7,12 +7,14 @@ type Config struct {
 	}
 
 	Github struct {
-		Key string
+		Key       string
+		KudoLabel string
 	}
 }
 
 const (
-	githubKeyEnvName = "GITHUB_API_KEY"
+	githubKeyEnvName       = "GITHUB_API_KEY"
+	githubKudoLabelEnvName = "GITHUB_KUDO_LABEL"
 )
 
 func Load() (*Config, error) {
@@ -23,6 +25,12 @@ func Load() (*Config, error) {
 
 	// GitHub api key
 	err := bindString(&config.Github.Key, githubKeyEnvName)
+	if err != nil {
+		return nil, err
+	}
+
+	// GitHub Kudo issue label
+	err = bindString(&config.Github.KudoLabel, githubKudoLabelEnvName)
 	if err != nil {
 		return nil, err
 	}

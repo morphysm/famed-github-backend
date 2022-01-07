@@ -17,6 +17,10 @@ import (
 type Client interface {
 	GetRepos(ctx context.Context) (ReposResponse, error)
 	GetLabels(ctx context.Context, repoID string) (LabelResponse, error)
+	GetEvents(ctx context.Context, repoID string) (EventResponse, error)
+	GetIssues(ctx context.Context, repoID string, labels string, state IssueState) (IssueResponse, error)
+
+	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (Comment, error)
 }
 
 type githubInstallationClient struct {
@@ -56,10 +60,6 @@ func (c *githubInstallationClient) execute(ctx context.Context, method string, p
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		//defer resp.Body.Close()
-		//buf, bodyErr := ioutil.ReadAll(resp.Body)
-		//fmt.Println(buf)
-		//fmt.Println(bodyErr)
 		return nil, err
 	}
 
@@ -69,10 +69,6 @@ func (c *githubInstallationClient) execute(ctx context.Context, method string, p
 	}
 
 	defer resp.Body.Close()
-	//TODO Handle non 2xx codes
-	//buf, bodyErr := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(buf))
-	//fmt.Println(bodyErr)
 	dec := json.NewDecoder(resp.Body)
 	err = dec.Decode(object)
 	if err != nil {
