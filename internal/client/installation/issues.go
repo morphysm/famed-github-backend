@@ -2,185 +2,71 @@ package installation
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/url"
-	"time"
+
+	"github.com/google/go-github/v41/github"
 )
 
-type IssueResponse []Issue
-
-type Issue struct {
-	ID                *int         `json:"id,omitempty"`
-	NodeID            *string      `json:"node_id,omitempty"`
-	URL               *string      `json:"url,omitempty"`
-	RepositoryURL     *string      `json:"repository_url,omitempty"`
-	LabelsURL         *string      `json:"labels_url,omitempty"`
-	CommentsURL       *string      `json:"comments_url,omitempty"`
-	EventsURL         *string      `json:"events_url,omitempty"`
-	HTMLURL           *string      `json:"html_url,omitempty"`
-	Number            *int         `json:"number,omitempty"`
-	State             *string      `json:"state,omitempty"`
-	Title             *string      `json:"title,omitempty"`
-	Body              *string      `json:"body,omitempty"`
-	User              *User        `json:"user,omitempty"`
-	Labels            []Label      `json:"labels,omitempty"`
-	Assignee          *User        `json:"assignee,omitempty"`
-	Assignees         []User       `json:"assignees,omitempty"`
-	Milestone         *Milestone   `json:"milestone,omitempty"`
-	Locked            *bool        `json:"locked,omitempty"`
-	ActiveLockReason  *string      `json:"active_lock_reason,omitempty"`
-	Comments          *int         `json:"comments,omitempty"`
-	PullRequest       *PullRequest `json:"pull_request,omitempty"`
-	ClosedAt          *time.Time   `json:"closed_at,omitempty"`
-	CreatedAt         *time.Time   `json:"created_at,omitempty"`
-	UpdatedAt         *time.Time   `json:"updated_at,omitempty"`
-	ClosedBy          *User        `json:"closed_by,omitempty"`
-	AuthorAssociation *string      `json:"author_association,omitempty"`
-}
-
-type Milestone struct {
-	URL         *string `json:"url,omitempty"`
-	HTMLURL     *string `json:"html_url,omitempty"`
-	LabelsURL   *string `json:"labels_url,omitempty"`
-	ID          *int    `json:"id,omitempty"`
-	NodeID      *string `json:"node_id,omitempty"`
-	Number      *int    `json:"number,omitempty"`
-	State       *string `json:"state,omitempty"`
-	Title       *string `json:"title,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Creator     *User   `json:"creator,omitempty"`
-}
-
-type PullRequest struct {
-	URL      *string `json:"url,omitempty"`
-	HTMLURL  *string `json:"html_url,omitempty"`
-	DiffURL  *string `json:"diff_url,omitempty"`
-	PatchURL *string `json:"patch_url,omitempty"`
-}
-
-type User struct {
-	Login             *string `json:"login,omitempty"`
-	ID                *int    `json:"id,omitempty"`
-	NodeID            *string `json:"node_id,omitempty"`
-	AvatarURL         *string `json:"avatar_url,omitempty"`
-	GravatarID        *string `json:"gravatar_id,omitempty"`
-	URL               *string `json:"url,omitempty"`
-	HTMLURL           *string `json:"html_url,omitempty"`
-	FollowersURL      *string `json:"followers_url,omitempty"`
-	FollowingURL      *string `json:"following_url,omitempty"`
-	GistsURL          *string `json:"gists_url,omitempty"`
-	StarredURL        *string `json:"starred_url,omitempty"`
-	SubscriptionsURL  *string `json:"subscriptions_url,omitempty"`
-	OrganizationsURL  *string `json:"organizations_url,omitempty"`
-	ReposURL          *string `json:"repos_url,omitempty"`
-	EventsURL         *string `json:"events_url,omitempty"`
-	ReceivedEventsURL *string `json:"received_events_url,omitempty"`
-	Type              *string `json:"type,omitempty"`
-	SiteAdmin         *bool   `json:"site_admin,omitempty"`
-}
-
-type Comment struct {
-	ID                *int       `json:"id"`
-	NodeID            *string    `json:"node_id"`
-	URL               *string    `json:"url"`
-	HTMLURL           *string    `json:"html_url"`
-	Body              *string    `json:"body"`
-	User              *User      `json:"user"`
-	CreatedAt         *time.Time `json:"created_at"`
-	UpdatedAt         *time.Time `json:"updated_at"`
-	IssueURL          *string    `json:"issue_url"`
-	AuthorAssociation *string    `json:"author_association"`
-}
-
 type IssueState string
+
+type IssueEventAction string
 
 const (
 	Open   IssueState = "open"
 	Closed IssueState = "closed"
 	All    IssueState = "all"
+
+	// The Actor closed the issue.
+	// If the issue was closed by commit message, CommitID holds the SHA1 hash of the commit.
+	IssueEventActionClosed IssueEventAction = "closed"
+	// The Actor merged into master a branch containing a commit mentioning the issue.
+	// CommitID holds the SHA1 of the merge commit.
+	IssueEventActionMerged IssueEventAction = "merged"
+	// The Actor committed to master a commit mentioning the issue in its commit message.
+	// CommitID holds the SHA1 of the commit.
+	IssueEventActionReferenced IssueEventAction = "referenced"
+	// The Actor did that to the issue.
+	IssueEventActionReopened IssueEventAction = "reopened"
+	IssueEventActionUnlocked IssueEventAction = "unlocked"
+	// The Actor locked the issue.
+	// LockReason holds the reason of locking the issue (if provided while locking).
+	IssueEventActionLocked IssueEventAction = "locked"
+	// The Actor changed the issue title from Rename.From to Rename.To.
+	IssueEventActionRenamed IssueEventAction = "renamed"
+	// Someone unspecified @mentioned the Actor [sic] in an issue comment body.
+	IssueEventActionMentioned IssueEventAction = "mentioned"
+	// The Assigner assigned the issue to or removed the assignment from the Assignee.
+	IssueEventActionAssigned   IssueEventAction = "assigned"
+	IssueEventActionUnassigned IssueEventAction = "unassigned"
+	// The Actor added or removed the Label from the issue.
+	IssueEventActionLabeled   IssueEventAction = "labeled"
+	IssueEventActionUnlabeled IssueEventAction = "unlabeled"
+	// The Actor added or removed the issue from the Milestone.
+	IssueEventActionMilestoned   IssueEventAction = "milestoned"
+	IssueEventActionDemilestoned IssueEventAction = "demilestoned"
+	// The Actor subscribed to or unsubscribed from notifications for an issue.
+	IssueEventActionSubscribed   IssueEventAction = "subscribed"
+	IssueEventActionUnsubscribed IssueEventAction = "unsubscribed"
+	// The pull request’s branch was deleted or restored.
+	IssueEventActionHeadRefDeleted  IssueEventAction = "head_ref_deleted"
+	IssueEventActionHeadRefRestored IssueEventAction = "head_ref_restored"
+	// The review was dismissed and `DismissedReview` will be populated below.
+	IssueEventActionReviewDismissed IssueEventAction = "review_dismissed"
+	// The Actor requested or removed the request for a review.
+	// RequestedReviewer and ReviewRequester will be populated below.
+	IssueEventActionReviewRequested IssueEventAction = "review_requested"
 )
 
-func (c *githubInstallationClient) GetIssues(ctx context.Context, repoName string, labels string, state IssueState) (IssueResponse, error) {
-	var (
-		resp              IssueResponse
-		path              = fmt.Sprintf("/repos/%s/%s/issues", c.owner, repoName)
-		issuePathAndQuery = url.URL{Path: path}
-		query             = url.Values{}
-	)
-
-	query.Add("per_page", "100")
-	query.Add("labels", labels)
-	query.Add("state", string(state))
-
-	issuePathAndQuery.RawQuery = query.Encode()
-
-	installationToken, err := c.token(ctx)
-	if err != nil {
-		return resp, err
-	}
-
-	_, err = c.execute(ctx, http.MethodGet, issuePathAndQuery.String(), installationToken, nil, &resp)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, err
+func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
+	issuesResponse, _, err := c.client.Issues.ListByRepo(ctx, c.owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
+	return issuesResponse, err
 }
 
-type IssueEventsResponse []Event
-
-func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName string, issueNumber int) (EventsResponse, error) {
-	var (
-		resp              EventsResponse
-		path              = fmt.Sprintf("/repos/%s/%s/issues/%d/events", c.owner, repoName, issueNumber)
-		issuePathAndQuery = url.URL{Path: path}
-		query             = url.Values{}
-	)
-
-	query.Add("per_page", "100")
-
-	issuePathAndQuery.RawQuery = query.Encode()
-
-	installationToken, err := c.token(ctx)
-	if err != nil {
-		return resp, err
-	}
-
-	_, err = c.execute(ctx, http.MethodGet, issuePathAndQuery.String(), installationToken, nil, &resp)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, err
+func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
+	issueEventsResponse, _, err := c.client.Issues.ListIssueEvents(ctx, c.owner, repoName, issueNumber, nil)
+	return issueEventsResponse, err
 }
 
-type CommentRequest struct {
-	Body string `json:"body"`
-}
-
-func (c *githubInstallationClient) PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (Comment, error) {
-	var (
-		commentResponse Comment
-		commentRequest  = CommentRequest{Body: comment}
-		path            = fmt.Sprintf("/repos/%s/%s/issues/%d/comments", c.owner, repoName, issueNumber)
-	)
-
-	installationToken, err := c.token(ctx)
-	if err != nil {
-		return commentResponse, err
-	}
-
-	body, err := json.Marshal(commentRequest)
-	if err != nil {
-		return commentResponse, err
-	}
-
-	_, err = c.execute(ctx, http.MethodPost, path, installationToken, body, &commentResponse)
-	if err != nil {
-		return commentResponse, err
-	}
-
-	return commentResponse, err
+func (c *githubInstallationClient) PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error) {
+	issueCommentResponse, _, err := c.client.Issues.CreateComment(ctx, c.owner, repoName, issueNumber, &github.IssueComment{Body: &comment})
+	return issueCommentResponse, err
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
@@ -16,7 +17,7 @@ func (gH *githubHandler) GetEvents(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(errors.New("missing repo id path parameter"))
 	}
 
-	eventsResp, err := gH.githubInstallationClient.GetEvents(c.Request().Context(), repoName)
+	eventsResp, err := gH.githubInstallationClient.GetRepoEvents(c.Request().Context(), repoName)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}
@@ -25,14 +26,14 @@ func (gH *githubHandler) GetEvents(c echo.Context) error {
 }
 
 type WebhookEvent struct {
-	Action *string             `json:"action"`
-	Issue  *installation.Issue `json:"issue"`
+	Action *string       `json:"action"`
+	Issue  *github.Issue `json:"issue"`
 
 	// TODO look into label changes
 	Changes *struct {
 	} `json:"changes"`
-	Repository *installation.Repository `json:"repository"`
-	Sender     *installation.User       `json:"sender"`
+	Repository *github.Repository `json:"repository"`
+	Sender     *github.User       `json:"sender"`
 }
 
 func (gH *githubHandler) PostEvent(c echo.Context) error {

@@ -1,95 +1,47 @@
 package installation
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
-	"time"
 
-	"github.com/morphysm/kudos-github-backend/internal/client/app"
+	"github.com/google/go-github/v41/github"
+	"golang.org/x/oauth2"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
 type Client interface {
-	GetRepos(ctx context.Context) (ReposResponse, error)
-	GetLabels(ctx context.Context, repoID string) (LabelResponse, error)
-	GetEvents(ctx context.Context, repoID string) (EventsResponse, error)
+	GetRepos(ctx context.Context) ([]*github.Repository, error)
+	GetLabels(ctx context.Context, repoID string) ([]*github.Label, error)
+	GetRepoEvents(ctx context.Context, repoID string) ([]*github.Event, error)
 
-	GetIssues(ctx context.Context, repoID string, labels string, state IssueState) (IssueResponse, error)
-	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) (EventsResponse, error)
-	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (Comment, error)
+	GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
+	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error)
+	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error)
 }
 
 type githubInstallationClient struct {
 	baseURL        string
-	appClient      app.Client
 	installationID int
 	owner          string
-	client         *http.Client
-	accessToken    app.AccessTokensResponse
+	client         *github.Client
 }
 
 // NewClient returns a new instance of the Github client
-func NewClient(baseURL string, appClient app.Client, owner string, installationID int) (Client, error) {
+func NewClient(baseURL string, token *github.InstallationToken, owner string, installationID int) (Client, error) {
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token.GetToken()},
+	)
+	oAuthClient := oauth2.NewClient(context.Background(), ts)
+
+	apiClient, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
+	if err != nil {
+		return nil, err
+	}
+
 	return &githubInstallationClient{
 		baseURL:        baseURL,
-		appClient:      appClient,
 		installationID: installationID,
 		owner:          owner,
-		client:         &http.Client{},
+		client:         apiClient,
 	}, nil
-}
-
-// execute prepares and sends http requests to GitHub api.
-func (c *githubInstallationClient) execute(ctx context.Context, method string, path string, token string, body []byte, object interface{}) (*http.Response, error) {
-	// Set method, url and body
-	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-
-	// Set headers
-	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	req.Header.Add("Authorization", "Bearer "+token)
-	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
-		req.Header.Add("Content-Type", "application/json;charset=UTF-8")
-	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO extend by all valid status codes
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		return nil, errors.New(fmt.Sprintf("invalid status code %d", resp.StatusCode))
-	}
-
-	defer resp.Body.Close()
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(object)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func (c *githubInstallationClient) token(ctx context.Context) (string, error) {
-	if c.accessToken.Token != "" && c.accessToken.ExpiresAt.Before(time.Now().Add(-time.Minute)) {
-		return c.accessToken.Token, nil
-	}
-
-	// TODO repoID
-	accessTokenResp, err := c.appClient.GetAccessTokens(ctx, c.installationID, []int{434540357, 440546811})
-	if err != nil {
-		return "", err
-	}
-	c.accessToken = accessTokenResp
-
-	return c.accessToken.Token, nil
 }

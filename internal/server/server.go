@@ -1,13 +1,15 @@
 package server
 
 import (
+	"context"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/morphysm/kudos-github-backend/internal/client/app"
+	"github.com/morphysm/kudos-github-backend/internal/client/apps"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/config"
-	"github.com/morphysm/kudos-github-backend/internal/github"
+	glib "github.com/morphysm/kudos-github-backend/internal/github"
 	"github.com/morphysm/kudos-github-backend/internal/health"
 )
 
@@ -24,21 +26,33 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	//	 AllowOrigins: []string{"https://www.morphysm.com"},
 	//	 AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	// }))
+
+	const gitHost = "https://api.github.com"
+
 	// TODO move to config
-	const appID = "160183"
-	appClient, err := app.NewClient("https://api.github.com", config.Github.Key, appID)
+	const appID = 160183
+	appClient, err := apps.NewClient(gitHost, config.Github.Key, appID)
 	if err != nil {
 		return nil, err
 	}
 
 	const owner = "morphysm"
 	const installationID = 21534367
-	installationClient, err := installation.NewClient("https://api.github.com", appClient, owner, installationID)
+	var repoIDs = []int64{434540357, 440546811}
+	token, err := appClient.GetAccessTokens(
+		context.Background(),
+		installationID,
+		repoIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	githubHandler := github.NewHandler(appClient, installationClient, config.Github.KudoLabel)
+	installationClient, err := installation.NewClient(gitHost, token, owner, installationID)
+	if err != nil {
+		return nil, err
+	}
+
+	githubHandler := glib.NewHandler(appClient, installationClient, installationID, config.Github.KudoLabel)
 
 	// Logger
 	e.Use(middleware.Logger())

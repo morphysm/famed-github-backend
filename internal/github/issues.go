@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
@@ -16,7 +17,7 @@ func (gH *githubHandler) GetIssues(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(errors.New("missing repo id path parameter"))
 	}
 
-	issuesResp, err := gH.githubInstallationClient.GetIssues(c.Request().Context(), repoName, "payed", installation.Closed)
+	issuesResp, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), repoName, []string{"payed"}, installation.Closed)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}
@@ -35,13 +36,17 @@ func (gH *githubHandler) PostComment(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(errors.New("missing or incorrect issue number path parameter"))
 	}
 
-	var comment installation.CommentRequest
+	var comment github.IssueComment
 	err = c.Bind(&comment)
 	if err != nil {
 		return err
 	}
 
-	commentResponse, err := gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, comment.Body)
+	if comment.Body == nil {
+		return echo.ErrBadRequest.SetInternal(errors.New("missing comment body"))
+	}
+
+	commentResponse, err := gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, *comment.Body)
 	if err != nil {
 		return err
 	}
