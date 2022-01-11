@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -20,8 +21,12 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}
+
 	// TODO improve & handle no issues
-	contributors := issuesToContributors(issuesResponse)
+	contributors, err := gH.issuesToContributors(c.Request().Context(), issuesResponse, repoName)
+	if err != nil {
+		return echo.ErrBadGateway.SetInternal(err)
+	}
 
 	return c.JSON(http.StatusOK, contributors)
 }
@@ -35,22 +40,44 @@ const (
 )
 
 // TODO test if issues are returned in chronological order
-func issuesToContributors(issues installation.IssueResponse) []*kudo.Contributor {
+func (gH *githubHandler) issuesToContributors(ctx context.Context, issues installation.IssueResponse, repoName string) (kudo.Contributors, error) {
 	var contributors kudo.Contributors
 
 	for _, issue := range issues {
 		// TODO add different assignment times
-		if issue.CreatedAt == nil || issue.ClosedAt == nil {
+		if issue.ID == nil || issue.CreatedAt == nil || issue.ClosedAt == nil {
 			continue
 		}
+
+		eventsResp, err := gH.githubInstallationClient.GetIssueEvents(ctx, repoName, *issue.ID)
+		if err != nil {
+			return contributors, err
+		}
+
+		for _, event := range eventsResp {
+			if event.Event == nil {
+				continue
+			}
+			//if *event.Event == string(installation.ActionAssigned) {
+			//	if len(contributors) == 0 {
+			//		contributors = kudo.Contributors{
+			//			{Name: *event..Login,
+			//				Work: []kudo.Work{{Start: *issue.CreatedAt, End: *issue.ClosedAt}},
+			//			}}
+			//	}
+			//}
+		}
+
 		//TODO check for existence of assignee and Login etc.
-		contributors = []*kudo.Contributor{
-			{Name: *issue.Assignee.Login,
-				// TODO generate work logs from events
-				Work: []kudo.Work{{Start: *issue.CreatedAt, End: *issue.ClosedAt}},
-			}}
+		//contributors = []*kudo.Contributor{
+		//	{Name: *issue.Assignee.Login,
+		//		// TODO generate work logs from events
+		//		Work: []kudo.Work{{Start: *issue.CreatedAt, End: *issue.ClosedAt}},
+		//	}}
+
+		// Calculate the reward
 		contributors.Reward(*issue.CreatedAt, *issue.ClosedAt, 0)
 	}
 
-	return contributors
+	return contributors, nil
 }

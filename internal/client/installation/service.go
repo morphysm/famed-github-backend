@@ -17,9 +17,10 @@ import (
 type Client interface {
 	GetRepos(ctx context.Context) (ReposResponse, error)
 	GetLabels(ctx context.Context, repoID string) (LabelResponse, error)
-	GetEvents(ctx context.Context, repoID string) (EventResponse, error)
-	GetIssues(ctx context.Context, repoID string, labels string, state IssueState) (IssueResponse, error)
+	GetEvents(ctx context.Context, repoID string) (EventsResponse, error)
 
+	GetIssues(ctx context.Context, repoID string, labels string, state IssueState) (IssueResponse, error)
+	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) (EventsResponse, error)
 	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (Comment, error)
 }
 

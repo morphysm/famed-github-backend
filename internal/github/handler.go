@@ -1,6 +1,7 @@
 package github
 
 import (
+	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/app"
@@ -23,14 +24,19 @@ type HTTPHandler interface {
 type githubHandler struct {
 	githubAppClient          app.Client
 	githubInstallationClient installation.Client
+	client                   *github.Client
+	installationID           int64
 	kudoLabel                string
+	token                    string
 }
 
 // NewHandler returns a pointer to the github handler.
-func NewHandler(githubAppClient app.Client, githubInstallationClient installation.Client, kudoLabel string) HTTPHandler {
+func NewHandler(githubAppClient app.Client, githubInstallationClient installation.Client, client *github.Client, installationID int64, kudoLabel string) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
+		client:                   client,
+		installationID:           installationID,
 		kudoLabel:                kudoLabel,
 	}
 }

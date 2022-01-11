@@ -3,7 +3,10 @@ module github.com/morphysm/kudos-github-backend
 go 1.17
 
 require (
+	github.com/bradleyfalzon/ghinstallation/v2 v2.0.3
+	github.com/google/go-github/v41 v41.0.0
 	github.com/labstack/echo/v4 v4.6.1
+	github.com/labstack/gommon v0.3.0
 	github.com/lestrrat-go/jwx v1.2.14
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
@@ -15,8 +18,10 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/goccy/go-json v0.8.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
+	github.com/google/go-github/v39 v39.0.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.0 // indirect

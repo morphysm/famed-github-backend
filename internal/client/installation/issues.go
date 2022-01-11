@@ -104,17 +104,42 @@ const (
 
 func (c *githubInstallationClient) GetIssues(ctx context.Context, repoName string, labels string, state IssueState) (IssueResponse, error) {
 	var (
-		resp IssueResponse
-		// TODO verify query params
-		path = fmt.Sprintf("/repos/%s/%s/issues", c.owner, repoName)
+		resp              IssueResponse
+		path              = fmt.Sprintf("/repos/%s/%s/issues", c.owner, repoName)
+		issuePathAndQuery = url.URL{Path: path}
+		query             = url.Values{}
 	)
 
-	issuePathAndQuery := url.URL{Path: path}
-
-	query := url.Values{}
 	query.Add("per_page", "100")
 	query.Add("labels", labels)
 	query.Add("state", string(state))
+
+	issuePathAndQuery.RawQuery = query.Encode()
+
+	installationToken, err := c.token(ctx)
+	if err != nil {
+		return resp, err
+	}
+
+	_, err = c.execute(ctx, http.MethodGet, issuePathAndQuery.String(), installationToken, nil, &resp)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, err
+}
+
+type IssueEventsResponse []Event
+
+func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName string, issueNumber int) (EventsResponse, error) {
+	var (
+		resp              EventsResponse
+		path              = fmt.Sprintf("/repos/%s/%s/issues/%d/events", c.owner, repoName, issueNumber)
+		issuePathAndQuery = url.URL{Path: path}
+		query             = url.Values{}
+	)
+
+	query.Add("per_page", "100")
 
 	issuePathAndQuery.RawQuery = query.Encode()
 
