@@ -35,7 +35,6 @@ type Contributor struct {
 	AvatarURL        *string               `json:"avatar_url,omitempty"`
 	HTMLURL          *string               `json:"html_url,omitempty"`
 	GravatarID       *string               `json:"gravatar_id,omitempty"`
-	WorkLogs         []WorkLog             `json:"-"`
 	Rewards          []Reward              `json:"rewards"`
 	RewardSum        float64               `json:"reward_sum"`
 	TimeToDisclosure []float64             `json:"time_to_disclosure"`

@@ -3,7 +3,6 @@ package github
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
@@ -127,26 +126,16 @@ func eventsToContributors(contributors map[string]*kudo.Contributor, events []*g
 			assigneeWorkLogs = append(assigneeWorkLogs, work)
 			workLogs[*event.Assignee.Login] = assigneeWorkLogs
 
-			contributor.WorkLogs = append(contributor.WorkLogs, work)
-
 			contributors[*event.Assignee.Login] = contributor
 		case string(installation.IssueEventActionUnassigned):
 			if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 				break
 			}
 
-			contributor, ok := contributors[*event.Assignee.Login]
-			if !ok {
-				// TODO verify this
-				log.Fatal("No assignee with previous work logs")
-			}
-
 			// Append work log
 			assigneeWorkLogs, _ := workLogs[*event.Assignee.Login]
-			assigneeWorkLogs[len(contributor.WorkLogs)-1].End = *event.CreatedAt
+			assigneeWorkLogs[len(assigneeWorkLogs)-1].End = *event.CreatedAt
 			workLogs[*event.Assignee.Login] = assigneeWorkLogs
-
-			contributor.WorkLogs[len(contributor.WorkLogs)-1].End = *event.CreatedAt
 		}
 	}
 
