@@ -1,23 +1,9 @@
 package kudo
 
 import (
+	"log"
 	"math"
 	"time"
-)
-
-type IssueSeverity string
-
-const (
-	// IssueSeverityNone represents a CVSS of 0
-	IssueSeverityNone IssueSeverity = "none"
-	// IssueSeverityLow represents a CVSS of 0.1-3.9
-	IssueSeverityLow IssueSeverity = "low"
-	// IssueSeverityMedium represents a CVSS of 4.0-6.9
-	IssueSeverityMedium IssueSeverity = "medium"
-	// IssueSeverityHigh represents a CVSS of 7.0-8.9
-	IssueSeverityHigh IssueSeverity = "high"
-	// IssueSeverityCritical represents a CVSS of 9.0-10.0
-	IssueSeverityCritical IssueSeverity = "critical"
 )
 
 type WorkLog struct {
@@ -43,12 +29,12 @@ type Contributor struct {
 
 type Contributors []*Contributor
 
-// UpdateReward returns the base for each contributor based on
+// updateReward returns the base for each contributor based on
 // open (time when issue was opened)
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // contributors (array of contributors with timeOnIssue)
-func UpdateReward(contributors map[string]*Contributor, workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int) map[string]*Contributor {
+func updateReward(contributors map[string]*Contributor, workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int) map[string]*Contributor {
 	baseReward := reward(closed.Sub(open), k)
 	// totalWork maps contributor login to contributor total work
 	totalWork := map[string]time.Duration{}
@@ -74,6 +60,16 @@ func UpdateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 	// divide base reward based on percentage of each contributor
 	for _, contributor := range contributors {
 		contributorTotalWork, _ := totalWork[contributor.Login]
+		// < is a safety measure, should not happen
+		if contributorTotalWork == 0 {
+			continue
+		}
+
+		if contributorTotalWork < 0 {
+			log.Printf("negative contributor total work: %d\n", contributorTotalWork)
+		}
+
+		// calculated share of reward
 		reward := baseReward * float64(workSum) / float64(contributorTotalWork)
 
 		contributor.RewardSum += reward

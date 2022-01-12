@@ -43,7 +43,7 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 	case *github.IssuesEvent:
 		return gH.handleIssuesEvent(c, event)
 	default:
-		log.Debugf("received unhandled event: %v", event)
+		log.Printf("received unhandled event: %v\n", event)
 
 		return c.NoContent(http.StatusOK)
 	}

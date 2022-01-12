@@ -54,6 +54,7 @@ func start(e *echo.Echo) {
 	go func() {
 		e.HideBanner = true
 		e.StdLogger.Printf(banner)
+
 		if err := e.Start(":8080"); err != nil {
 			log.Fatalf("shutting down the server. %s", err)
 		}
@@ -63,8 +64,10 @@ func start(e *echo.Echo) {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	if err := e.Shutdown(ctx); err != nil {
 		log.Fatal(err)
 	}
