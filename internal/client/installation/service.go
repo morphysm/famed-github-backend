@@ -11,7 +11,7 @@ import (
 //counterfeiter:generate . Client
 type Client interface {
 	GetRepos(ctx context.Context) ([]*github.Repository, error)
-	GetLabels(ctx context.Context, repoID string) ([]*github.Label, error)
+	GetRepoLabels(ctx context.Context, repoID string) ([]*github.Label, error)
 	GetRepoEvents(ctx context.Context, repoID string) ([]*github.Event, error)
 
 	GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error)

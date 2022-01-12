@@ -6,29 +6,6 @@ import (
 	"time"
 )
 
-type WorkLog struct {
-	Start time.Time
-	End   time.Time
-}
-
-type Reward struct {
-	Date   time.Time `json:"date"`
-	Reward float64   `json:"reward"`
-}
-
-type Contributor struct {
-	Login            string                `json:"login"`
-	AvatarURL        *string               `json:"avatar_url,omitempty"`
-	HTMLURL          *string               `json:"html_url,omitempty"`
-	GravatarID       *string               `json:"gravatar_id,omitempty"`
-	Rewards          []Reward              `json:"rewards"`
-	RewardSum        float64               `json:"reward_sum"`
-	TimeToDisclosure []float64             `json:"time_to_disclosure"`
-	IssueSeverities  map[IssueSeverity]int `json:"issue_severity"`
-}
-
-type Contributors []*Contributor
-
 // updateReward returns the base for each contributor based on
 // open (time when issue was opened)
 // close (time issue was closed)
@@ -85,5 +62,5 @@ func updateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).
 func reward(t time.Duration, k int) float64 {
 	// 1 - t (in days) / 40 ^ 2*k+1
-	return math.Pow(1.0-t.Hours()/40*24, 2*float64(k)+1)
+	return math.Pow(1.0-t.Hours()/(40*24), 2*float64(k)+1)
 }

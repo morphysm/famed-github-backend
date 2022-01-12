@@ -10,3 +10,8 @@ func (c *githubInstallationClient) GetRepos(ctx context.Context) ([]*github.Repo
 	repoResponse, _, err := c.client.Repositories.List(ctx, c.owner, nil)
 	return repoResponse, err
 }
+
+func (c *githubInstallationClient) GetRepoLabels(ctx context.Context, repoID string) ([]*github.Label, error) {
+	labelsResponse, _, err := c.client.Issues.ListLabels(ctx, c.owner, repoID, nil)
+	return labelsResponse, err
+}

@@ -2,6 +2,7 @@ package github
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
@@ -9,6 +10,7 @@ import (
 	"github.com/labstack/gommon/log"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 func (gH *githubHandler) GetEvents(c echo.Context) error {
@@ -54,8 +56,11 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
 	if event.Action == nil ||
 		*event.Action != string(installation.Closed) ||
+		event.Repo == nil ||
+		event.Issue == nil ||
 		event.Repo.Name == nil ||
-		event.Issue.Number == nil {
+		event.Issue.Number == nil ||
+		event.Issue.Labels == nil {
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -63,9 +68,35 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	repoName := *event.Repo.Name
 	issueNumber := *event.Issue.Number
 
-	testComment := "This will be suggested payout"
+	// Check labels for "kudo" and severity
+	kudoSupported := false
+	for _, label := range event.Issue.Labels {
+		if label.Name != nil && *label.Name == gH.kudoLabel {
+			kudoSupported = true
+		}
+	}
 
-	_, err := gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, testComment)
+	if !kudoSupported {
+		return c.NoContent(http.StatusOK)
+	}
+
+	severity := kudo.IssueToSeverity(event.Issue)
+
+	// Get issue events
+	events, err := gH.githubInstallationClient.GetIssueEvents(c.Request().Context(), repoName, issueNumber)
+	if err != nil {
+		log.Printf("error getting issue events: %v", err)
+		return err
+	}
+
+	// TODO not optimal to reuse the function for all contributors of a repo
+	contributors := kudo.EventsToContributors(nil, events, *event.Issue.CreatedAt, *event.Issue.ClosedAt, severity)
+	comment := "Kudo suggests:"
+	for _, contributor := range contributors {
+		comment = fmt.Sprintf("%s\n Contributor: %s, Reward: %f\n", comment, contributor.Login, contributor.RewardSum)
+	}
+
+	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, comment)
 	if err != nil {
 		return err
 	}
