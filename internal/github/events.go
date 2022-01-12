@@ -25,37 +25,50 @@ func (gH *githubHandler) GetEvents(c echo.Context) error {
 	return c.JSON(http.StatusOK, eventsResp)
 }
 
-type WebhookEvent struct {
-	Action *string       `json:"action"`
-	Issue  *github.Issue `json:"issue"`
-
-	// TODO look into label changes
-	Changes *struct {
-	} `json:"changes"`
-	Repository *github.Repository `json:"repository"`
-	Sender     *github.User       `json:"sender"`
-}
-
+// PostEvent receives the events send to the webhook set in the GitHub App.
+// IssueEvents are handled by handleIssuesEvent.
+// All other events are ignored.
 func (gH *githubHandler) PostEvent(c echo.Context) error {
-	var webhookEvent WebhookEvent
-
-	if err := c.Bind(&webhookEvent); err != nil {
-		log.Debugf("error binding webhook event: %v", err)
+	payload, err := github.ValidatePayload(c.Request(), []byte(gH.webhookSecret))
+	if err != nil {
+		return err
 	}
 
-	if webhookEvent.Action == nil ||
-		*webhookEvent.Action != string(installation.Closed) ||
-		webhookEvent.Repository.Name == nil ||
-		webhookEvent.Issue.Number == nil {
+	event, err := github.ParseWebHook(github.WebHookType(c.Request()), payload)
+	if err != nil {
+		return err
+	}
+
+	switch event := event.(type) {
+	case *github.IssuesEvent:
+		return gH.handleIssuesEvent(c, event)
+	default:
+		log.Debugf("received unhandled event: %v", event)
+
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+// handleIssuesEvent handles issue events.
+// If the kudo label is set and the issue is closed a suggested payout comment is posted to the GitHub API.
+func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
+	if event.Action == nil ||
+		*event.Action != string(installation.Closed) ||
+		event.Repo.Name == nil ||
+		event.Issue.Number == nil {
 		return c.NoContent(http.StatusOK)
 	}
 
-	repoName := *webhookEvent.Repository.Name
-	issueNumber := *webhookEvent.Issue.Number
+	// TODO Check for labels and alike
+	repoName := *event.Repo.Name
+	issueNumber := *event.Issue.Number
 
 	testComment := "This will be suggested payout"
 
-	gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, testComment)
+	_, err := gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, testComment)
+	if err != nil {
+		return err
+	}
 
 	return c.NoContent(http.StatusOK)
 }

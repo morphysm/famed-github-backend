@@ -23,16 +23,17 @@ type HTTPHandler interface {
 type githubHandler struct {
 	githubAppClient          apps.Client
 	githubInstallationClient installation.Client
+	webhookSecret            string
 	installationID           int64
 	kudoLabel                string
-	token                    string
 }
 
 // NewHandler returns a pointer to the github handler.
-func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, installationID int64, kudoLabel string) HTTPHandler {
+func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, webhookSecret string, installationID int64, kudoLabel string) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
+		webhookSecret:            webhookSecret,
 		installationID:           installationID,
 		kudoLabel:                kudoLabel,
 	}
