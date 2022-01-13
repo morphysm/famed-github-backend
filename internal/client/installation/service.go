@@ -20,14 +20,13 @@ type Client interface {
 }
 
 type githubInstallationClient struct {
-	baseURL        string
-	installationID int
-	owner          string
-	client         *github.Client
+	baseURL string
+	owner   string
+	client  *github.Client
 }
 
 // NewClient returns a new instance of the Github client
-func NewClient(baseURL string, token *github.InstallationToken, owner string, installationID int) (Client, error) {
+func NewClient(baseURL string, token *github.InstallationToken, owner string) (Client, error) {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token.GetToken()},
 	)
@@ -39,9 +38,8 @@ func NewClient(baseURL string, token *github.InstallationToken, owner string, in
 	}
 
 	return &githubInstallationClient{
-		baseURL:        baseURL,
-		installationID: installationID,
-		owner:          owner,
-		client:         apiClient,
+		baseURL: baseURL,
+		owner:   owner,
+		client:  apiClient,
 	}, nil
 }

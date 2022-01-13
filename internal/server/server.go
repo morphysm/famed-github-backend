@@ -29,30 +29,25 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 
 	const gitHost = "https://api.github.com"
 
-	// TODO move to config
-	const appID = 160183
-	appClient, err := apps.NewClient(gitHost, config.Github.Key, appID)
+	appClient, err := apps.NewClient(gitHost, config.Github.Key, config.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
 
-	const owner = "morphysm"
-	const installationID = 21534367
-	var repoIDs = []int64{434540357, 440546811}
 	token, err := appClient.GetAccessTokens(
 		context.Background(),
-		installationID,
-		repoIDs)
+		config.Github.InstallationID,
+		config.Github.RepoIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	installationClient, err := installation.NewClient(gitHost, token, owner, installationID)
+	installationClient, err := installation.NewClient(gitHost, token, config.Github.Owner)
 	if err != nil {
 		return nil, err
 	}
 
-	githubHandler := glib.NewHandler(appClient, installationClient, config.Github.WebhookSecret, installationID, config.Github.KudoLabel)
+	githubHandler := glib.NewHandler(appClient, installationClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Github.KudoLabel)
 
 	// Logger
 	e.Use(middleware.Logger())

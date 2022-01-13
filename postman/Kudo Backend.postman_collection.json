@@ -1,0 +1,229 @@
+{
+	"info": {
+		"_postman_id": "f7f631b4-c97c-47f4-a038-25901c3fcda4",
+		"name": "Kudo Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Installations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/installations",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"installations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Labels",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/repos/:repo_name/labels",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"repos",
+						":repo_name",
+						"labels"
+					],
+					"variable": [
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Repos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/repos",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"repos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/repos/:repo_name/events",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"repos",
+						":repo_name",
+						"events"
+					],
+					"variable": [
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Contributors",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/repos/:repo_name/contibutors",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"repos",
+						":repo_name",
+						"contibutors"
+					],
+					"variable": [
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Issues",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/github/repos/:repo_name/events",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"repos",
+						":repo_name",
+						"events"
+					],
+					"variable": [
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test Event Webhook",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://d28c-2003-c2-bf06-3401-a44f-2a20-4033-daf8.ngrok.io/github/webhooks/event",
+					"protocol": "http",
+					"host": [
+						"d28c-2003-c2-bf06-3401-a44f-2a20-4033-daf8",
+						"ngrok",
+						"io"
+					],
+					"path": [
+						"github",
+						"webhooks",
+						"event"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"body\":\"Test Comment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/github/github/repos/:repo_name/issues/:issue_number/comments",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"github",
+						"github",
+						"repos",
+						":repo_name",
+						"issues",
+						":issue_number",
+						"comments"
+					],
+					"variable": [
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						},
+						{
+							"key": "issue_number",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
