@@ -20,7 +20,7 @@ const (
 // IssueToSeverity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns issue severity none
 func IssueToSeverity(issue *github.Issue) IssueSeverity {
-	if issue.Labels == nil {
+	if issue == nil || issue.Labels == nil {
 		return IssueSeverityNone
 	}
 

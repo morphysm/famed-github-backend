@@ -62,5 +62,6 @@ func updateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).
 func reward(t time.Duration, k int) float64 {
 	// 1 - t (in days) / 40 ^ 2*k+1
-	return math.Pow(1.0-t.Hours()/(40*24), 2*float64(k)+1)
+	reward := math.Pow(1.0-t.Hours()/(40*24), 2*float64(k)+1)
+	return math.Max(0, reward)
 }
