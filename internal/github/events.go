@@ -1,7 +1,6 @@
 package github
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -12,20 +11,6 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
-
-func (gH *githubHandler) GetEvents(c echo.Context) error {
-	repoName := c.Param("repo_name")
-	if repoName == "" {
-		return echo.ErrBadRequest.SetInternal(errors.New("missing repo id path parameter"))
-	}
-
-	eventsResp, err := gH.githubInstallationClient.GetRepoEvents(c.Request().Context(), repoName)
-	if err != nil {
-		return echo.ErrBadGateway.SetInternal(err)
-	}
-
-	return c.JSON(http.StatusOK, eventsResp)
-}
 
 // PostEvent receives the events send to the webhook set in the GitHub App.
 // IssueEvents are handled by handleIssuesEvent.

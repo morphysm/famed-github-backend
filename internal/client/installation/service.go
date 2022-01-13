@@ -10,10 +10,6 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
 type Client interface {
-	GetRepos(ctx context.Context) ([]*github.Repository, error)
-	GetRepoLabels(ctx context.Context, repoID string) ([]*github.Label, error)
-	GetRepoEvents(ctx context.Context, repoID string) ([]*github.Event, error)
-
 	GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
 	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error)
 	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error)

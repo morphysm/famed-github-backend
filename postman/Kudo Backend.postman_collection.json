@@ -6,98 +6,6 @@
 	},
 	"item": [
 		{
-			"name": "Installations",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:8080/github/installations",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"installations"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Labels",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:8080/github/repos/:repo_name/labels",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"repos",
-						":repo_name",
-						"labels"
-					],
-					"variable": [
-						{
-							"key": "repo_name",
-							"value": "kudos-git-api-test"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Repos",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:8080/github/repos",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"repos"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Events",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:8080/github/repos/:repo_name/events",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"repos",
-						":repo_name",
-						"events"
-					],
-					"variable": [
-						{
-							"key": "repo_name",
-							"value": "kudos-git-api-test"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Contributors",
 			"request": {
 				"method": "GET",
@@ -113,33 +21,6 @@
 						"repos",
 						":repo_name",
 						"contibutors"
-					],
-					"variable": [
-						{
-							"key": "repo_name",
-							"value": "kudos-git-api-test"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Issues",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:8080/github/repos/:repo_name/events",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"repos",
-						":repo_name",
-						"events"
 					],
 					"variable": [
 						{
@@ -177,49 +58,6 @@
 						"github",
 						"webhooks",
 						"event"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Comment",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"body\":\"Test Comment\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "localhost:8080/github/github/repos/:repo_name/issues/:issue_number/comments",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"github",
-						"github",
-						"repos",
-						":repo_name",
-						"issues",
-						":issue_number",
-						"comments"
-					],
-					"variable": [
-						{
-							"key": "repo_name",
-							"value": "kudos-git-api-test"
-						},
-						{
-							"key": "issue_number",
-							"value": "1"
-						}
 					]
 				}
 			},

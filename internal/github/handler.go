@@ -8,15 +8,9 @@ import (
 )
 
 type HTTPHandler interface {
-	GetInstallations(c echo.Context) error
-	GetLabels(c echo.Context) error
-	GetRepos(c echo.Context) error
-	GetEvents(c echo.Context) error
 	GetContributors(c echo.Context) error
-	GetIssues(c echo.Context) error
 
 	PostEvent(c echo.Context) error
-	PostComment(c echo.Context) error
 }
 
 // githubHandler represents the handler for the github endpoints.
