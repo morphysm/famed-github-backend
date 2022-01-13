@@ -8,6 +8,8 @@ import (
 )
 
 func TestUpdateReward(t *testing.T) {
+	exampleTime := time.Now()
+
 	testCases := []struct {
 		Name         string
 		Contributors map[string]*Contributor
@@ -21,6 +23,105 @@ func TestUpdateReward(t *testing.T) {
 			Name:         "Contributors nil",
 			Contributors: nil,
 			Expected:     nil,
+		},
+		{
+			Name:         "Contributors empty",
+			Contributors: map[string]*Contributor{},
+			Expected:     map[string]*Contributor{},
+		},
+		{
+			Name:         "Contributor empty",
+			Contributors: map[string]*Contributor{"TestUser": {}},
+			Expected:     map[string]*Contributor{"TestUser": {}},
+		},
+		{
+			Name: "Contributor without work log",
+			Contributors: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
+			Expected: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
+		},
+		{
+			Name: "Contributor with empty work log",
+			Contributors: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
+			WorkLogs: map[string][]WorkLog{"TestUser": {}},
+			Expected: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
+		},
+		{
+			Name: "Contributor with 0 duration work log",
+			Contributors: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
+			WorkLogs: map[string][]WorkLog{"TestUser": {{exampleTime, exampleTime}}},
+			Expected: map[string]*Contributor{"TestUser": {
+				Login:            "TestUser",
+				AvatarURL:        nil,
+				HTMLURL:          nil,
+				GravatarID:       nil,
+				FixCount:         0,
+				MonthFixCount:    nil,
+				Rewards:          nil,
+				RewardSum:        0,
+				TimeToDisclosure: TimeToDisclosure{},
+				IssueSeverities:  nil,
+				MeanSeverity:     0,
+			}},
 		},
 	}
 

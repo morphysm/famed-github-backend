@@ -1,8 +1,6 @@
 package server
 
 import (
-	"context"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -34,15 +32,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	token, err := appClient.GetAccessTokens(
-		context.Background(),
-		config.Github.InstallationID,
-		config.Github.RepoIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	installationClient, err := installation.NewClient(gitHost, token, config.Github.Owner)
+	installationClient, err := installation.NewClient(gitHost, appClient, config.Github.InstallationID, config.Github.RepoIDs, config.Github.Owner)
 	if err != nil {
 		return nil, err
 	}
