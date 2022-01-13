@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sort"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
@@ -59,6 +60,11 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 	for _, contributor := range contributors {
 		contributorsArray = append(contributorsArray, contributor)
 	}
+
+	// Sort contributors array by total rewards
+	sort.SliceStable(contributorsArray, func(i, j int) bool {
+		return contributorsArray[i].RewardSum > contributorsArray[j].RewardSum
+	})
 
 	return contributorsArray, nil
 }
