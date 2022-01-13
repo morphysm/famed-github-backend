@@ -23,7 +23,7 @@ const (
 	githubKudoLabelEnvName = "GITHUB_KUDO_LABEL"
 	githubAppIDEnvName     = "GITHUB_APP_ID"
 	githubOwner            = "GITHUB_OWNER"
-	githubInstallationID   = "GITHUB_INSTALTION_ID"
+	githubInstallationID   = "GITHUB_INSTALLATION_ID"
 	githubRepoIDs          = "GITHUB_REPO_IDS"
 )
 
