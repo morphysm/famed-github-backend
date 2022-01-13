@@ -34,8 +34,11 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 }
 
 // TODO test if issues are returned in chronological order
-func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) (map[string]*kudo.Contributor, error) {
-	var contributors map[string]*kudo.Contributor
+func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) ([]*kudo.Contributor, error) {
+	var (
+		contributors      map[string]*kudo.Contributor
+		contributorsArray []*kudo.Contributor
+	)
 
 	for _, issue := range issues {
 		if issue.ID == nil || issue.CreatedAt == nil || issue.ClosedAt == nil {
@@ -51,7 +54,11 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 
 		contributors = kudo.EventsToContributors(contributors, eventsResp, *issue.CreatedAt, *issue.ClosedAt, severity)
 	}
-	// TODO is this ordered by time of occurrence?
 
-	return contributors, nil
+	// Transformation of contributors map to contributors array
+	for _, contributor := range contributors {
+		contributorsArray = append(contributorsArray, contributor)
+	}
+
+	return contributorsArray, nil
 }
