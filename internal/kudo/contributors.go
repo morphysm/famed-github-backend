@@ -40,10 +40,25 @@ type Reward struct {
 	Reward float64   `json:"reward"`
 }
 
-func EventsToContributors(contributors map[string]*Contributor, events []*github.IssueEvent, issueCreatedAt time.Time, issueClosedAt time.Time, severity IssueSeverity) map[string]*Contributor {
+// GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
+func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent) map[string]*Contributor {
+	contributors := map[string]*Contributor{}
+	for _, issue := range issues {
+		GenerateContributorsByIssue(contributors, issue, eventsByIssue[*issue.ID])
+	}
+
+	return contributors
+}
+
+// GenerateContributorsByIssue updates the contributors map based on a set of events and an issue.
+func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *github.Issue, events []*github.IssueEvent) map[string]*Contributor {
 	var (
 		workLogs         = map[string][]WorkLog{}
+		reopenCount      = 0
+		issueCreatedAt   = *issue.CreatedAt
+		issueClosedAt    = *issue.ClosedAt
 		timeToDisclosure = issueClosedAt.Sub(issueCreatedAt).Minutes()
+		severity         = IssueToSeverity(issue)
 	)
 
 	if contributors == nil {
@@ -57,21 +72,60 @@ func EventsToContributors(contributors map[string]*Contributor, events []*github
 
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
-			handleEventAssigned(contributors, event, issueClosedAt, timeToDisclosure, severity, workLogs)
+			handleEventAssigned(contributors, event, issueClosedAt, workLogs)
 		case string(installation.IssueEventActionUnassigned):
 			handleEventUnassigned(event, workLogs)
+		case string(installation.IssueEventActionReopened):
+			reopenCount++
 		}
 	}
 
-	// Calculate the reward // TODO incorrect because it does not count multiple issues
-	contributors = updateReward(contributors, workLogs, issueCreatedAt, issueClosedAt, 0)
+	// Increment fix counter only for assignee on closed
+	contributors = updateFixCounters(contributors, issue, timeToDisclosure, severity)
+
+	// Calculate the reward
+	contributors = updateReward(contributors, workLogs, issueCreatedAt, issueClosedAt, reopenCount)
+	// Calculate mean and deviation of time to disclosure
 	contributors = updateMeanAndDeviationOfDisclosure(contributors)
+	// Calculate average severity of fixed issues
 	contributors = updateAverageSeverity(contributors)
 
 	return contributors
 }
 
-func handleEventAssigned(contributors map[string]*Contributor, event *github.IssueEvent, issueClosedAt time.Time, timeToDisclosure float64, severity IssueSeverity, workLogs map[string][]WorkLog) {
+func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) map[string]*Contributor {
+	contributor, ok := contributors[*issue.Assignee.Login]
+	if !ok {
+		contributor = &Contributor{
+			Login:            *issue.Assignee.Login,
+			AvatarURL:        issue.Assignee.AvatarURL,
+			HTMLURL:          issue.Assignee.HTMLURL,
+			GravatarID:       issue.Assignee.GravatarID,
+			Rewards:          []Reward{},
+			TimeToDisclosure: TimeToDisclosure{},
+			IssueSeverities:  map[IssueSeverity]int{},
+			MonthFixCount:    map[time.Month]int{},
+		}
+	}
+
+	// Increment fix count
+	contributor.FixCount++
+	monthCount := contributor.MonthFixCount[issue.ClosedAt.Month()]
+	monthCount++
+	contributor.MonthFixCount[issue.ClosedAt.Month()] = monthCount
+
+	// Increment severity counter
+	counterSeverities := contributor.IssueSeverities[severity]
+	contributor.IssueSeverities[severity] = counterSeverities + 1
+
+	// Append time to disclosure
+	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
+
+	return contributors
+}
+
+// handleEventAssigned handles an assigned event, updating the contributor map.
+func handleEventAssigned(contributors map[string]*Contributor, event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog) {
 	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 		return
 	}
@@ -93,19 +147,6 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 			MonthFixCount:    map[time.Month]int{},
 		}
 	}
-
-	// Increment fix count
-	contributor.FixCount++
-	monthCount := contributor.MonthFixCount[issueClosedAt.Month()]
-	monthCount++
-	contributor.MonthFixCount[issueClosedAt.Month()] = monthCount
-
-	// Increment severity counter
-	counterSeverities := contributor.IssueSeverities[severity]
-	contributor.IssueSeverities[severity] = counterSeverities + 1
-
-	// Append time to disclosure
-	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
 
 	// Append work log
 	// TODO check if work end works like this

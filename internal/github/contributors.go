@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"sort"
 
@@ -37,24 +38,30 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 // TODO test if issues are returned in chronological order
 func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) ([]*kudo.Contributor, error) {
 	var (
-		contributors      map[string]*kudo.Contributor
 		contributorsArray []*kudo.Contributor
 	)
 
+	eventsByIssue := map[int64][]*github.IssueEvent{}
 	for _, issue := range issues {
-		if issue.ID == nil || issue.CreatedAt == nil || issue.ClosedAt == nil {
+		if !kudo.IsIssueValid(issue) {
 			continue
 		}
 
+		// TODO add concurrency
 		eventsResp, err := gH.githubInstallationClient.GetIssueEvents(ctx, repoName, *issue.Number)
 		if err != nil {
 			return nil, err
 		}
 
-		severity := kudo.IssueToSeverity(issue)
+		if issue.ID == nil {
+			log.Println("[issuesToContributors] issue misses ID")
+			continue
+		}
 
-		contributors = kudo.EventsToContributors(contributors, eventsResp, *issue.CreatedAt, *issue.ClosedAt, severity)
+		eventsByIssue[*issue.ID] = eventsResp
 	}
+
+	contributors := kudo.GenerateContributors(issues, eventsByIssue)
 
 	// Transformation of contributors map to contributors array
 	for _, contributor := range contributors {

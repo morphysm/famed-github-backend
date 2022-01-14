@@ -1,14 +1,12 @@
 package github
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
@@ -39,49 +37,21 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 // handleIssuesEvent handles issue events.
 // If the kudo label is set and the issue is closed a suggested payout comment is posted to the GitHub API.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	if event.Action == nil ||
-		*event.Action != string(installation.Closed) ||
-		event.Repo == nil ||
-		event.Issue == nil ||
-		event.Repo.Name == nil ||
-		event.Issue.Number == nil ||
-		event.Issue.Labels == nil {
+	if !kudo.IsValidCloseEvent(event, gH.kudoLabel) {
 		return c.NoContent(http.StatusOK)
 	}
-
-	// TODO Check for labels and alike
-	repoName := *event.Repo.Name
-	issueNumber := *event.Issue.Number
-
-	// Check labels for "kudo" and severity
-	kudoSupported := false
-	for _, label := range event.Issue.Labels {
-		if label.Name != nil && *label.Name == gH.kudoLabel {
-			kudoSupported = true
-		}
-	}
-
-	if !kudoSupported {
-		return c.NoContent(http.StatusOK)
-	}
-
-	severity := kudo.IssueToSeverity(event.Issue)
 
 	// Get issue events
-	events, err := gH.githubInstallationClient.GetIssueEvents(c.Request().Context(), repoName, issueNumber)
+	events, err := gH.githubInstallationClient.GetIssueEvents(c.Request().Context(), *event.Repo.Name, *event.Issue.Number)
 	if err != nil {
 		log.Printf("error getting issue events: %v", err)
 		return err
 	}
 
-	// TODO not optimal to reuse the function for all contributors of a repo
-	contributors := kudo.EventsToContributors(nil, events, *event.Issue.CreatedAt, *event.Issue.ClosedAt, severity)
-	comment := "Kudo suggests:"
-	for _, contributor := range contributors {
-		comment = fmt.Sprintf("%s\n Contributor: %s, Reward: %f\n", comment, contributor.Login, contributor.RewardSum)
-	}
+	contributors := kudo.GenerateContributorsByIssue(nil, event.Issue, events)
+	comment := kudo.GenerateCommentFromContributors(contributors)
 
-	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), repoName, issueNumber, comment)
+	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
 	if err != nil {
 		return err
 	}
