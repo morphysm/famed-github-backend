@@ -1,47 +1,51 @@
-package kudo
+package kudo_test
 
 import (
 	"testing"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 func TestIssueToSeverity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		Name     string
 		Label    string
-		Expected IssueSeverity
+		Expected kudo.IssueSeverity
 	}{
 		{
 			Name:     "Issue severity label none",
 			Label:    "none",
-			Expected: IssueSeverity("none"),
+			Expected: kudo.IssueSeverity("none"),
 		},
 		{
 			Name:     "Issue severity label low",
 			Label:    "low",
-			Expected: IssueSeverity("low"),
+			Expected: kudo.IssueSeverity("low"),
 		},
 		{
 			Name:     "Issue severity label medium",
 			Label:    "medium",
-			Expected: IssueSeverity("medium"),
+			Expected: kudo.IssueSeverity("medium"),
 		},
 		{
 			Name:     "Issue severity high ",
 			Label:    "high",
-			Expected: IssueSeverity("high"),
+			Expected: kudo.IssueSeverity("high"),
 		},
 		{
 			Name:     "Issue severity critical ",
 			Label:    "critical",
-			Expected: IssueSeverity("critical"),
+			Expected: kudo.IssueSeverity("critical"),
 		},
 		{
 			Name:     "Issue severity critical ",
 			Label:    "",
-			Expected: IssueSeverity("none"),
+			Expected: kudo.IssueSeverity("none"),
 		},
 	}
 
@@ -53,7 +57,7 @@ func TestIssueToSeverity(t *testing.T) {
 			issue := &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}
 
 			// WHEN
-			severityResult := IssueToSeverity(issue)
+			severityResult := kudo.IssueToSeverity(issue)
 
 			// THEN
 			assert.Equal(t, testCase.Expected, severityResult)
@@ -67,8 +71,8 @@ func TestIssueToSeverityNoIssue(t *testing.T) {
 	var issue *github.Issue
 
 	// WHEN
-	severityResult := IssueToSeverity(issue)
+	severityResult := kudo.IssueToSeverity(issue)
 
 	// THEN
-	assert.Equal(t, IssueSeverity("none"), severityResult)
+	assert.Equal(t, kudo.IssueSeverity("none"), severityResult)
 }

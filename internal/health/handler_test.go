@@ -1,4 +1,3 @@
-// Module responsible of unit test for health package.
 package health_test
 
 import (
@@ -13,7 +12,6 @@ import (
 )
 
 func TestHealthCheckServiceAvailable(t *testing.T) {
-
 	var expectedResponse = `{"version":"0.0.1"}
 `
 	recorder := httptest.NewRecorder()

@@ -63,13 +63,13 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// Github installation id
+	// GitHub installation id
 	err = bindInt64(&config.Github.InstallationID, githubInstallationID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Github repos
+	// GitHub repos
 	err = bindInt64Slice(&config.Github.RepoIDs, githubRepoIDs)
 	if err != nil {
 		return nil, err

@@ -47,7 +47,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://d28c-2003-c2-bf06-3401-a44f-2a20-4033-daf8.ngrok.io/github/webhooks/event",
+					"raw": "https://d28c-2003-c2-bf06-3401-a44f-2a20-4033-daf8.ngrok.io/github/webhooks/event",
 					"protocol": "http",
 					"host": [
 						"d28c-2003-c2-bf06-3401-a44f-2a20-4033-daf8",

@@ -13,7 +13,7 @@ type HTTPHandler interface {
 	PostEvent(c echo.Context) error
 }
 
-// githubHandler represents the handler for the github endpoints.
+// githubHandler represents the handler for the GitHub endpoints.
 type githubHandler struct {
 	githubAppClient          apps.Client
 	githubInstallationClient installation.Client
@@ -22,7 +22,7 @@ type githubHandler struct {
 	kudoLabel                string
 }
 
-// NewHandler returns a pointer to the github handler.
+// NewHandler returns a pointer to the GitHub handler.
 func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, webhookSecret string, installationID int64, kudoLabel string) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,

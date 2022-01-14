@@ -8,8 +8,9 @@ import (
 )
 
 func TestUpdateReward(t *testing.T) {
-	exampleTime := time.Now()
+	t.Parallel()
 
+	exampleTime := time.Now()
 	testCases := []struct {
 		Name         string
 		Contributors map[string]*Contributor
@@ -139,6 +140,8 @@ func TestUpdateReward(t *testing.T) {
 }
 
 func TestReward(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		Name     string
 		T        time.Duration

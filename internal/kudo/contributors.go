@@ -96,12 +96,12 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 
 	// Increment fix count
 	contributor.FixCount++
-	monthCount, _ := contributor.MonthFixCount[issueClosedAt.Month()]
+	monthCount := contributor.MonthFixCount[issueClosedAt.Month()]
 	monthCount++
 	contributor.MonthFixCount[issueClosedAt.Month()] = monthCount
 
 	// Increment severity counter
-	counterSeverities, _ := contributor.IssueSeverities[severity]
+	counterSeverities := contributor.IssueSeverities[severity]
 	contributor.IssueSeverities[severity] = counterSeverities + 1
 
 	// Append time to disclosure
@@ -110,7 +110,7 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 	// Append work log
 	// TODO check if work end works like this
 	work := WorkLog{Start: *event.CreatedAt, End: issueClosedAt}
-	assigneeWorkLogs, _ := workLogs[*event.Assignee.Login]
+	assigneeWorkLogs := workLogs[*event.Assignee.Login]
 	assigneeWorkLogs = append(assigneeWorkLogs, work)
 	workLogs[*event.Assignee.Login] = assigneeWorkLogs
 
@@ -123,8 +123,8 @@ func handleEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkL
 	}
 
 	// Append work log
-	assigneeWorkLogs, _ := workLogs[*event.Assignee.Login]
-	if assigneeWorkLogs == nil {
+	assigneeWorkLogs := workLogs[*event.Assignee.Login]
+	if len(assigneeWorkLogs) == 0 {
 		log.Printf("no work log on event unassigned")
 		return
 	}
@@ -143,16 +143,16 @@ func updateMeanAndDeviationOfDisclosure(contributors map[string]*Contributor) ma
 
 		var totalTime, sd float64
 		// Calculate mean
-		for _, time := range contributor.TimeToDisclosure.Time {
-			totalTime += time
+		for _, timeToDisclosure := range contributor.TimeToDisclosure.Time {
+			totalTime += timeToDisclosure
 		}
 
 		contributor.TimeToDisclosure.Mean = totalTime / float64(contributor.FixCount)
 
 		// Calculate standard deviation
-		for _, time := range contributor.TimeToDisclosure.Time {
+		for _, timeToDisclosure := range contributor.TimeToDisclosure.Time {
 			// The use of Pow math function func Pow(x, y float64) float64
-			sd += math.Pow(time-contributor.TimeToDisclosure.Mean, 2)
+			sd += math.Pow(timeToDisclosure-contributor.TimeToDisclosure.Mean, 2) //nolint:gomnd
 		}
 
 		contributor.TimeToDisclosure.StandardDeviation = math.Sqrt(sd / float64(contributor.FixCount))

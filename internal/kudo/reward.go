@@ -26,17 +26,17 @@ func updateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 		}
 
 		for _, work := range contributorWorkLogs {
-			contributorTotalWork, _ := totalWork[contributor.Login]
+			contributorTotalWork := totalWork[contributor.Login]
 			totalWork[contributor.Login] = contributorTotalWork + work.End.Sub(work.Start)
 		}
 
-		contributorTotalWork, _ := totalWork[contributor.Login]
+		contributorTotalWork := totalWork[contributor.Login]
 		workSum += contributorTotalWork
 	}
 
 	// divide base reward based on percentage of each contributor
 	for _, contributor := range contributors {
-		contributorTotalWork, _ := totalWork[contributor.Login]
+		contributorTotalWork := totalWork[contributor.Login]
 		// < is a safety measure, should not happen
 		if contributorTotalWork == 0 {
 			continue

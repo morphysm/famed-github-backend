@@ -19,7 +19,10 @@ func bindString(s *string, name string) error {
 }
 
 func loadStringFromEnvironment(name string) (string, error) {
-	viper.BindEnv(name)
+	if err := viper.BindEnv(name); err != nil {
+		return "", err
+	}
+
 	envValue := viper.GetString(name)
 	if envValue == "" {
 		return "", fmt.Errorf("no %s environment variable found", name)
@@ -40,7 +43,10 @@ func bindInt64(i *int64, name string) error {
 }
 
 func loadInt64FromEnvironment(name string) (int64, error) {
-	viper.BindEnv(name)
+	if err := viper.BindEnv(name); err != nil {
+		return 0, err
+	}
+
 	envValue := viper.GetInt64(name)
 	if envValue == 0 {
 		return 0, fmt.Errorf("no %s environment variable found", name)
@@ -66,7 +72,10 @@ func bindInt64Slice(s *[]int64, name string) error {
 }
 
 func loadIntSliceFromEnvironment(name string) ([]int, error) {
-	viper.BindEnv(name)
+	if err := viper.BindEnv(name); err != nil {
+		return nil, err
+	}
+
 	envValue := viper.GetStringSlice(name)
 	if len(envValue) == 0 {
 		return nil, fmt.Errorf("no %s environment variable found", name)

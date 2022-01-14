@@ -7,7 +7,7 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/health"
 )
 
-// GitHubRoutes defines endpoints exposed to serve relay calls to the Github api.
+// GitHubRoutes defines endpoints exposed to serve relay calls to the GitHub api.
 func GitHubRoutes(g *echo.Group, handler github.HTTPHandler) {
 	g.GET("/repos/:repo_name/contributors", handler.GetContributors)
 

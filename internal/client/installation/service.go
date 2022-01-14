@@ -58,7 +58,7 @@ func NewGithubTokenSource(client apps.Client, installationID int64, repoIDs []in
 	}
 }
 
-// NewClient returns a new instance of the Github client
+// NewClient returns a new instance of the GitHub client
 func NewClient(baseURL string, client apps.Client, installationID int64, repoIDs []int64, owner string) (Client, error) {
 	ts := NewGithubTokenSource(client, installationID, repoIDs)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)

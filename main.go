@@ -26,13 +26,13 @@ Go Backend
 )
 
 func main() {
-	config, err := config.Load()
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Prepare Main
-	echoServer := prepareServer(config)
+	echoServer := prepareServer(cfg)
 
 	// Start server.
 	start(echoServer)
@@ -60,7 +60,7 @@ func start(e *echo.Echo) {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit

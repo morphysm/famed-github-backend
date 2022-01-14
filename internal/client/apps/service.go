@@ -20,7 +20,7 @@ type githubAppClient struct {
 	client *github.Client
 }
 
-// NewClient returns a new instance of the Github client
+// NewClient returns a new instance of the GitHub client
 func NewClient(baseURL string, apiKey string, appID int64) (Client, error) {
 	itr, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(apiKey))
 	if err != nil {
