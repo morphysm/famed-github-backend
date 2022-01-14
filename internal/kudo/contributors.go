@@ -65,6 +65,11 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 		contributors = map[string]*Contributor{}
 	}
 
+	// Add on closed assignee
+	contributors, _ = addContributorIfMissing(contributors, issue.Assignee)
+	// Increment fix counter only for assignee on closed
+	contributors = updateFixCounters(contributors, issue, timeToDisclosure, severity)
+
 	for _, event := range events {
 		if event.Event == nil {
 			continue
@@ -80,9 +85,6 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 		}
 	}
 
-	// Increment fix counter only for assignee on closed
-	contributors = updateFixCounters(contributors, issue, timeToDisclosure, severity)
-
 	// Calculate the reward
 	contributors = updateReward(contributors, workLogs, issueCreatedAt, issueClosedAt, reopenCount)
 	// Calculate mean and deviation of time to disclosure
@@ -93,20 +95,27 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 	return contributors
 }
 
-func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) map[string]*Contributor {
-	contributor, ok := contributors[*issue.Assignee.Login]
+func addContributorIfMissing(contributors map[string]*Contributor, assignee *github.User) (map[string]*Contributor, *Contributor) {
+	contributor, ok := contributors[*assignee.Login]
 	if !ok {
 		contributor = &Contributor{
-			Login:            *issue.Assignee.Login,
-			AvatarURL:        issue.Assignee.AvatarURL,
-			HTMLURL:          issue.Assignee.HTMLURL,
-			GravatarID:       issue.Assignee.GravatarID,
+			Login:            *assignee.Login,
+			AvatarURL:        assignee.AvatarURL,
+			HTMLURL:          assignee.HTMLURL,
+			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
 			TimeToDisclosure: TimeToDisclosure{},
 			IssueSeverities:  map[IssueSeverity]int{},
 			MonthFixCount:    map[time.Month]int{},
 		}
 	}
+
+	contributors[*assignee.Login] = contributor
+	return contributors, contributor
+}
+
+func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) map[string]*Contributor {
+	contributor, _ := contributors[*issue.Assignee.Login]
 
 	// Increment fix count
 	contributor.FixCount++
@@ -134,19 +143,7 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 		return
 	}
 
-	contributor, ok := contributors[*event.Assignee.Login]
-	if !ok {
-		contributor = &Contributor{
-			Login:            *event.Assignee.Login,
-			AvatarURL:        event.Assignee.AvatarURL,
-			HTMLURL:          event.Assignee.HTMLURL,
-			GravatarID:       event.Assignee.GravatarID,
-			Rewards:          []Reward{},
-			TimeToDisclosure: TimeToDisclosure{},
-			IssueSeverities:  map[IssueSeverity]int{},
-			MonthFixCount:    map[time.Month]int{},
-		}
-	}
+	contributors, contributor := addContributorIfMissing(contributors, event.Assignee)
 
 	// Append work log
 	// TODO check if work end works like this

@@ -37,15 +37,15 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 
 // TODO test if issues are returned in chronological order
 func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) ([]*kudo.Contributor, error) {
-	var (
-		contributorsArray []*kudo.Contributor
-	)
+	var contributorsArray []*kudo.Contributor
 
+	var filteredIssues []*github.Issue
 	eventsByIssue := map[int64][]*github.IssueEvent{}
 	for _, issue := range issues {
 		if !kudo.IsIssueValid(issue) {
 			continue
 		}
+		filteredIssues = append(filteredIssues, issue)
 
 		// TODO add concurrency
 		eventsResp, err := gH.githubInstallationClient.GetIssueEvents(ctx, repoName, *issue.Number)
@@ -61,7 +61,7 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 		eventsByIssue[*issue.ID] = eventsResp
 	}
 
-	contributors := kudo.GenerateContributors(issues, eventsByIssue)
+	contributors := kudo.GenerateContributors(filteredIssues, eventsByIssue)
 
 	// Transformation of contributors map to contributors array
 	for _, contributor := range contributors {
