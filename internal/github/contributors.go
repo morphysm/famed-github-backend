@@ -37,12 +37,15 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 
 // TODO test if issues are returned in chronological order
 func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) ([]*kudo.Contributor, error) {
-	var contributorsArray []*kudo.Contributor
+	var (
+		contributorsArray []*kudo.Contributor
+		filteredIssues    []*github.Issue
+		eventsByIssue     = map[int64][]*github.IssueEvent{}
+	)
 
-	var filteredIssues []*github.Issue
-	eventsByIssue := map[int64][]*github.IssueEvent{}
 	for _, issue := range issues {
 		if !kudo.IsIssueValid(issue) {
+			log.Printf("[issuesToContributors] issue invalid with ID: %d \n", issue.ID)
 			continue
 		}
 		filteredIssues = append(filteredIssues, issue)
@@ -51,11 +54,6 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 		eventsResp, err := gH.githubInstallationClient.GetIssueEvents(ctx, repoName, *issue.Number)
 		if err != nil {
 			return nil, err
-		}
-
-		if issue.ID == nil {
-			log.Println("[issuesToContributors] issue misses ID")
-			continue
 		}
 
 		eventsByIssue[*issue.ID] = eventsResp
