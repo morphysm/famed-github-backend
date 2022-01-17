@@ -10,6 +10,8 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 )
 
+type Contributors map[string]*Contributor
+
 type Contributor struct {
 	Login            string                `json:"login"`
 	AvatarURL        *string               `json:"avatar_url,omitempty"`
@@ -41,17 +43,17 @@ type Reward struct {
 }
 
 // GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
-func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent) map[string]*Contributor {
-	contributors := map[string]*Contributor{}
+func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent) Contributors {
+	contributors := Contributors{}
 	for _, issue := range issues {
-		GenerateContributorsByIssue(contributors, issue, eventsByIssue[*issue.ID])
+		contributors.MapIssue(issue, eventsByIssue[*issue.ID])
 	}
 
 	return contributors
 }
 
-// GenerateContributorsByIssue updates the contributors map based on a set of events and an issue.
-func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *github.Issue, events []*github.IssueEvent) map[string]*Contributor {
+// MapIssue updates the contributors map based on a set of events and an issue.
+func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent) {
 	var (
 		workLogs         = map[string][]WorkLog{}
 		reopenCount      = 0
@@ -61,14 +63,10 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 		severity         = IssueToSeverity(issue)
 	)
 
-	if contributors == nil {
-		contributors = map[string]*Contributor{}
-	}
-
 	// Add on closed assignee
-	contributors, _ = addContributorIfMissing(contributors, issue.Assignee)
+	contributors.mapAssigneeIfMissing(issue.Assignee)
 	// Increment fix counter only for assignee on closed
-	contributors = updateFixCounters(contributors, issue, timeToDisclosure, severity)
+	contributors.updateFixCounters(issue, timeToDisclosure, severity)
 
 	for _, event := range events {
 		if event.Event == nil {
@@ -77,29 +75,27 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
-			handleEventAssigned(contributors, event, issueClosedAt, workLogs)
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs)
 		case string(installation.IssueEventActionUnassigned):
-			handleEventUnassigned(event, workLogs)
+			mapEventUnassigned(event, workLogs)
 		case string(installation.IssueEventActionReopened):
 			reopenCount++
 		}
 	}
 
 	// Calculate the reward
-	contributors = updateReward(contributors, workLogs, issueCreatedAt, issueClosedAt, reopenCount)
+	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount)
 	// Calculate mean and deviation of time to disclosure
-	contributors = updateMeanAndDeviationOfDisclosure(contributors)
+	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
-	contributors = updateAverageSeverity(contributors)
-
-	return contributors
+	contributors.updateAverageSeverity()
 }
 
-// addContributorIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func addContributorIfMissing(contributors map[string]*Contributor, assignee *github.User) (map[string]*Contributor, *Contributor) {
-	contributor, ok := contributors[*assignee.Login]
+// mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
+func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User) {
+	_, ok := contributors[*assignee.Login]
 	if !ok {
-		contributor = &Contributor{
+		contributors[*assignee.Login] = &Contributor{
 			Login:            *assignee.Login,
 			AvatarURL:        assignee.AvatarURL,
 			HTMLURL:          assignee.HTMLURL,
@@ -110,13 +106,10 @@ func addContributorIfMissing(contributors map[string]*Contributor, assignee *git
 			MonthFixCount:    map[time.Month]int{},
 		}
 	}
-
-	contributors[*assignee.Login] = contributor
-	return contributors, contributor
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) map[string]*Contributor {
+func (contributors Contributors) updateFixCounters(issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) {
 	contributor, _ := contributors[*issue.Assignee.Login]
 
 	// Increment fix count
@@ -131,12 +124,10 @@ func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue
 
 	// Append time to disclosure
 	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
-
-	return contributors
 }
 
-// handleEventAssigned handles an assigned event, updating the contributor map.
-func handleEventAssigned(contributors map[string]*Contributor, event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog) {
+// mapEventAssigned handles an assigned event, updating the contributor map.
+func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog) {
 	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 		return
 	}
@@ -145,7 +136,7 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 		return
 	}
 
-	contributors, contributor := addContributorIfMissing(contributors, event.Assignee)
+	contributors.mapAssigneeIfMissing(event.Assignee)
 
 	// Append work log
 	// TODO check if work end works like this
@@ -153,12 +144,10 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 	assigneeWorkLogs := workLogs[*event.Assignee.Login]
 	assigneeWorkLogs = append(assigneeWorkLogs, work)
 	workLogs[*event.Assignee.Login] = assigneeWorkLogs
-
-	contributors[*event.Assignee.Login] = contributor
 }
 
-// handleEventAssigned handles an unassigned event, updating the work log of the unassigned contributor.
-func handleEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog) {
+// mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
+func mapEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog) {
 	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 		return
 	}
@@ -175,7 +164,7 @@ func handleEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkL
 }
 
 // updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.
-func updateMeanAndDeviationOfDisclosure(contributors map[string]*Contributor) map[string]*Contributor {
+func (contributors Contributors) updateMeanAndDeviationOfDisclosure() {
 	for _, contributor := range contributors {
 		if contributor.FixCount == 0 {
 			continue
@@ -191,18 +180,15 @@ func updateMeanAndDeviationOfDisclosure(contributors map[string]*Contributor) ma
 
 		// Calculate standard deviation
 		for _, timeToDisclosure := range contributor.TimeToDisclosure.Time {
-			// The use of Pow math function func Pow(x, y float64) float64
 			sd += math.Pow(timeToDisclosure-contributor.TimeToDisclosure.Mean, 2) //nolint:gomnd
 		}
 
 		contributor.TimeToDisclosure.StandardDeviation = math.Sqrt(sd / float64(contributor.FixCount))
 	}
-
-	return contributors
 }
 
 // updateAverageSeverity updates the average severity field of all contributors.
-func updateAverageSeverity(contributors map[string]*Contributor) map[string]*Contributor {
+func (contributors Contributors) updateAverageSeverity() {
 	for _, contributor := range contributors {
 		if contributor.FixCount == 0 {
 			continue
@@ -213,6 +199,4 @@ func updateAverageSeverity(contributors map[string]*Contributor) map[string]*Con
 			9*float64(contributor.IssueSeverities[IssueSeverityHigh]) +
 			9.5*float64(contributor.IssueSeverities[IssueSeverityCritical])) / float64(contributor.FixCount)
 	}
-
-	return contributors
 }

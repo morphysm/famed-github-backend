@@ -48,8 +48,9 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 		return err
 	}
 
-	contributors := kudo.GenerateContributorsByIssue(nil, event.Issue, events)
-	comment := kudo.GenerateCommentFromContributors(contributors)
+	contributors := kudo.Contributors{}
+	contributors.MapIssue(event.Issue, events)
+	comment := contributors.GenerateCommentFromContributors()
 
 	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
 	if err != nil {

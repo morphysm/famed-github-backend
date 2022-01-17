@@ -2,7 +2,7 @@ package kudo
 
 import "fmt"
 
-func GenerateCommentFromContributors(contributors map[string]*Contributor) string {
+func (contributors Contributors) GenerateCommentFromContributors() string {
 	if len(contributors) > 0 {
 		comment := "Kudo suggests:"
 		for _, contributor := range contributors {

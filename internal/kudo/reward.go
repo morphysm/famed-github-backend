@@ -11,15 +11,15 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // contributors (array of contributors with timeOnIssue)
-func updateReward(contributors map[string]*Contributor, workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int) map[string]*Contributor {
+func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int) {
 	baseReward := reward(closed.Sub(open), k)
-	// totalWork maps contributor login to contributor total work
+	// TotalWork maps contributor login to contributor total work
 	totalWork := map[string]time.Duration{}
 
-	// calculate total work time of all contributors
+	// Calculate total work time of all contributors
 	workSum := time.Duration(0)
 	for _, contributor := range contributors {
-		// calculate total work time of a contributor
+		// Calculate total work time of a contributor
 		contributorWorkLogs, ok := workLogs[contributor.Login]
 		if !ok {
 			continue
@@ -34,19 +34,19 @@ func updateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 		workSum += contributorTotalWork
 	}
 
-	// divide base reward based on percentage of each contributor
+	// Divide base reward based on percentage of each contributor
 	for _, contributor := range contributors {
 		contributorTotalWork := totalWork[contributor.Login]
-		// < is a safety measure, should not happen
 		if contributorTotalWork == 0 {
 			continue
 		}
 
+		// < is a safety measure, should not happen
 		if contributorTotalWork < 0 {
 			log.Printf("negative contributor total work: %d\n", contributorTotalWork)
 		}
 
-		// calculated share of reward
+		// Calculated share of reward
 		reward := baseReward * float64(workSum) / float64(contributorTotalWork)
 
 		contributor.RewardSum += reward
@@ -55,8 +55,6 @@ func updateReward(contributors map[string]*Contributor, workLogs map[string][]Wo
 			Reward: reward,
 		})
 	}
-
-	return contributors
 }
 
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).

@@ -31,7 +31,7 @@ func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) bool {
 		*event.Action != string(installation.Closed) ||
 		!IsIssueValid(event.Issue) ||
 		!isIssueKudoLabeled(event.Issue, kudoLabel) {
-		log.Println("[IsValidCloseEvent] event is no valid closed event")
+		log.Println("[IsValidCloseEvent] event is not valid closed event")
 		return false
 	}
 
