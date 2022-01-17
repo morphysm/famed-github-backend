@@ -95,6 +95,7 @@ func GenerateContributorsByIssue(contributors map[string]*Contributor, issue *gi
 	return contributors
 }
 
+// addContributorIfMissing adds a contributor to the contributors' map if the contributor is missing.
 func addContributorIfMissing(contributors map[string]*Contributor, assignee *github.User) (map[string]*Contributor, *Contributor) {
 	contributor, ok := contributors[*assignee.Login]
 	if !ok {
@@ -114,6 +115,7 @@ func addContributorIfMissing(contributors map[string]*Contributor, assignee *git
 	return contributors, contributor
 }
 
+// updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
 func updateFixCounters(contributors map[string]*Contributor, issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) map[string]*Contributor {
 	contributor, _ := contributors[*issue.Assignee.Login]
 
@@ -155,6 +157,7 @@ func handleEventAssigned(contributors map[string]*Contributor, event *github.Iss
 	contributors[*event.Assignee.Login] = contributor
 }
 
+// handleEventAssigned handles an unassigned event, updating the work log of the unassigned contributor.
 func handleEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog) {
 	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 		return
@@ -171,8 +174,7 @@ func handleEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkL
 	workLogs[*event.Assignee.Login] = assigneeWorkLogs
 }
 
-// TODO make the functions more efficient
-// TODO can we only pas TimeToDisclosure?
+// updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.
 func updateMeanAndDeviationOfDisclosure(contributors map[string]*Contributor) map[string]*Contributor {
 	for _, contributor := range contributors {
 		if contributor.FixCount == 0 {
@@ -199,6 +201,7 @@ func updateMeanAndDeviationOfDisclosure(contributors map[string]*Contributor) ma
 	return contributors
 }
 
+// updateAverageSeverity updates the average severity field of all contributors.
 func updateAverageSeverity(contributors map[string]*Contributor) map[string]*Contributor {
 	for _, contributor := range contributors {
 		if contributor.FixCount == 0 {
