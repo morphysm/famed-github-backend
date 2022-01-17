@@ -20,10 +20,10 @@ func newServer() *echo.Echo {
 func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	e := newServer()
 
-	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	//	 AllowOrigins: []string{"https://www.morphysm.com"},
-	//	 AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-	// }))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://practical-shockley-a007c4.netlify.app/"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	const gitHost = "https://api.github.com"
 
