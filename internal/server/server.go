@@ -21,7 +21,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	e := newServer()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://practical-shockley-a007c4.netlify.app/"},
+		AllowOrigins: []string{"https://practical-shockley-a007c4.netlify.app"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
