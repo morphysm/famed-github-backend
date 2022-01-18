@@ -18,23 +18,19 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 
 	// Calculate total work time of all contributors
 	workSum := time.Duration(0)
-	for _, contributor := range contributors {
+	for login, workLog := range workLogs {
 		// Calculate total work time of a contributor
-		contributorWorkLogs, ok := workLogs[contributor.Login]
-		if !ok {
-			continue
+		for _, work := range workLog {
+			contributorTotalWork := totalWork[login]
+			totalWork[login] = contributorTotalWork + work.End.Sub(work.Start)
 		}
 
-		for _, work := range contributorWorkLogs {
-			contributorTotalWork := totalWork[contributor.Login]
-			totalWork[contributor.Login] = contributorTotalWork + work.End.Sub(work.Start)
-		}
-
-		contributorTotalWork := totalWork[contributor.Login]
+		// Update work total work time of issue
+		contributorTotalWork := totalWork[login]
 		workSum += contributorTotalWork
 	}
 
-	// Divide base reward based on percentage of each contributor
+	// Divide base reward based on percentage of each contributor TODO don't map over all contributors
 	for _, contributor := range contributors {
 		contributorTotalWork := totalWork[contributor.Login]
 		if contributorTotalWork == 0 {
@@ -47,13 +43,21 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		}
 
 		// Calculated share of reward
-		reward := baseReward * float64(workSum) / float64(contributorTotalWork)
+		reward := baseReward * float64(contributorTotalWork) / float64(workSum)
 
+		// Updated reward sum
 		contributor.RewardSum += reward
+
+		// Update rewards list
 		contributor.Rewards = append(contributor.Rewards, Reward{
 			Date:   closed,
 			Reward: reward,
 		})
+
+		// Update reward by month
+		monthCount := contributor.MonthlyRewards[closed.Month()]
+		monthCount += reward
+		contributor.MonthlyRewards[closed.Month()] = monthCount
 	}
 }
 
