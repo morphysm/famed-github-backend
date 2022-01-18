@@ -34,7 +34,7 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		workSum += contributorTotalWork
 	}
 
-	// Divide base reward based on percentage of each contributor
+	// Divide base reward based on percentage of each contributor TODO don't map over all contributors
 	for _, contributor := range contributors {
 		contributorTotalWork := totalWork[contributor.Login]
 		if contributorTotalWork == 0 {
@@ -47,7 +47,7 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		}
 
 		// Calculated share of reward
-		reward := baseReward * float64(workSum) / float64(contributorTotalWork)
+		reward := baseReward * float64(contributorTotalWork) / float64(workSum)
 
 		// Updated reward sum
 		contributor.RewardSum += reward
