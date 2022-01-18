@@ -49,11 +49,19 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		// Calculated share of reward
 		reward := baseReward * float64(workSum) / float64(contributorTotalWork)
 
+		// Updated reward sum
 		contributor.RewardSum += reward
+
+		// Update rewards list
 		contributor.Rewards = append(contributor.Rewards, Reward{
 			Date:   closed,
 			Reward: reward,
 		})
+
+		// Update reward by month
+		monthCount := contributor.MonthlyRewards[closed.Month()]
+		monthCount += reward
+		contributor.MonthlyRewards[closed.Month()] = monthCount
 	}
 }
 

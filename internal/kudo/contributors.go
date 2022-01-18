@@ -13,17 +13,17 @@ import (
 type Contributors map[string]*Contributor
 
 type Contributor struct {
-	Login            string                `json:"login"`
-	AvatarURL        *string               `json:"avatar_url,omitempty"`
-	HTMLURL          *string               `json:"html_url,omitempty"`
-	GravatarID       *string               `json:"gravatar_id,omitempty"`
-	FixCount         int                   `json:"fix_count,omitempty"`
-	MonthFixCount    map[time.Month]int    `json:"month_fix_count,omitempty"`
-	Rewards          []Reward              `json:"rewards"`
-	RewardSum        float64               `json:"reward_sum"`
-	TimeToDisclosure TimeToDisclosure      `json:"time_to_disclosure"`
-	IssueSeverities  map[IssueSeverity]int `json:"issue_severity"`
-	MeanSeverity     float64               `json:"mean_severity"`
+	Login            string                 `json:"login"`
+	AvatarURL        *string                `json:"avatar_url,omitempty"`
+	HTMLURL          *string                `json:"html_url,omitempty"`
+	GravatarID       *string                `json:"gravatar_id,omitempty"`
+	FixCount         int                    `json:"fix_count,omitempty"`
+	Rewards          []Reward               `json:"rewards"`
+	RewardSum        float64                `json:"reward_sum"`
+	MonthlyRewards   map[time.Month]float64 `json:"monthly_rewards,omitempty"`
+	TimeToDisclosure TimeToDisclosure       `json:"time_to_disclosure"`
+	Severities       map[IssueSeverity]int  `json:"severities"`
+	MeanSeverity     float64                `json:"mean_severity"`
 }
 
 type TimeToDisclosure struct {
@@ -102,8 +102,8 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User) {
 			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
 			TimeToDisclosure: TimeToDisclosure{},
-			IssueSeverities:  map[IssueSeverity]int{},
-			MonthFixCount:    map[time.Month]int{},
+			Severities:       map[IssueSeverity]int{},
+			MonthlyRewards:   map[time.Month]float64{},
 		}
 	}
 }
@@ -114,13 +114,10 @@ func (contributors Contributors) updateFixCounters(issue *github.Issue, timeToDi
 
 	// Increment fix count
 	contributor.FixCount++
-	monthCount := contributor.MonthFixCount[issue.ClosedAt.Month()]
-	monthCount++
-	contributor.MonthFixCount[issue.ClosedAt.Month()] = monthCount
 
 	// Increment severity counter
-	counterSeverities := contributor.IssueSeverities[severity]
-	contributor.IssueSeverities[severity] = counterSeverities + 1
+	counterSeverities := contributor.Severities[severity]
+	contributor.Severities[severity] = counterSeverities + 1
 
 	// Append time to disclosure
 	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
@@ -155,7 +152,7 @@ func mapEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog)
 	// Append work log
 	assigneeWorkLogs := workLogs[*event.Assignee.Login]
 	if len(assigneeWorkLogs) == 0 {
-		log.Printf("no work log on event unassigned")
+		log.Printf("[mapEventUnassigned] no work log on event unassigned of issue with id %d \n", event.Issue.ID)
 		return
 	}
 
@@ -170,8 +167,8 @@ func (contributors Contributors) updateMeanAndDeviationOfDisclosure() {
 			continue
 		}
 
-		var totalTime, sd float64
 		// Calculate mean
+		var totalTime, sd float64
 		for _, timeToDisclosure := range contributor.TimeToDisclosure.Time {
 			totalTime += timeToDisclosure
 		}
@@ -194,9 +191,9 @@ func (contributors Contributors) updateAverageSeverity() {
 			continue
 		}
 
-		contributor.MeanSeverity = (2*float64(contributor.IssueSeverities[IssueSeverityLow]) +
-			5.5*float64(contributor.IssueSeverities[IssueSeverityMedium]) +
-			9*float64(contributor.IssueSeverities[IssueSeverityHigh]) +
-			9.5*float64(contributor.IssueSeverities[IssueSeverityCritical])) / float64(contributor.FixCount)
+		contributor.MeanSeverity = (2*float64(contributor.Severities[IssueSeverityLow]) +
+			5.5*float64(contributor.Severities[IssueSeverityMedium]) +
+			9*float64(contributor.Severities[IssueSeverityHigh]) +
+			9.5*float64(contributor.Severities[IssueSeverityCritical])) / float64(contributor.FixCount)
 	}
 }
