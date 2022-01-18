@@ -18,19 +18,15 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 
 	// Calculate total work time of all contributors
 	workSum := time.Duration(0)
-	for _, contributor := range contributors {
+	for login, workLog := range workLogs {
 		// Calculate total work time of a contributor
-		contributorWorkLogs, ok := workLogs[contributor.Login]
-		if !ok {
-			continue
+		for _, work := range workLog {
+			contributorTotalWork := totalWork[login]
+			totalWork[login] = contributorTotalWork + work.End.Sub(work.Start)
 		}
 
-		for _, work := range contributorWorkLogs {
-			contributorTotalWork := totalWork[contributor.Login]
-			totalWork[contributor.Login] = contributorTotalWork + work.End.Sub(work.Start)
-		}
-
-		contributorTotalWork := totalWork[contributor.Login]
+		// Update work total work time of issue
+		contributorTotalWork := totalWork[login]
 		workSum += contributorTotalWork
 	}
 
