@@ -1,5 +1,12 @@
 package config
 
+import (
+	"encoding/json"
+	"os"
+
+	"github.com/morphysm/kudos-github-backend/internal/kudo"
+)
+
 type Config struct {
 	App struct {
 		Host string
@@ -9,11 +16,16 @@ type Config struct {
 	Github struct {
 		Key            string
 		WebhookSecret  string
-		KudoLabel      string
 		AppID          int64
 		Owner          string
 		RepoIDs        []int64
 		InstallationID int64
+	}
+
+	Kudo struct {
+		Label   string
+		Rewards map[kudo.IssueSeverity]float64
+		Unit    string
 	}
 }
 
@@ -33,8 +45,14 @@ func Load() (*Config, error) {
 	config.App.Host = "127.0.0.1"
 	config.App.Port = "8080"
 
+	// Read json config file
+	err := bindConfigFile(&config)
+	if err != nil {
+		return nil, err
+	}
+
 	// GitHub api key
-	err := bindString(&config.Github.Key, githubKeyEnvName)
+	err = bindString(&config.Github.Key, githubKeyEnvName)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +64,7 @@ func Load() (*Config, error) {
 	}
 
 	// GitHub Kudo issue label
-	err = bindString(&config.Github.KudoLabel, githubKudoLabelEnvName)
+	err = bindString(&config.Kudo.Label, githubKudoLabelEnvName)
 	if err != nil {
 		return nil, err
 	}
@@ -76,4 +94,20 @@ func Load() (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+func bindConfigFile(cfg *Config) error {
+	configFile, err := os.Open("config.json")
+	if err != nil {
+		return err
+	}
+	defer configFile.Close()
+
+	jsonParser := json.NewDecoder(configFile)
+	err = jsonParser.Decode(cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

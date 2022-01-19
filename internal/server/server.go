@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/apps"
+	"github.com/morphysm/kudos-github-backend/internal/client/currency"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/config"
 	glib "github.com/morphysm/kudos-github-backend/internal/github"
@@ -26,6 +27,9 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	}))
 
 	const gitHost = "https://api.github.com"
+	const currencyHost = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1"
+
+	currencyClient := currency.NewCurrencyClient(currencyHost)
 
 	appClient, err := apps.NewClient(gitHost, config.Github.Key, config.Github.AppID)
 	if err != nil {
@@ -37,7 +41,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	githubHandler := glib.NewHandler(appClient, installationClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Github.KudoLabel)
+	githubHandler := glib.NewHandler(appClient, installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Kudo.Label, config.Kudo.Unit, config.Kudo.Rewards)
 
 	// Logger
 	e.Use(middleware.Logger())

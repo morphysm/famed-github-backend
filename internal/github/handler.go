@@ -4,12 +4,13 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/kudos-github-backend/internal/client/apps"
+	"github.com/morphysm/kudos-github-backend/internal/client/currency"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 type HTTPHandler interface {
 	GetContributors(c echo.Context) error
-
 	PostEvent(c echo.Context) error
 }
 
@@ -17,18 +18,24 @@ type HTTPHandler interface {
 type githubHandler struct {
 	githubAppClient          apps.Client
 	githubInstallationClient installation.Client
+	currencyClient           currency.Client
 	webhookSecret            string
 	installationID           int64
 	kudoLabel                string
+	kudoRewardUnit           string
+	kudoRewards              map[kudo.IssueSeverity]float64
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, webhookSecret string, installationID int64, kudoLabel string) HTTPHandler {
+func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret string, installationID int64, kudoLabel string, kudoRewardUnit string, kudoRewards map[kudo.IssueSeverity]float64) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
+		currencyClient:           currencyClient,
 		webhookSecret:            webhookSecret,
 		installationID:           installationID,
 		kudoLabel:                kudoLabel,
+		kudoRewardUnit:           kudoRewardUnit,
+		kudoRewards:              kudoRewards,
 	}
 }

@@ -1,0 +1,13 @@
+{
+  "kudo": {
+    "rewards": {
+      "none" : 0,
+      "low" : 2000,
+      "medium" : 10000,
+      "high" : 20000,
+      "critical": 50000
+    },
+    "unit": "ETH"
+  }
+
+}

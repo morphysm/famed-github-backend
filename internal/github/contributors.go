@@ -35,13 +35,22 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	return c.JSON(http.StatusOK, contributors)
 }
 
-// TODO test if issues are returned in chronological order
+// issuesToContributors generates a contributor list based on a list of issues
 func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*github.Issue, repoName string) ([]*kudo.Contributor, error) {
 	var (
-		contributorsArray []*kudo.Contributor
+		contributorsArray = []*kudo.Contributor{}
 		filteredIssues    []*github.Issue
 		eventsByIssue     = map[int64][]*github.IssueEvent{}
 	)
+
+	if len(issues) == 0 {
+		return contributorsArray, nil
+	}
+
+	usdToEthRate, err := gH.currencyClient.GetUSDToETHConversion(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, issue := range issues {
 		if !kudo.IsIssueValid(issue) {
@@ -59,7 +68,7 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 		eventsByIssue[*issue.ID] = eventsResp
 	}
 
-	contributors := kudo.GenerateContributors(filteredIssues, eventsByIssue)
+	contributors := kudo.GenerateContributors(filteredIssues, eventsByIssue, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
 
 	// Transformation of contributors map to contributors array
 	for _, contributor := range contributors {

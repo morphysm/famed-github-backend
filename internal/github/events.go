@@ -48,8 +48,14 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 		return err
 	}
 
+	usdToEthRate, err := gH.currencyClient.GetUSDToETHConversion(c.Request().Context())
+	if err != nil {
+		log.Printf("error getting usd eth conversion rate: %v", err)
+		return err
+	}
+
 	contributors := kudo.Contributors{}
-	contributors.MapIssue(event.Issue, events)
+	contributors.MapIssue(event.Issue, events, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
 	comment := contributors.GenerateCommentFromContributors()
 
 	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
