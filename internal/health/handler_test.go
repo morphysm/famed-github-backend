@@ -12,7 +12,7 @@ import (
 )
 
 func TestHealthCheckServiceAvailable(t *testing.T) {
-	var expectedResponse = `{"version":"0.0.1"}
+	expectedResponse := `{"version":"0.0.1"}
 `
 	recorder := httptest.NewRecorder()
 	actualRequest := httptest.NewRequest(http.MethodGet, "/health", nil)

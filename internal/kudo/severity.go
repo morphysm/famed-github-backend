@@ -1,6 +1,10 @@
 package kudo
 
-import "github.com/google/go-github/v41/github"
+import (
+	"errors"
+
+	"github.com/google/go-github/v41/github"
+)
 
 type IssueSeverity string
 
@@ -17,30 +21,38 @@ const (
 	IssueSeverityCritical IssueSeverity = "critical"
 )
 
-// IssueToSeverity returns the issue severity by matching labels against CVSS
-// if no matching issue severity label can be found it returns issue severity none
-func IssueToSeverity(issue *github.Issue) IssueSeverity {
-	if issue == nil || issue.Labels == nil {
-		return IssueSeverityNone
-	}
+var (
+	ErrIssueMissingLabel           = errors.New("the issue is missing it's severity label")
+	ErrIssueMultipleSeverityLabels = errors.New("the issue has multiple severity labels")
+)
 
-	// TODO how do we handle multiple CVSS
+// IssueToSeverity returns the issue severity by matching labels against CVSS
+// if no matching issue severity label can be found it returns the IssueMissingLabelErr
+// if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
+func IssueToSeverity(issue *github.Issue) (IssueSeverity, error) {
+	var severity IssueSeverity
 	for _, label := range issue.Labels {
-		if label.Name == nil {
+		if !isLabelValid(label) {
 			continue
 		}
 
-		switch *label.Name {
-		case string(IssueSeverityLow):
-			return IssueSeverityLow
-		case string(IssueSeverityMedium):
-			return IssueSeverityMedium
-		case string(IssueSeverityHigh):
-			return IssueSeverityHigh
-		case string(IssueSeverityCritical):
-			return IssueSeverityCritical
+		// Check if label is equal to one of the predefined severity labels.
+		if *label.Name == string(IssueSeverityNone) ||
+			*label.Name == string(IssueSeverityLow) ||
+			*label.Name == string(IssueSeverityMedium) ||
+			*label.Name == string(IssueSeverityHigh) ||
+			*label.Name == string(IssueSeverityCritical) {
+			// If
+			if severity != "" {
+				return "", ErrIssueMultipleSeverityLabels
+			}
+			severity = IssueSeverity(*label.Name)
 		}
 	}
 
-	return IssueSeverityNone
+	if severity == "" {
+		return "", ErrIssueMissingLabel
+	}
+
+	return severity, nil
 }

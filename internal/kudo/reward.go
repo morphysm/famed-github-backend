@@ -11,8 +11,9 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // contributors (array of contributors with timeOnIssue)
-func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int) {
+func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int, severityReward float64, usdToEthRate float64) {
 	baseReward := reward(closed.Sub(open), k)
+	ethReward := rewardToEth(baseReward, severityReward, usdToEthRate)
 	// TotalWork maps contributor login to contributor total work
 	totalWork := map[string]time.Duration{}
 
@@ -30,12 +31,12 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		workSum += contributorTotalWork
 	}
 
-	// Divide base reward based on percentage of each contributor TODO don't map over all contributors
-	for _, contributor := range contributors {
-		contributorTotalWork := totalWork[contributor.Login]
+	// Divide base reward based on percentage of each contributor
+	for login, contributorTotalWork := range totalWork {
 		if contributorTotalWork == 0 {
 			continue
 		}
+		contributor := contributors[login]
 
 		// < is a safety measure, should not happen
 		if contributorTotalWork < 0 {
@@ -43,7 +44,7 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		}
 
 		// Calculated share of reward
-		reward := baseReward * float64(contributorTotalWork) / float64(workSum)
+		reward := ethReward * float64(contributorTotalWork) / float64(workSum)
 
 		// Updated reward sum
 		contributor.RewardSum += reward
@@ -59,6 +60,11 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		monthCount += reward
 		contributor.MonthlyRewards[closed.Month()] = monthCount
 	}
+}
+
+// rewardToEth returns the base reward multiplied by the severity reward and changed to eth.
+func rewardToEth(baseReward float64, severityReward float64, usdToEthRate float64) float64 {
+	return baseReward * severityReward * usdToEthRate
 }
 
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).

@@ -11,8 +11,7 @@ type HTTPHandler interface {
 }
 
 // healthHandler represents the handler for the health endpoints.
-type healthHandler struct {
-}
+type healthHandler struct{}
 
 // NewHandler returns a pointer to the health handler.
 func NewHandler() HTTPHandler {

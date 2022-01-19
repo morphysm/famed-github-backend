@@ -61,3 +61,12 @@ func isIssueKudoLabeled(issue *github.Issue, kudoLabel string) bool {
 	log.Printf("[IsIssueKudoLabeled] missing kudo label: %s in issue with ID: %d", kudoLabel, *issue.ID)
 	return false
 }
+
+func isLabelValid(label *github.Label) bool {
+	if label.Name == nil {
+		log.Printf("[isLabelValid] missing label name in label with ID: %d", label.ID)
+		return false
+	}
+
+	return true
+}

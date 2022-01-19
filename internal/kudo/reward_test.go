@@ -13,12 +13,12 @@ func TestUpdateReward(t *testing.T) {
 	exampleTime := time.Now()
 	testCases := []struct {
 		Name         string
-		Contributors map[string]*Contributor
+		Contributors Contributors
 		WorkLogs     map[string][]WorkLog
 		Open         time.Time
 		Closed       time.Time
 		K            int
-		Expected     map[string]*Contributor
+		Expected     Contributors
 	}{
 		{
 			Name:         "Contributors nil",
@@ -27,17 +27,17 @@ func TestUpdateReward(t *testing.T) {
 		},
 		{
 			Name:         "Contributors empty",
-			Contributors: map[string]*Contributor{},
-			Expected:     map[string]*Contributor{},
+			Contributors: Contributors{},
+			Expected:     Contributors{},
 		},
 		{
 			Name:         "Contributor empty",
-			Contributors: map[string]*Contributor{"TestUser": {}},
-			Expected:     map[string]*Contributor{"TestUser": {}},
+			Contributors: Contributors{"TestUser": {}},
+			Expected:     Contributors{"TestUser": {}},
 		},
 		{
 			Name: "Contributor without work log",
-			Contributors: map[string]*Contributor{"TestUser": {
+			Contributors: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -50,7 +50,7 @@ func TestUpdateReward(t *testing.T) {
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
-			Expected: map[string]*Contributor{"TestUser": {
+			Expected: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -66,7 +66,7 @@ func TestUpdateReward(t *testing.T) {
 		},
 		{
 			Name: "Contributor with empty work log",
-			Contributors: map[string]*Contributor{"TestUser": {
+			Contributors: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -80,7 +80,7 @@ func TestUpdateReward(t *testing.T) {
 				MeanSeverity:     0,
 			}},
 			WorkLogs: map[string][]WorkLog{"TestUser": {}},
-			Expected: map[string]*Contributor{"TestUser": {
+			Expected: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -96,7 +96,7 @@ func TestUpdateReward(t *testing.T) {
 		},
 		{
 			Name: "Contributor with 0 duration work log",
-			Contributors: map[string]*Contributor{"TestUser": {
+			Contributors: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -110,7 +110,7 @@ func TestUpdateReward(t *testing.T) {
 				MeanSeverity:     0,
 			}},
 			WorkLogs: map[string][]WorkLog{"TestUser": {{exampleTime, exampleTime}}},
-			Expected: map[string]*Contributor{"TestUser": {
+			Expected: Contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        nil,
 				HTMLURL:          nil,
@@ -131,10 +131,10 @@ func TestUpdateReward(t *testing.T) {
 		t.Run(tC.Name, func(t *testing.T) {
 			t.Parallel()
 			// WHEN
-			contributors := updateReward(tC.Contributors, tC.WorkLogs, tC.Open, tC.Closed, tC.K)
+			tC.Contributors.updateReward(tC.WorkLogs, tC.Open, tC.Closed, tC.K)
 
 			// THEN
-			assert.Equal(t, tC.Expected, contributors)
+			assert.Equal(t, tC.Expected, tC.Contributors)
 		})
 	}
 }

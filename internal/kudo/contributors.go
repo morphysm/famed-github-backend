@@ -20,6 +20,7 @@ type Contributor struct {
 	FixCount         int                    `json:"fix_count,omitempty"`
 	Rewards          []Reward               `json:"rewards"`
 	RewardSum        float64                `json:"reward_sum"`
+	RewardUnit       string                 `json:"reward_unit"`
 	MonthlyRewards   map[time.Month]float64 `json:"monthly_rewards,omitempty"`
 	TimeToDisclosure TimeToDisclosure       `json:"time_to_disclosure"`
 	Severities       map[IssueSeverity]int  `json:"severities"`
@@ -43,28 +44,38 @@ type Reward struct {
 }
 
 // GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
-func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent) Contributors {
+func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) Contributors {
 	contributors := Contributors{}
 	for _, issue := range issues {
-		contributors.MapIssue(issue, eventsByIssue[*issue.ID])
+		contributors.MapIssue(issue, eventsByIssue[*issue.ID], rewardUnit, rewards, usdToEthRate)
 	}
 
 	return contributors
 }
 
 // MapIssue updates the contributors map based on a set of events and an issue.
-func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent) {
+// TODO investigate if different data handling for rewards works
+func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) {
 	var (
 		workLogs         = map[string][]WorkLog{}
 		reopenCount      = 0
 		issueCreatedAt   = *issue.CreatedAt
 		issueClosedAt    = *issue.ClosedAt
 		timeToDisclosure = issueClosedAt.Sub(issueCreatedAt).Minutes()
-		severity         = IssueToSeverity(issue)
 	)
 
+	// Read severity from issue
+	severity, err := IssueToSeverity(issue)
+	if err != nil {
+		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.ID, err)
+		return
+	}
+
+	// Get severity reward from config
+	severityReward := rewards[severity]
+
 	// Add on closed assignee
-	contributors.mapAssigneeIfMissing(issue.Assignee)
+	contributors.mapAssigneeIfMissing(issue.Assignee, rewardUnit)
 	// Increment fix counter only for assignee on closed
 	contributors.updateFixCounters(issue, timeToDisclosure, severity)
 
@@ -75,7 +86,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs)
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs, rewardUnit)
 		case string(installation.IssueEventActionUnassigned):
 			mapEventUnassigned(event, workLogs)
 		case string(installation.IssueEventActionReopened):
@@ -84,7 +95,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	}
 
 	// Calculate the reward
-	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount)
+	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, usdToEthRate)
 	// Calculate mean and deviation of time to disclosure
 	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
@@ -92,7 +103,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User) {
+func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rewardUnit string) {
 	_, ok := contributors[*assignee.Login]
 	if !ok {
 		contributors[*assignee.Login] = &Contributor{
@@ -101,6 +112,7 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User) {
 			HTMLURL:          assignee.HTMLURL,
 			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
+			RewardUnit:       rewardUnit,
 			TimeToDisclosure: TimeToDisclosure{},
 			Severities:       map[IssueSeverity]int{},
 			MonthlyRewards:   map[time.Month]float64{},
@@ -124,7 +136,7 @@ func (contributors Contributors) updateFixCounters(issue *github.Issue, timeToDi
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog) {
+func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog, rewardUnit string) {
 	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
 		return
 	}
@@ -133,7 +145,7 @@ func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issu
 		return
 	}
 
-	contributors.mapAssigneeIfMissing(event.Assignee)
+	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
 
 	// Append work log
 	// TODO check if work end works like this
