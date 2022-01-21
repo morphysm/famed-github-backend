@@ -56,9 +56,11 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		})
 
 		// Update reward by month
-		monthCount := contributor.MonthlyRewards[closed.Month()]
-		monthCount += reward
-		contributor.MonthlyRewards[closed.Month()] = monthCount
+		// TODO needs testing
+		if !isLessThenAYearAndThisMonthAgo(closed) {
+			n := closed.Month() - time.Now().Month()
+			contributor.RewardsLastYear[n].Reward += reward
+		}
 	}
 }
 

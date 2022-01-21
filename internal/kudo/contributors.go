@@ -13,24 +13,24 @@ import (
 type Contributors map[string]*Contributor
 
 type Contributor struct {
-	Login            string                 `json:"login"`
-	AvatarURL        *string                `json:"avatar_url,omitempty"`
-	HTMLURL          *string                `json:"html_url,omitempty"`
-	GravatarID       *string                `json:"gravatar_id,omitempty"`
-	FixCount         int                    `json:"fix_count,omitempty"`
-	Rewards          []Reward               `json:"rewards"`
-	RewardSum        float64                `json:"reward_sum"`
-	RewardUnit       string                 `json:"reward_unit"`
-	MonthlyRewards   map[time.Month]float64 `json:"monthly_rewards,omitempty"`
-	TimeToDisclosure TimeToDisclosure       `json:"time_to_disclosure"`
-	Severities       map[IssueSeverity]int  `json:"severities"`
-	MeanSeverity     float64                `json:"mean_severity"`
+	Login            string                `json:"login"`
+	AvatarURL        *string               `json:"avatarUrl,omitempty"`
+	HTMLURL          *string               `json:"htmlUrl,omitempty"`
+	GravatarID       *string               `json:"gravatarId,omitempty"`
+	FixCount         int                   `json:"fixCount,omitempty"`
+	Rewards          []Reward              `json:"rewards"`
+	RewardSum        float64               `json:"rewardSum"`
+	RewardUnit       string                `json:"rewardUnit"`
+	RewardsLastYear  RewardsLastYear       `json:"rewardsLastYear,omitempty"`
+	TimeToDisclosure TimeToDisclosure      `json:"timeToDisclosure"`
+	Severities       map[IssueSeverity]int `json:"severities"`
+	MeanSeverity     float64               `json:"meanSeverity"`
 }
 
 type TimeToDisclosure struct {
 	Time              []float64 `json:"time"`
 	Mean              float64   `json:"mean"`
-	StandardDeviation float64   `json:"standard_deviation"`
+	StandardDeviation float64   `json:"standardDeviation"`
 }
 
 type WorkLog struct {
@@ -74,10 +74,13 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	// Get severity reward from config
 	severityReward := rewards[severity]
 
-	// Add on closed assignee
-	contributors.mapAssigneeIfMissing(issue.Assignee, rewardUnit)
-	// Increment fix counter only for assignee on closed
-	contributors.updateFixCounters(issue, timeToDisclosure, severity)
+	// Increment fix count for all assignees assigned to the closed issue
+	for _, assignee := range issue.Assignees {
+		// Add on closed assignee
+		contributors.mapAssigneeIfMissing(assignee, rewardUnit)
+		// Increment fix counter only for assignees on closed
+		contributors.updateFixCounters(assignee, timeToDisclosure, severity)
+	}
 
 	for _, event := range events {
 		if event.Event == nil {
@@ -115,14 +118,14 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rew
 			RewardUnit:       rewardUnit,
 			TimeToDisclosure: TimeToDisclosure{},
 			Severities:       map[IssueSeverity]int{},
-			MonthlyRewards:   map[time.Month]float64{},
+			RewardsLastYear:  NewRewardsLastYear(time.Now()),
 		}
 	}
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) updateFixCounters(issue *github.Issue, timeToDisclosure float64, severity IssueSeverity) {
-	contributor, _ := contributors[*issue.Assignee.Login]
+func (contributors Contributors) updateFixCounters(assignee *github.User, timeToDisclosure float64, severity IssueSeverity) {
+	contributor, _ := contributors[*assignee.Login]
 
 	// Increment fix count
 	contributor.FixCount++
