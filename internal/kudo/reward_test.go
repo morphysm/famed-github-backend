@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint:funlen
 func TestUpdateReward(t *testing.T) {
 	t.Parallel()
 
