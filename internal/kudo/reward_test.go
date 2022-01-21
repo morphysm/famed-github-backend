@@ -131,7 +131,7 @@ func TestUpdateReward(t *testing.T) {
 		t.Run(tC.Name, func(t *testing.T) {
 			t.Parallel()
 			// WHEN
-			tC.Contributors.updateReward(tC.WorkLogs, tC.Open, tC.Closed, tC.K)
+			tC.Contributors.updateReward(tC.WorkLogs, tC.Open, tC.Closed, tC.K, 1, 1)
 
 			// THEN
 			assert.Equal(t, tC.Expected, tC.Contributors)
