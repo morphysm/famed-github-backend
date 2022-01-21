@@ -14,6 +14,7 @@ type MonthlyReward struct {
 
 const monthsInAYear = 12
 
+// NewRewardsLastYear returns RewardsLastYear with instantiated months starting at the current month and going back 11 months.
 func NewRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	rewardsLastYear := make([]MonthlyReward, monthsInAYear)
 	for i := 0; i < 12; i++ {
@@ -25,24 +26,25 @@ func NewRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	return rewardsLastYear
 }
 
-func lastCurrentOfMonth() time.Time {
-	now := time.Now()
+// lastCurrentOfMonth returns the last day of the current month.
+func lastCurrentOfMonth(now time.Time) time.Time {
 	currentYear, currentMonth, _ := now.Date()
 	currentLocation := now.Location()
 
-	firstOfMonth := time.Date(currentYear, currentMonth+1, -1, 0, 0, 0, 0, currentLocation)
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
 	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
 	return lastOfMonth
 }
 
-// isLessThenAYearAndThisMonthAgo returns how many month ago the passed date is and true
-// if the month of the passed date is less than 12 months ago.
-func isLessThenAYearAndThisMonthAgo(date time.Time) (time.Month, bool) {
-	lastOfMonth := lastCurrentOfMonth()
+// isLessThenAYearAndThisMonthAgo returns how many months ago the then date is and true
+// if the month of the passed date is less than 11 months ago.
+func isLessThenAYearAndThisMonthAgo(now time.Time, then time.Time) (time.Month, bool) {
+	lastOfMonth := lastCurrentOfMonth(now)
 	aYearAgo := lastOfMonth.AddDate(-1, 0, 0)
-	if date.Sub(aYearAgo) > 0 {
-		return date.Month() - time.Now().Month(), true
+	tmp := then.Sub(aYearAgo)
+	if tmp > 0 {
+		return then.Month() - now.Month(), true
 	}
 
 	return 0, false
