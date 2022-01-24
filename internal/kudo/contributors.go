@@ -55,7 +55,7 @@ func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*git
 
 // MapIssue updates the contributors map based on a set of events and an issue.
 // TODO investigate if different data handling for rewards works
-func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) {
+func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) error {
 	var (
 		workLogs         = map[string][]WorkLog{}
 		reopenCount      = 0
@@ -68,7 +68,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	severity, err := IssueToSeverity(issue)
 	if err != nil {
 		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.ID, err)
-		return
+		return err
 	}
 
 	// Get severity reward from config
@@ -103,6 +103,8 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
 	contributors.updateAverageSeverity()
+
+	return nil
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.

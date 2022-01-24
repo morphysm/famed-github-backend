@@ -64,8 +64,8 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 	}
 
 	for _, issue := range issues {
-		if !kudo.IsIssueValid(issue) {
-			log.Printf("[issuesToContributors] issue invalid with ID: %d \n", issue.ID)
+		if _, err := kudo.IsIssueValid(issue); err != nil {
+			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
 			continue
 		}
 		filteredIssues = append(filteredIssues, issue)

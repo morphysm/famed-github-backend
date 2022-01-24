@@ -36,30 +36,40 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 
 // handleIssuesEvent handles issue events.
 // If the kudo label is set and the issue is closed a suggested payout comment is posted to the GitHub API.
+// TODO refactor
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	if !kudo.IsValidCloseEvent(event, gH.kudoLabel) {
-		return c.NoContent(http.StatusOK)
+	if _, err := kudo.IsValidCloseEvent(event, gH.kudoLabel); err != nil {
+		switch err {
+		case kudo.ErrIssueMissingAssignee:
+			comment := kudo.GenerateCommentFromError(err)
+			_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
+			if err != nil {
+				log.Printf("[handleIssueEvent] error while posting comment: %v", err)
+				return err
+			}
+		default:
+			return c.NoContent(http.StatusOK)
+		}
 	}
 
 	// Get issue events
 	events, err := gH.githubInstallationClient.GetIssueEvents(c.Request().Context(), *event.Repo.Name, *event.Issue.Number)
 	if err != nil {
-		log.Printf("error getting issue events: %v", err)
+		log.Printf("[handleIssueEvent] error getting issue events: %v", err)
 		return err
 	}
 
 	usdToEthRate, err := gH.currencyClient.GetUSDToETHConversion(c.Request().Context())
 	if err != nil {
-		log.Printf("error getting usd eth conversion rate: %v", err)
+		log.Printf("[handleIssueEvent] error getting usd eth conversion rate: %v", err)
 		return err
 	}
 
-	contributors := kudo.Contributors{}
-	contributors.MapIssue(event.Issue, events, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
-	comment := contributors.GenerateCommentFromContributors()
+	comment := kudo.GenerateComment(event.Issue, events, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
 
 	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
 	if err != nil {
+		log.Printf("[handleIssueEvent] error while posting comment: %v", err)
 		return err
 	}
 
