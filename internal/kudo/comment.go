@@ -9,6 +9,7 @@ import (
 
 func GenerateComment(issue *github.Issue, events []*github.IssueEvent, currency string, rewards map[IssueSeverity]float64, usdToEthRate float64) string {
 	contributors := Contributors{}
+
 	err := contributors.MapIssue(issue, events, currency, rewards, usdToEthRate)
 	if err != nil {
 		return GenerateCommentFromError(err)
@@ -35,6 +36,14 @@ func GenerateCommentFromError(err error) string {
 
 	if errors.Is(err, ErrIssueMissingAssignee) {
 		return fmt.Sprintf("%s The issue is missing an assignee.", comment)
+	}
+
+	if errors.Is(err, ErrIssueMissingLabel) {
+		return fmt.Sprintf("%s The issue is missing a serverity label.", comment)
+	}
+
+	if errors.Is(err, ErrIssueMultipleSeverityLabels) {
+		return fmt.Sprintf("%s The issue is has more than one severity label.", comment)
 	}
 
 	return fmt.Sprintf("%s Unknown.", comment)
