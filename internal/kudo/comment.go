@@ -15,14 +15,14 @@ func GenerateComment(issue *github.Issue, events []*github.IssueEvent, currency 
 		return GenerateCommentFromError(err)
 	}
 
-	return contributors.generateCommentFromContributors()
+	return contributors.generateCommentFromContributors(currency)
 }
 
-func (contributors Contributors) generateCommentFromContributors() string {
+func (contributors Contributors) generateCommentFromContributors(currency string) string {
 	if len(contributors) > 0 {
 		comment := "Kudo suggests:"
 		for _, contributor := range contributors {
-			comment = fmt.Sprintf("%s\n Contributor: %s, Reward: %f\n", comment, contributor.Login, contributor.RewardSum)
+			comment = fmt.Sprintf("%s\n Contributor: %s, Reward: %f %s\n", comment, contributor.Login, contributor.RewardSum, currency)
 		}
 		return comment
 	}
