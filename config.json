@@ -7,7 +7,7 @@
       "high" : 20000,
       "critical": 50000
     },
-    "unit": "ETH"
+    "currency": "ETH"
   }
 
 }

@@ -42,7 +42,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	githubHandler := glib.NewHandler(appClient, installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Kudo.Label, config.Kudo.Unit, config.Kudo.Rewards)
+	githubHandler := glib.NewHandler(appClient, installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Kudo.Label, config.Kudo.Currency, config.Kudo.Rewards)
 
 	// Logger
 	e.Use(middleware.Logger())

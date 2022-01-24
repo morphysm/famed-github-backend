@@ -23,9 +23,9 @@ type Config struct {
 	}
 
 	Kudo struct {
-		Label   string
-		Rewards map[kudo.IssueSeverity]float64
-		Unit    string
+		Label    string
+		Rewards  map[kudo.IssueSeverity]float64
+		Currency string
 	}
 }
 

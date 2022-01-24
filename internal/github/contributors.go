@@ -76,7 +76,7 @@ func (gH *githubHandler) issuesToContributors(ctx context.Context, issues []*git
 		return nil, err
 	}
 
-	contributors := kudo.GenerateContributors(filteredIssues, events, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
+	contributors := kudo.GenerateContributors(filteredIssues, events, gH.kudoRewardCurrency, gH.kudoRewards, usdToEthRate)
 
 	// Transformation of contributors map to contributors array
 	for _, contributor := range contributors {

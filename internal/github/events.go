@@ -47,6 +47,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 				log.Printf("[handleIssueEvent] error while posting comment: %v", err)
 				return err
 			}
+			return nil
 		default:
 			return c.NoContent(http.StatusOK)
 		}
@@ -59,14 +60,17 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 		return err
 	}
 
+	// Get USD to ETH conversion rate
 	usdToEthRate, err := gH.currencyClient.GetUSDToETHConversion(c.Request().Context())
 	if err != nil {
 		log.Printf("[handleIssueEvent] error getting usd eth conversion rate: %v", err)
 		return err
 	}
 
-	comment := kudo.GenerateComment(event.Issue, events, gH.kudoRewardUnit, gH.kudoRewards, usdToEthRate)
+	// Generate comments from issue, events, currency, rewards and conversion rate
+	comment := kudo.GenerateComment(event.Issue, events, gH.kudoRewardCurrency, gH.kudoRewards, usdToEthRate)
 
+	// Post comment to GitHub
 	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting comment: %v", err)
