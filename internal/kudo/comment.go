@@ -1,6 +1,7 @@
 package kudo
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/go-github/v41/github"
@@ -32,12 +33,9 @@ func GenerateCommentFromError(err error) string {
 	comment := "Kudo could not generate a rewards suggestion. \n" +
 		"Reason: "
 
-	switch err {
-	case ErrIssueMissingAssignee:
-		comment = fmt.Sprintf("%s\n The issue is missing an assignee.", comment)
-	default:
-		comment = fmt.Sprintf("%s\n Unknown.", comment)
+	if errors.Is(err, ErrIssueMissingAssignee) {
+		return fmt.Sprintf("%s The issue is missing an assignee.", comment)
 	}
 
-	return comment
+	return fmt.Sprintf("%s Unknown.", comment)
 }
