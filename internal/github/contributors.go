@@ -9,6 +9,7 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
+// GetContributors returns a list of contributors for the kudo board.
 func (gH *githubHandler) GetContributors(c echo.Context) error {
 	repoName := c.Param("repo_name")
 	if repoName == "" {

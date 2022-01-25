@@ -3,7 +3,6 @@ package github
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/kudos-github-backend/internal/client/apps"
 	"github.com/morphysm/kudos-github-backend/internal/client/currency"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/kudo"
@@ -16,7 +15,6 @@ type HTTPHandler interface {
 
 // githubHandler represents the handler for the GitHub endpoints.
 type githubHandler struct {
-	githubAppClient          apps.Client
 	githubInstallationClient installation.Client
 	currencyClient           currency.Client
 	webhookSecret            string
@@ -25,9 +23,8 @@ type githubHandler struct {
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret string, installationID int64, kudoConfig kudo.Config) HTTPHandler {
+func NewHandler(githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret string, installationID int64, kudoConfig kudo.Config) HTTPHandler {
 	return &githubHandler{
-		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
 		currencyClient:           currencyClient,
 		webhookSecret:            webhookSecret,
