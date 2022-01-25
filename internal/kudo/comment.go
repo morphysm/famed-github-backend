@@ -23,7 +23,7 @@ func (contributors Contributors) generateCommentFromContributors(currency string
 		"| Contributor      | Reward |\n" +
 		"| ----------- | ----------- |"
 	for _, contributor := range contributors {
-		comment = fmt.Sprintf("%s\n|%s|, |%f %s|", comment, contributor.Login, contributor.RewardSum, currency)
+		comment = fmt.Sprintf("%s\n|%s|%f %s|", comment, contributor.Login, contributor.RewardSum, currency)
 	}
 	return comment
 }
