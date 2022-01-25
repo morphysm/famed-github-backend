@@ -19,8 +19,7 @@ func (eC *eventContainer) add(key int64, events []*github.IssueEvent) {
 	eC.events[key] = events
 }
 
-// getEvents gets all events for an issue in a concurrent fashion.
-// TODO look through this with a fresh mind
+// getEvents requests all events of an issue from the GitHub API in a concurrent fashion.
 func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue, repoName string) (map[int64][]*github.IssueEvent, error) {
 	var (
 		events = eventContainer{
@@ -29,16 +28,21 @@ func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue,
 		errChannel = make(chan error, len(issues))
 	)
 
+	// Create context with cancel to cancel all request if one fails
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	// Create wait group to wait for all requests to finish
 	wg := sync.WaitGroup{}
 
 	for _, issue := range issues {
 		wg.Add(1)
-		issue := issue
+
+		// Start go routine to get the issue's events
 		go func(ctx context.Context, repoName string, issueNumber int, issueID int64) {
 			defer wg.Done()
 
+			// Check if one of the requests returned an error otherwise run the request
 			select {
 			case <-ctx.Done():
 				return
