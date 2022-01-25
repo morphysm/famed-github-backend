@@ -19,19 +19,17 @@ func GenerateComment(issue *github.Issue, events []*github.IssueEvent, currency 
 }
 
 func (contributors Contributors) generateCommentFromContributors(currency string) string {
-	if len(contributors) > 0 {
-		comment := "Kudo suggests:"
-		for _, contributor := range contributors {
-			comment = fmt.Sprintf("%s\n Contributor: %s, Reward: %f %s\n", comment, contributor.Login, contributor.RewardSum, currency)
-		}
-		return comment
+	comment := "### Kudo suggests:\n" +
+		"| Contributor      | Reward |\n" +
+		"| ----------- | ----------- |"
+	for _, contributor := range contributors {
+		comment = fmt.Sprintf("%s\n|%s|, |%f %s|", comment, contributor.Login, contributor.RewardSum, currency)
 	}
-
-	return "Kudo could not find valid contributors."
+	return comment
 }
 
 func GenerateCommentFromError(err error) string {
-	comment := "Kudo could not generate a rewards suggestion. \n" +
+	comment := "### Kudo could not generate a reward suggestion. \n" +
 		"Reason: "
 
 	if errors.Is(err, ErrIssueMissingAssignee) {
