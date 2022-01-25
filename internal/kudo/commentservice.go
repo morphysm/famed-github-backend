@@ -2,6 +2,7 @@ package kudo
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/google/go-github/v41/github"
@@ -33,13 +34,13 @@ func NewCommentGenerator(config Config, installationClient installation.Client, 
 
 func (cG *commentGenerator) GetComment(ctx context.Context) (string, error) {
 	if _, err := IsValidCloseEvent(cG.event, cG.config.Label); err != nil {
-		switch err {
-		case ErrIssueMissingAssignee:
-			return GenerateCommentFromError(err), nil
-		default:
-			return "", err
+		if errors.Is(err, ErrIssueMissingAssignee) {
+			return generateCommentFromError(err), nil
 		}
+
+		return "", err
 	}
+
 	// Get issue events
 	events, err := cG.installationClient.GetIssueEvents(ctx, *cG.event.Repo.Name, *cG.event.Issue.Number)
 	if err != nil {
@@ -55,7 +56,7 @@ func (cG *commentGenerator) GetComment(ctx context.Context) (string, error) {
 	}
 
 	// Generate comments from issue, events, currency, rewards and conversion rate
-	comment := GenerateComment(cG.event.Issue, events, cG.config.Currency, cG.config.Rewards, usdToEthRate)
+	comment := generateComment(cG.event.Issue, events, cG.config.Currency, cG.config.Rewards, usdToEthRate)
 
 	return comment, nil
 }

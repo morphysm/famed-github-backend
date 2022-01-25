@@ -7,12 +7,12 @@ import (
 	"github.com/google/go-github/v41/github"
 )
 
-func GenerateComment(issue *github.Issue, events []*github.IssueEvent, currency string, rewards map[IssueSeverity]float64, usdToEthRate float64) string {
+func generateComment(issue *github.Issue, events []*github.IssueEvent, currency string, rewards map[IssueSeverity]float64, usdToEthRate float64) string {
 	contributors := Contributors{}
 
 	err := contributors.MapIssue(issue, events, currency, rewards, usdToEthRate)
 	if err != nil {
-		return GenerateCommentFromError(err)
+		return generateCommentFromError(err)
 	}
 
 	return contributors.generateCommentFromContributors(currency)
@@ -28,7 +28,7 @@ func (contributors Contributors) generateCommentFromContributors(currency string
 	return comment
 }
 
-func GenerateCommentFromError(err error) string {
+func generateCommentFromError(err error) string {
 	comment := "### Kudo could not generate a reward suggestion. \n" +
 		"Reason: "
 
