@@ -21,21 +21,17 @@ type githubHandler struct {
 	currencyClient           currency.Client
 	webhookSecret            string
 	installationID           int64
-	kudoLabel                string
-	kudoRewardCurrency       string
-	kudoRewards              map[kudo.IssueSeverity]float64
+	kudoConfig               kudo.Config
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret string, installationID int64, kudoLabel string, kudoRewardCurrency string, kudoRewards map[kudo.IssueSeverity]float64) HTTPHandler {
+func NewHandler(githubAppClient apps.Client, githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret string, installationID int64, kudoConfig kudo.Config) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
 		currencyClient:           currencyClient,
 		webhookSecret:            webhookSecret,
 		installationID:           installationID,
-		kudoLabel:                kudoLabel,
-		kudoRewardCurrency:       kudoRewardCurrency,
-		kudoRewards:              kudoRewards,
+		kudoConfig:               kudoConfig,
 	}
 }

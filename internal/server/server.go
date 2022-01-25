@@ -10,6 +10,7 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/config"
 	glib "github.com/morphysm/kudos-github-backend/internal/github"
 	"github.com/morphysm/kudos-github-backend/internal/health"
+	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 // NewServer returns an echo server with default configuration
@@ -42,7 +43,12 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	githubHandler := glib.NewHandler(appClient, installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, config.Kudo.Label, config.Kudo.Currency, config.Kudo.Rewards)
+	kudoConfig := kudo.Config{
+		Label:    config.Kudo.Label,
+		Currency: config.Kudo.Currency,
+		Rewards:  config.Kudo.Rewards,
+	}
+	githubHandler := glib.NewHandler(appClient, installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
 
 	// Logger
 	e.Use(middleware.Logger())
