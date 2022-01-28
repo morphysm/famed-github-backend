@@ -8,7 +8,6 @@ import (
 	"github.com/morphysm/kudos-github-backend/internal/client/currency"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 	"github.com/morphysm/kudos-github-backend/internal/config"
-	glib "github.com/morphysm/kudos-github-backend/internal/github"
 	"github.com/morphysm/kudos-github-backend/internal/health"
 	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
@@ -45,7 +44,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		Currency: config.Kudo.Currency,
 		Rewards:  config.Kudo.Rewards,
 	}
-	githubHandler := glib.NewHandler(installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
+	githubHandler := kudo.NewHandler(installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
 
 	// Logger
 	e.Use(middleware.Logger())

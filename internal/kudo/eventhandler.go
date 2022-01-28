@@ -1,4 +1,4 @@
-package github
+package kudo
 
 import (
 	"net/http"
@@ -6,8 +6,6 @@ import (
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 // PostEvent receives the events send to the webhook set in the GitHub App.
@@ -36,7 +34,7 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 // handleIssuesEvent handles issue events and posts a suggested payout comment to the GitHub API,
 // if the kudo label is set and the issue is closed.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	generator := kudo.NewCommentGenerator(gH.kudoConfig, gH.githubInstallationClient, gH.currencyClient, event)
+	generator := NewCommentGenerator(gH.kudoConfig, gH.githubInstallationClient, gH.currencyClient, event)
 
 	comment, err := generator.GetComment(c.Request().Context())
 	if err != nil {

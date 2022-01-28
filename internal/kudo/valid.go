@@ -13,9 +13,10 @@ var (
 	ErrIssueMissingAssignee = errors.New("the issue is missing an assignee")
 	ErrIssueMissingData     = errors.New("the issue is missing data promised by the GitHub API")
 
-	ErrEventMissingData      = errors.New("the event is missing data promised by the GitHub API")
-	ErrEventMissingKudoLabel = errors.New("the event is missing the kudo label")
-	ErrEventIsNotClose       = errors.New("the event is not a close event")
+	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
+	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
+	ErrEventMissingKudoLabel    = errors.New("the event is missing the kudo label")
+	ErrEventIsNotClose          = errors.New("the event is not a close event")
 )
 
 // IsIssueValid checks weather all necessary issue fields are assigned.
@@ -71,11 +72,20 @@ func isIssuesEventDataValid(event *github.IssuesEvent) (bool, error) {
 	return true, nil
 }
 
-func isIssueAssignedEventDataValid(event *github.IssueEvent) (bool, error) {
-	// TODO Add function to check assignee
-	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
+// isIssueUnAssignedEventDataValid checks weather the assigner or unassigned event has all necessary data
+func isIssueUnAssignedEventDataValid(event *github.IssueEvent) (bool, error) {
+	if event == nil || event.CreatedAt == nil {
 		return false, ErrEventMissingData
 	}
+
+	return isAssigneeDataValid(event.Assignee)
+}
+
+func isAssigneeDataValid(assignee *github.User) (bool, error) {
+	if assignee == nil || assignee.Login == nil {
+		return false, ErrEventAssigneeMissingData
+	}
+
 	return true, nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/labstack/echo/v4"
 )
 
 // issuesToContributors generates a contributor list based on a list of issues
@@ -21,7 +22,7 @@ func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*gi
 
 	usdToEthRate, err := bG.currencyClient.GetUSDToETHConversion(ctx)
 	if err != nil {
-		return nil, err
+		return nil, echo.ErrBadGateway.SetInternal(err)
 	}
 
 	for _, issue := range issues {
@@ -34,7 +35,7 @@ func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*gi
 
 	events, err := bG.getEvents(ctx, filteredIssues, bG.repo)
 	if err != nil {
-		return nil, err
+		return nil, echo.ErrBadGateway.SetInternal(err)
 	}
 
 	contributors := GenerateContributors(filteredIssues, events, bG.config.Currency, bG.config.Rewards, usdToEthRate)

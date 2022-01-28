@@ -95,13 +95,13 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	for _, event := range events {
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
-			if _, err = isIssueAssignedEventDataValid(event); err != nil {
+			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
 				log.Printf("[MapIssue] event assigned data is invalid for event with ID: %d, err: %v", event.ID, err)
 				continue
 			}
 			contributors.mapEventAssigned(event, issueClosedAt, workLogs, rewardUnit)
 		case string(installation.IssueEventActionUnassigned):
-			if _, err = isIssueAssignedEventDataValid(event); err != nil {
+			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
 				log.Printf("[MapIssue] event unassigened data is invalid for event with ID: %d, err: %v", event.ID, err)
 				continue
 			}

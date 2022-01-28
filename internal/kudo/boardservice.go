@@ -3,6 +3,8 @@ package kudo
 import (
 	"context"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/kudos-github-backend/internal/client/currency"
 	"github.com/morphysm/kudos-github-backend/internal/client/installation"
 )
@@ -32,7 +34,7 @@ func (bG *boardGenerator) GetContributors(ctx context.Context) ([]*Contributor, 
 	// Get all issues in repo
 	issuesResponse, err := bG.installationClient.GetIssuesByRepo(ctx, bG.repo, []string{bG.config.Label}, installation.Closed)
 	if err != nil {
-		return nil, err
+		return nil, echo.ErrBadGateway.SetInternal(err)
 	}
 
 	// Use issues to generate contributor list
