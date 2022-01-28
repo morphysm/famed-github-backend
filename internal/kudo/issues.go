@@ -12,7 +12,7 @@ import (
 // issuesToContributors generates a contributor list based on a list of issues
 func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*github.Issue) ([]*Contributor, error) {
 	var (
-		contributorsArray = []*Contributor{}
+		contributorsArray = make([]*Contributor, 0)
 		filteredIssues    []*github.Issue
 	)
 

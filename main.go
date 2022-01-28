@@ -26,21 +26,21 @@ Go Backend
 )
 
 func main() {
-	config, err := config.Load()
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Prepare Main
-	echoServer := prepareServer(config)
+	echoServer := prepareServer(cfg)
 
 	// Start server.
-	start(echoServer, config)
+	start(echoServer, cfg)
 }
 
 // Main setup
-func prepareServer(config *config.Config) *echo.Echo {
-	echoServer, echoServerErr := server.NewBackendsServer(config)
+func prepareServer(cfg *config.Config) *echo.Echo {
+	echoServer, echoServerErr := server.NewBackendsServer(cfg)
 	if echoServerErr != nil {
 		log.Fatal(echoServerErr)
 	}
@@ -49,13 +49,13 @@ func prepareServer(config *config.Config) *echo.Echo {
 }
 
 // start an echo server with gracefully shutdown.
-func start(e *echo.Echo, config *config.Config) {
+func start(e *echo.Echo, cfg *config.Config) {
 	// Start server for kudos backend.
 	go func() {
 		e.HideBanner = true
 		e.StdLogger.Printf(banner)
 
-		if err := e.Start(":" + config.App.Port); err != nil {
+		if err := e.Start(":" + cfg.App.Port); err != nil {
 			log.Fatalf("shutting down the server. %s", err)
 		}
 	}()
