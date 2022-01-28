@@ -20,10 +20,10 @@ func generateComment(issue *github.Issue, events []*github.IssueEvent, currency 
 
 func (contributors Contributors) generateCommentFromContributors(currency string) string {
 	comment := "### Kudo suggests:\n" +
-		"| Contributor      | Reward |\n" +
+		"| Contributor | Time | Reward |\n" +
 		"| ----------- | ----------- |"
 	for _, contributor := range contributors {
-		comment = fmt.Sprintf("%s\n|%s|%f %s|", comment, contributor.Login, contributor.RewardSum, currency)
+		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, currency)
 	}
 	return comment
 }

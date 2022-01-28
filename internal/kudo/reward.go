@@ -40,6 +40,9 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		}
 		contributor := contributors[login]
 
+		// Assign total work to contributor for issue comment generation
+		contributor.TotalWorkTime = contributorTotalWork
+
 		// Calculated share of reward
 		reward := ethReward * float64(contributorTotalWork) / float64(workSum)
 
