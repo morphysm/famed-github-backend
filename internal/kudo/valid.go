@@ -52,8 +52,8 @@ func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) (bool, error
 		return false, ErrEventMissingKudoLabel
 	}
 	if _, err := IsIssueValid(event.Issue); err != nil {
-		log.Println("[IsValidCloseEvent] event is missing data")
-		return false, err
+		log.Println("[IsValidCloseEvent] event issue is missing data")
+		return false, ErrEventMissingData
 	}
 
 	return true, nil
@@ -65,9 +65,17 @@ func isIssuesEventDataValid(event *github.IssuesEvent) (bool, error) {
 		event.Repo == nil ||
 		event.Repo.Name == nil {
 		log.Println("[isIssuesEventValid] event is not a valid issuesEvent")
-		return false, nil
+		return false, ErrEventMissingData
 	}
 
+	return true, nil
+}
+
+func isIssueAssignedEventDataValid(event *github.IssueEvent) (bool, error) {
+	// TODO Add function to check assignee
+	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
+		return false, ErrEventMissingData
+	}
 	return true, nil
 }
 

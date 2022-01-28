@@ -45,7 +45,7 @@ func TestIsLessThenAYearAndThisMonthAgo(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// WHEN
-			months, ok := isLessThenAYearAndThisMonthAgo(testCase.Now, testCase.Then)
+			months, ok := isInTheLast12Months(testCase.Now, testCase.Then)
 
 			// THEN
 			assert.Equal(t, testCase.ExpectedMonths, months)

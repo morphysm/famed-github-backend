@@ -26,16 +26,16 @@ Go Backend
 )
 
 func main() {
-	cfg, err := config.Load()
+	config, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Prepare Main
-	echoServer := prepareServer(cfg)
+	echoServer := prepareServer(config)
 
 	// Start server.
-	start(echoServer)
+	start(echoServer, config)
 }
 
 // Main setup
@@ -49,13 +49,13 @@ func prepareServer(config *config.Config) *echo.Echo {
 }
 
 // start an echo server with gracefully shutdown.
-func start(e *echo.Echo) {
-	// Start server for morphysm-service.
+func start(e *echo.Echo, config *config.Config) {
+	// Start server for kudos backend.
 	go func() {
 		e.HideBanner = true
 		e.StdLogger.Printf(banner)
 
-		if err := e.Start(":8080"); err != nil {
+		if err := e.Start(":" + config.App.Port); err != nil {
 			log.Fatalf("shutting down the server. %s", err)
 		}
 	}()

@@ -47,8 +47,17 @@ type Reward struct {
 func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) Contributors {
 	contributors := Contributors{}
 	for _, issue := range issues {
-		contributors.MapIssue(issue, eventsByIssue[*issue.ID], rewardUnit, rewards, usdToEthRate)
+		// Map issue to contributors
+		err := contributors.MapIssue(issue, eventsByIssue[*issue.ID], rewardUnit, rewards, usdToEthRate)
+		if err != nil {
+			log.Printf("[GenerateContributors] error while mapping issue with ID: %d, error: %v", issue.ID, err)
+		}
 	}
+
+	// Calculate mean and deviation of time to disclosure
+	contributors.updateMeanAndDeviationOfDisclosure()
+	// Calculate average severity of fixed issues
+	contributors.updateAverageSeverity()
 
 	return contributors
 }
@@ -82,15 +91,20 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 		contributors.updateFixCounters(assignee, timeToDisclosure, severity)
 	}
 
+	// Iterate through issue events and map events if event type is of interest
 	for _, event := range events {
-		if event.Event == nil {
-			continue
-		}
-
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
+			if _, err = isIssueAssignedEventDataValid(event); err != nil {
+				log.Printf("[MapIssue] event assigned data is invalid for event with ID: %d, err: %v", event.ID, err)
+				continue
+			}
 			contributors.mapEventAssigned(event, issueClosedAt, workLogs, rewardUnit)
 		case string(installation.IssueEventActionUnassigned):
+			if _, err = isIssueAssignedEventDataValid(event); err != nil {
+				log.Printf("[MapIssue] event unassigened data is invalid for event with ID: %d, err: %v", event.ID, err)
+				continue
+			}
 			mapEventUnassigned(event, workLogs)
 		case string(installation.IssueEventActionReopened):
 			reopenCount++
@@ -99,10 +113,6 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 
 	// Calculate the reward
 	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, usdToEthRate)
-	// Calculate mean and deviation of time to disclosure
-	contributors.updateMeanAndDeviationOfDisclosure()
-	// Calculate average severity of fixed issues
-	contributors.updateAverageSeverity()
 
 	return nil
 }
@@ -142,10 +152,6 @@ func (contributors Contributors) updateFixCounters(assignee *github.User, timeTo
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
 func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog, rewardUnit string) {
-	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
-		return
-	}
-
 	if event.CreatedAt.After(issueClosedAt) {
 		return
 	}
@@ -153,7 +159,6 @@ func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issu
 	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
 
 	// Append work log
-	// TODO check if work end works like this
 	work := WorkLog{Start: *event.CreatedAt, End: issueClosedAt}
 	assigneeWorkLogs := workLogs[*event.Assignee.Login]
 	assigneeWorkLogs = append(assigneeWorkLogs, work)
@@ -162,10 +167,6 @@ func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issu
 
 // mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
 func mapEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog) {
-	if event.Assignee == nil || event.Assignee.Login == nil || event.CreatedAt == nil {
-		return
-	}
-
 	// Append work log
 	assigneeWorkLogs := workLogs[*event.Assignee.Login]
 	if len(assigneeWorkLogs) == 0 {

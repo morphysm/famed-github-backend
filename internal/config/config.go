@@ -13,7 +13,12 @@ type Config struct {
 		Port string
 	}
 
+	Currency struct {
+		Host string
+	}
+
 	Github struct {
+		Host           string
 		Key            string
 		WebhookSecret  string
 		AppID          int64
@@ -44,6 +49,9 @@ func Load() (*Config, error) {
 
 	config.App.Host = "127.0.0.1"
 	config.App.Port = "8080"
+
+	config.Github.Host = "https://api.github.com"
+	config.Currency.Host = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1"
 
 	// Read json config file
 	err := bindConfigFile(&config)

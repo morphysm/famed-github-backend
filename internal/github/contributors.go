@@ -18,6 +18,7 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 
 	boardGenerator := kudo.NewBoardGenerator(gH.kudoConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
 
+	// TODO improve error
 	contributors, err := boardGenerator.GetContributors(c.Request().Context())
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)

@@ -21,27 +21,24 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 	workSum := time.Duration(0)
 	for login, workLog := range workLogs {
 		// Calculate total work time of a contributor
+		contributorTotalWork := totalWork[login]
 		for _, work := range workLog {
-			contributorTotalWork := totalWork[login]
-			totalWork[login] = contributorTotalWork + work.End.Sub(work.Start)
+			contributorTotalWork = contributorTotalWork + work.End.Sub(work.Start)
 		}
 
+		totalWork[login] = contributorTotalWork
 		// Update work total work time of issue
-		contributorTotalWork := totalWork[login]
 		workSum += contributorTotalWork
 	}
 
 	// Divide base reward based on percentage of each contributor
 	for login, contributorTotalWork := range totalWork {
-		if contributorTotalWork == 0 {
+		if contributorTotalWork <= 0 {
+			// < is a safety measure, should not happen
+			log.Printf("<= 0 contributor total work: %d\n", contributorTotalWork)
 			continue
 		}
 		contributor := contributors[login]
-
-		// < is a safety measure, should not happen
-		if contributorTotalWork < 0 {
-			log.Printf("negative contributor total work: %d\n", contributorTotalWork)
-		}
 
 		// Calculated share of reward
 		reward := ethReward * float64(contributorTotalWork) / float64(workSum)
@@ -56,7 +53,7 @@ func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, ope
 		})
 
 		// Update reward by month
-		if month, ok := isLessThenAYearAndThisMonthAgo(time.Now(), closed); ok {
+		if month, ok := isInTheLast12Months(time.Now(), closed); ok {
 			contributor.RewardsLastYear[month].Reward += reward
 		}
 	}

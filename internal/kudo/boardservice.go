@@ -16,7 +16,6 @@ type boardGenerator struct {
 	installationClient installation.Client
 	currencyClient     currency.Client
 	repo               string
-	label              string
 }
 
 // NewBoardGenerator returns a new instance of the comment generator.
@@ -31,7 +30,7 @@ func NewBoardGenerator(config Config, installationClient installation.Client, cu
 
 func (bG *boardGenerator) GetContributors(ctx context.Context) ([]*Contributor, error) {
 	// Get all issues in repo
-	issuesResponse, err := bG.installationClient.GetIssuesByRepo(ctx, bG.repo, []string{bG.label}, installation.Closed)
+	issuesResponse, err := bG.installationClient.GetIssuesByRepo(ctx, bG.repo, []string{bG.config.Label}, installation.Closed)
 	if err != nil {
 		return nil, err
 	}

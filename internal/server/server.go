@@ -28,17 +28,14 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
-	const gitHost = "https://api.github.com"
-	const currencyHost = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1"
+	currencyClient := currency.NewCurrencyClient(config.Currency.Host)
 
-	currencyClient := currency.NewCurrencyClient(currencyHost)
-
-	appClient, err := apps.NewClient(gitHost, config.Github.Key, config.Github.AppID)
+	appClient, err := apps.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
 
-	installationClient, err := installation.NewClient(gitHost, appClient, config.Github.InstallationID, config.Github.RepoIDs, config.Github.Owner)
+	installationClient, err := installation.NewClient(config.Github.Host, appClient, config.Github.InstallationID, config.Github.RepoIDs, config.Github.Owner)
 	if err != nil {
 		return nil, err
 	}
