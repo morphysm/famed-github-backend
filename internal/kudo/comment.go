@@ -7,15 +7,15 @@ import (
 	"github.com/google/go-github/v41/github"
 )
 
-func generateComment(issue *github.Issue, events []*github.IssueEvent, currency string, rewards map[IssueSeverity]float64, usdToEthRate float64) string {
+func generateComment(issue *github.Issue, events []*github.IssueEvent, boardOptions BoardOptions) string {
 	contributors := Contributors{}
 
-	err := contributors.MapIssue(issue, events, currency, rewards, usdToEthRate)
+	err := contributors.MapIssue(issue, events, boardOptions)
 	if err != nil {
 		return generateCommentFromError(err)
 	}
 
-	return contributors.generateCommentFromContributors(currency)
+	return contributors.generateCommentFromContributors(boardOptions.currency)
 }
 
 func (contributors Contributors) generateCommentFromContributors(currency string) string {

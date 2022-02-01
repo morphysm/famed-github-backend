@@ -20,7 +20,7 @@ type Contributor struct {
 	FixCount         int                   `json:"fixCount,omitempty"`
 	Rewards          []Reward              `json:"rewards"`
 	RewardSum        float64               `json:"rewardSum"`
-	RewardUnit       string                `json:"rewardUnit"`
+	RewardUnit       string                `json:"currency"`
 	RewardsLastYear  RewardsLastYear       `json:"rewardsLastYear,omitempty"`
 	TimeToDisclosure TimeToDisclosure      `json:"timeToDisclosure"`
 	Severities       map[IssueSeverity]int `json:"severities"`
@@ -45,17 +45,21 @@ type Reward struct {
 	Reward float64   `json:"reward"`
 }
 
-// GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
-func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) Contributors {
-	contributors := Contributors{}
-	for _, issue := range issues {
-		// Map issue to contributors
-		err := contributors.MapIssue(issue, eventsByIssue[*issue.ID], rewardUnit, rewards, usdToEthRate)
-		if err != nil {
-			log.Printf("[GenerateContributors] error while mapping issue with ID: %d, error: %v", issue.ID, err)
-		}
-	}
+type BoardOptions struct {
+	currency     string
+	rewards      map[IssueSeverity]float64
+	usdToEthRate float64
+}
 
+type GithubData struct {
+	issues        []*github.Issue
+	eventsByIssue map[int64][]*github.IssueEvent
+}
+
+// GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
+func GenerateContributors(githubData GithubData, boardOptions BoardOptions) Contributors {
+	// Map issues and events to contributors
+	contributors := issuesAndEventsToContributors(githubData, boardOptions)
 	// Calculate mean and deviation of time to disclosure
 	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
@@ -64,9 +68,22 @@ func GenerateContributors(issues []*github.Issue, eventsByIssue map[int64][]*git
 	return contributors
 }
 
+func issuesAndEventsToContributors(githubData GithubData, boardOptions BoardOptions) Contributors {
+	contributors := Contributors{}
+	for _, issue := range githubData.issues {
+		// Map issue to contributors
+		err := contributors.MapIssue(issue, githubData.eventsByIssue[*issue.ID], boardOptions)
+		if err != nil {
+			log.Printf("[GenerateContributors] error while mapping issue with ID: %d, error: %v", issue.ID, err)
+		}
+	}
+
+	return contributors
+}
+
 // MapIssue updates the contributors map based on a set of events and an issue.
 // TODO investigate if different data handling for rewards works
-func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, rewardUnit string, rewards map[IssueSeverity]float64, usdToEthRate float64) error {
+func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, boardOptions BoardOptions) error {
 	var (
 		workLogs         = map[string][]WorkLog{}
 		reopenCount      = 0
@@ -83,12 +100,12 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	}
 
 	// Get severity reward from config
-	severityReward := rewards[severity]
+	severityReward := boardOptions.rewards[severity]
 
 	// Increment fix count for all assignees assigned to the closed issue
 	for _, assignee := range issue.Assignees {
 		// Add on closed assignee
-		contributors.mapAssigneeIfMissing(assignee, rewardUnit)
+		contributors.mapAssigneeIfMissing(assignee, boardOptions.currency)
 		// Increment fix counter only for assignees on closed
 		contributors.updateFixCounters(assignee, timeToDisclosure, severity)
 	}
@@ -101,7 +118,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 				log.Printf("[MapIssue] event assigned data is invalid for event with ID: %d, err: %v", event.ID, err)
 				continue
 			}
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs, rewardUnit)
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency)
 		case string(installation.IssueEventActionUnassigned):
 			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
 				log.Printf("[MapIssue] event unassigened data is invalid for event with ID: %d, err: %v", event.ID, err)
@@ -114,7 +131,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	}
 
 	// Calculate the reward
-	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, usdToEthRate)
+	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, boardOptions.usdToEthRate)
 
 	return nil
 }
@@ -143,11 +160,9 @@ func (contributors Contributors) updateFixCounters(assignee *github.User, timeTo
 
 	// Increment fix count
 	contributor.FixCount++
-
 	// Increment severity counter
 	counterSeverities := contributor.Severities[severity]
 	contributor.Severities[severity] = counterSeverities + 1
-
 	// Append time to disclosure
 	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
 }

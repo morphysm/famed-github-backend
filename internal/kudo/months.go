@@ -39,12 +39,17 @@ func lastCurrentOfMonth(now time.Time) time.Time {
 
 // isInTheLast12Months returns how many months ago the then date is and
 // true if the month of the passed date is less than the current month and 11 months ago.
-func isInTheLast12Months(now time.Time, then time.Time) (time.Month, bool) {
+func isInTheLast12Months(now time.Time, then time.Time) (int, bool) {
 	lastOfMonth := lastCurrentOfMonth(now)
 	aYearAgo := lastOfMonth.AddDate(-1, 0, 0)
-	tmp := then.Sub(aYearAgo)
-	if tmp > 0 {
-		return now.Month() - then.Month(), true
+	if then.Sub(aYearAgo) > 0 {
+		// Same year
+		if now.Year()-then.Year() == 0 {
+			return int(now.Month() - then.Month()), true
+		}
+		// Different year
+		monthsTillTheEndOfTheYear := 12 - then.Month()
+		return int(monthsTillTheEndOfTheYear + now.Month()), true
 	}
 
 	return 0, false

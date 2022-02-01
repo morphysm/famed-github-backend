@@ -56,7 +56,12 @@ func (cG *commentGenerator) GetComment(ctx context.Context) (string, error) {
 	}
 
 	// Generate comments from issue, events, currency, rewards and conversion rate
-	comment := generateComment(cG.event.Issue, events, cG.config.Currency, cG.config.Rewards, usdToEthRate)
+	boardOptions := BoardOptions{
+		currency:     cG.config.Currency,
+		rewards:      cG.config.Rewards,
+		usdToEthRate: usdToEthRate,
+	}
+	comment := generateComment(cG.event.Issue, events, boardOptions)
 
 	return comment, nil
 }

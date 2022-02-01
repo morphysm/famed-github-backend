@@ -14,7 +14,7 @@ func TestIsLessThenAYearAndThisMonthAgo(t *testing.T) {
 		Name           string
 		Now            time.Time
 		Then           time.Time
-		ExpectedMonths time.Month
+		ExpectedMonths int
 		ExpectedOk     bool
 	}{
 		{
@@ -25,18 +25,32 @@ func TestIsLessThenAYearAndThisMonthAgo(t *testing.T) {
 			ExpectedOk:     true,
 		},
 		{
-			Name:           "Difference 12 months",
+			Name:           "Difference 1 month same year",
+			Now:            time.Date(2021, 2, 1, 0, 0, 0, 0, time.UTC),
+			Then:           time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+			ExpectedMonths: 1,
+			ExpectedOk:     true,
+		},
+		{
+			Name:           "Difference 1 month different year",
+			Now:            time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+			Then:           time.Date(2020, 12, 1, 0, 0, 0, 0, time.UTC),
+			ExpectedMonths: 1,
+			ExpectedOk:     true,
+		},
+		{
+			Name:           "Difference 11 months and 29 days different year",
+			Now:            time.Date(2021, 11, 30, 0, 0, 0, 0, time.UTC),
+			Then:           time.Date(2020, 12, 1, 0, 0, 0, 0, time.UTC),
+			ExpectedMonths: 11,
+			ExpectedOk:     true,
+		},
+		{
+			Name:           "Difference 12 months different year",
 			Now:            time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 			Then:           time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			ExpectedMonths: 0,
 			ExpectedOk:     false,
-		},
-		{
-			Name:           "Difference 11 months and 30 days",
-			Now:            time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-			Then:           time.Date(2021, 12, 31, 0, 0, 0, 0, time.UTC),
-			ExpectedMonths: 11,
-			ExpectedOk:     true,
 		},
 	}
 
