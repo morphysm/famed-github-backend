@@ -44,7 +44,7 @@ func isInTheLast12Months(now time.Time, then time.Time) (time.Month, bool) {
 	aYearAgo := lastOfMonth.AddDate(-1, 0, 0)
 	tmp := then.Sub(aYearAgo)
 	if tmp > 0 {
-		return then.Month() - now.Month(), true
+		return now.Month() - then.Month(), true
 	}
 
 	return 0, false
