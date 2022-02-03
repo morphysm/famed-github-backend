@@ -54,7 +54,7 @@ func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) (bool, error
 	}
 	if _, err := IsIssueValid(event.Issue); err != nil {
 		log.Println("[IsValidCloseEvent] event issue is missing data")
-		return false, ErrEventMissingData
+		return false, err
 	}
 
 	return true, nil
