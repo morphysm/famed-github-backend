@@ -20,7 +20,7 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 
 	contributors, err := boardGenerator.GetContributors(c.Request().Context())
 	if err != nil {
-		if errors.Is(err, echo.ErrBadGateway.SetInternal(err)) {
+		if errors.Is(err, echo.ErrBadGateway) {
 			return err
 		}
 
