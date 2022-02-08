@@ -1,18 +1,17 @@
-package kudo
+package famed
 
 import (
 	"errors"
 	"log"
 
 	"github.com/google/go-github/v41/github"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
 var (
 	ErrIssueMissingAssignee  = errors.New("the issue is missing an assignee")
 	ErrIssueMissingData      = errors.New("the issue is missing data promised by the GitHub API")
-	ErrIssueMissingKudoLabel = errors.New("the issue is missing the kudo label")
+	ErrIssueMissingKudoLabel = errors.New("the issue is missing the famed label")
 
 	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
 	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
@@ -20,7 +19,7 @@ var (
 )
 
 // IsIssueValid checks weather all necessary issue fields are assigned.
-func IsIssueValid(issue *github.Issue, kudoLabel string) (bool, error) {
+func IsIssueValid(issue *github.Issue, famedLabel string) (bool, error) {
 	if issue == nil ||
 		issue.ID == nil ||
 		issue.Number == nil ||
@@ -34,7 +33,7 @@ func IsIssueValid(issue *github.Issue, kudoLabel string) (bool, error) {
 		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingAssignee
 	}
-	if !isIssueKudoLabeled(issue, kudoLabel) {
+	if !isIssueKudoLabeled(issue, famedLabel) {
 		return false, ErrIssueMissingKudoLabel
 	}
 
@@ -42,7 +41,7 @@ func IsIssueValid(issue *github.Issue, kudoLabel string) (bool, error) {
 }
 
 // IsValidCloseEvent checks weather all necessary event fields are assigned.
-func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) (bool, error) {
+func IsValidCloseEvent(event *github.IssuesEvent, famedLabel string) (bool, error) {
 	if _, err := isIssuesEventDataValid(event); err != nil {
 		return false, err
 	}
@@ -50,7 +49,7 @@ func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) (bool, error
 		log.Println("[IsValidCloseEvent] event is not a closed event")
 		return false, ErrEventIsNotClose
 	}
-	if _, err := IsIssueValid(event.Issue, kudoLabel); err != nil {
+	if _, err := IsIssueValid(event.Issue, famedLabel); err != nil {
 		log.Println("[IsValidCloseEvent] event issue is missing data")
 		return false, err
 	}
@@ -87,15 +86,15 @@ func isAssigneeDataValid(assignee *github.User) (bool, error) {
 	return true, nil
 }
 
-// isIssueKudoLabeled checks weather the issue labels contain expected kudo label.
-func isIssueKudoLabeled(issue *github.Issue, kudoLabel string) bool {
+// isIssueKudoLabeled checks weather the issue labels contain expected famed label.
+func isIssueKudoLabeled(issue *github.Issue, famedLabel string) bool {
 	for _, label := range issue.Labels {
-		if label.Name != nil && *label.Name == kudoLabel {
+		if label.Name != nil && *label.Name == famedLabel {
 			return true
 		}
 	}
 
-	log.Printf("[IsIssueKudoLabeled] missing kudo label: %s in issue with ID: %d", kudoLabel, *issue.ID)
+	log.Printf("[IsIssueKudoLabeled] missing famed label: %s in issue with ID: %d", famedLabel, *issue.ID)
 	return false
 }
 

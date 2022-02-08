@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/kudos-github-backend/internal/client/apps"
+	"github.com/morphysm/famed-github-backend/internal/client/apps"
 )
 
 type FakeClient struct {

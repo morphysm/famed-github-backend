@@ -1,4 +1,4 @@
-package kudo
+package famed
 
 type Config struct {
 	Label    string

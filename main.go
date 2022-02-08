@@ -8,18 +8,17 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-
-	"github.com/morphysm/kudos-github-backend/internal/config"
-	"github.com/morphysm/kudos-github-backend/internal/server"
+	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/server"
 )
 
 const (
-	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=KudosBackend
+	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=FamedBackend
 	banner = `
-   __ __        __            ______ __  __        __       ____             _        
-  / //_/_ _____/ /__  _______/ ___(_) /_/ /  __ __/ /  ____/ __/__ _____  __(_)______ 
- / ,< / // / _  / _ \(_-<___/ (_ / / __/ _ \/ // / _ \/___/\ \/ -_) __/ |/ / / __/ -_)
-/_/|_|\_,_/\_,_/\___/___/   \___/_/\__/_//_/\_,_/_.__/   /___/\__/_/  |___/_/\__/\__/ 
+   ____                  _____           __               __
+  / __/__ ___ _  ___ ___/ / _ )___ _____/ /_____ ___  ___/ /
+ / _// _ '/  ' \/ -_) _  / _  / _ '/ __/  '_/ -_) _ \/ _  / 
+/_/  \_,_/_/_/_/\__/\_,_/____/\_,_/\__/_/\_\\__/_//_/\_,_/  
 
 Go Backend
 `
@@ -50,7 +49,7 @@ func prepareServer(cfg *config.Config) *echo.Echo {
 
 // start an echo server with gracefully shutdown.
 func start(e *echo.Echo, cfg *config.Config) {
-	// Start server for kudos backend.
+	// Start server for famed backend.
 	go func() {
 		e.HideBanner = true
 		e.StdLogger.Printf(banner)

@@ -1,12 +1,11 @@
-package kudo_test
+package famed_test
 
 import (
 	"testing"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
 )
 
 func TestIssueToSeverity(t *testing.T) {
@@ -15,39 +14,39 @@ func TestIssueToSeverity(t *testing.T) {
 	testCases := []struct {
 		Name        string
 		Label       string
-		Expected    kudo.IssueSeverity
+		Expected    famed.IssueSeverity
 		ExpectedErr error
 	}{
 		{
 			Name:     "Issue severity label none",
 			Label:    "none",
-			Expected: kudo.IssueSeverityNone,
+			Expected: famed.IssueSeverityNone,
 		},
 		{
 			Name:     "Issue severity label low",
 			Label:    "low",
-			Expected: kudo.IssueSeverityLow,
+			Expected: famed.IssueSeverityLow,
 		},
 		{
 			Name:     "Issue severity label medium",
 			Label:    "medium",
-			Expected: kudo.IssueSeverityMedium,
+			Expected: famed.IssueSeverityMedium,
 		},
 		{
 			Name:     "Issue severity high ",
 			Label:    "high",
-			Expected: kudo.IssueSeverityHigh,
+			Expected: famed.IssueSeverityHigh,
 		},
 		{
 			Name:     "Issue severity critical ",
 			Label:    "critical",
-			Expected: kudo.IssueSeverityCritical,
+			Expected: famed.IssueSeverityCritical,
 		},
 		{
 			Name:        "Issue severity critical ",
 			Label:       "",
 			Expected:    "",
-			ExpectedErr: kudo.ErrIssueMissingSeverityLabel,
+			ExpectedErr: famed.ErrIssueMissingSeverityLabel,
 		},
 	}
 
@@ -59,7 +58,7 @@ func TestIssueToSeverity(t *testing.T) {
 			issue := &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}
 
 			// WHEN
-			severityResult, err := kudo.IssueToSeverity(issue)
+			severityResult, err := famed.IssueToSeverity(issue)
 
 			// THEN
 			assert.Equal(t, testCase.Expected, severityResult)
@@ -73,14 +72,14 @@ func TestIssueToSeverity(t *testing.T) {
 func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	t.Parallel()
 	// GIVEN
-	labelNone := string(kudo.IssueSeverityNone)
-	labelLow := string(kudo.IssueSeverityCritical)
+	labelNone := string(famed.IssueSeverityNone)
+	labelLow := string(famed.IssueSeverityCritical)
 	issue := &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}
 
 	// WHEN
-	severityResult, err := kudo.IssueToSeverity(issue)
+	severityResult, err := famed.IssueToSeverity(issue)
 
 	// THEN
-	assert.Equal(t, kudo.IssueSeverity(""), severityResult)
-	assert.ErrorIs(t, kudo.ErrIssueMultipleSeverityLabels, err)
+	assert.Equal(t, famed.IssueSeverity(""), severityResult)
+	assert.ErrorIs(t, famed.ErrIssueMultipleSeverityLabels, err)
 }

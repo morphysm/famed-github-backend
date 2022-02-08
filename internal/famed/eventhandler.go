@@ -1,4 +1,4 @@
-package kudo
+package famed
 
 import (
 	"net/http"
@@ -37,9 +37,9 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 }
 
 // handleIssuesEvent handles issue events and posts a suggested payout comment to the GitHub API,
-// if the kudo label is set and the issue is closed.
+// if the famed label is set and the issue is closed.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	generator := NewCommentGenerator(gH.kudoConfig, gH.githubInstallationClient, gH.currencyClient, event)
+	generator := NewCommentGenerator(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, event)
 
 	comment, err := generator.GetComment(c.Request().Context())
 	if err != nil {

@@ -2,13 +2,12 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-
-	"github.com/morphysm/kudos-github-backend/internal/health"
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
+	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/internal/health"
 )
 
 // GitHubRoutes defines endpoints exposed to serve relay calls to the GitHub api.
-func GitHubRoutes(g *echo.Group, handler kudo.HTTPHandler) {
+func GitHubRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.GET("/repos/:repo_name/contributors", handler.GetContributors)
 
 	g.POST("/webhooks/event", handler.PostEvent)

@@ -1,4 +1,4 @@
-package kudo_test
+package famed_test
 
 import (
 	"bytes"
@@ -10,25 +10,24 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/client/currency/currencyfakes"
+	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
+	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/pkg/pointers"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/currency/currencyfakes"
-	"github.com/morphysm/kudos-github-backend/internal/client/installation/installationfakes"
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
-	"github.com/morphysm/kudos-github-backend/pkg/pointers"
 )
 
 func TestPostEvent(t *testing.T) {
 	t.Parallel()
 
-	rewards := map[kudo.IssueSeverity]float64{
-		kudo.IssueSeverityNone:     0,
-		kudo.IssueSeverityLow:      1,
-		kudo.IssueSeverityMedium:   2,
-		kudo.IssueSeverityHigh:     3,
-		kudo.IssueSeverityCritical: 4,
+	rewards := map[famed.IssueSeverity]float64{
+		famed.IssueSeverityNone:     0,
+		famed.IssueSeverityLow:      1,
+		famed.IssueSeverityMedium:   2,
+		famed.IssueSeverityHigh:     3,
+		famed.IssueSeverityCritical: 4,
 	}
-	kudoConfig := kudo.Config{
+	famedConfig := famed.Config{
 		Label:    "famed",
 		Currency: "eth",
 		Rewards:  rewards,
@@ -56,7 +55,7 @@ func TestPostEvent(t *testing.T) {
 				Installation: &github.Installation{},
 			},
 			ExpectedComment: "",
-			ExpectedErr:     kudo.ErrEventMissingData,
+			ExpectedErr:     famed.ErrEventMissingData,
 		},
 		{
 			Name: "No Assignee",
@@ -215,7 +214,7 @@ func TestPostEvent(t *testing.T) {
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeCurrencyClient := &currencyfakes.FakeClient{}
 			fakeCurrencyClient.GetUSDToETHConversionReturns(1, nil)
-			githubHandler := kudo.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, 0, kudoConfig)
+			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, 0, famedConfig)
 
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 

@@ -1,12 +1,11 @@
-package kudo
+package famed
 
 import (
 	"context"
 
 	"github.com/labstack/echo/v4"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/currency"
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/currency"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
 type BoardGenerator interface {

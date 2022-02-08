@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/health"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/morphysm/kudos-github-backend/internal/health"
 )
 
 func TestHealthCheckServiceAvailable(t *testing.T) {

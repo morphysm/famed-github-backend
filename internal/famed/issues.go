@@ -1,4 +1,4 @@
-package kudo
+package famed
 
 import (
 	"context"
@@ -50,10 +50,10 @@ func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*gi
 }
 
 // filterIssues filters for valid issues.
-func filterIssues(issues []*github.Issue, kudoLabel string) []*github.Issue {
+func filterIssues(issues []*github.Issue, famedLabel string) []*github.Issue {
 	filteredIssues := make([]*github.Issue, 0)
 	for _, issue := range issues {
-		if _, err := IsIssueValid(issue, kudoLabel); err != nil {
+		if _, err := IsIssueValid(issue, famedLabel); err != nil {
 			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
 			continue
 		}

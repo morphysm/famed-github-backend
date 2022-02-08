@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/morphysm/kudos-github-backend/internal/client/currency"
+	"github.com/morphysm/famed-github-backend/internal/client/currency"
 )
 
 type FakeClient struct {

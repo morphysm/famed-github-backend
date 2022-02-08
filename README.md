@@ -18,7 +18,7 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 
 <!--ts-->
 
-- [Kudos](#kudos)
+- [famed](#famed)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Demo](#demo)
@@ -29,9 +29,9 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 - [Contact](#contact)
 <!--te-->
 
-# Kudos
+# famed
 
-This repository represents the Kudos frontEnd
+This repository represents the famed frontEnd
 
 # Prerequisites
 

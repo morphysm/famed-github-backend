@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
+	"github.com/morphysm/famed-github-backend/internal/famed"
 )
 
 type Config struct {
@@ -29,7 +29,7 @@ type Config struct {
 
 	Kudo struct {
 		Label    string
-		Rewards  map[kudo.IssueSeverity]float64
+		Rewards  map[famed.IssueSeverity]float64
 		Currency string
 	}
 }

@@ -1,4 +1,4 @@
-module github.com/morphysm/kudos-github-backend
+module github.com/morphysm/famed-github-backend
 
 go 1.17
 

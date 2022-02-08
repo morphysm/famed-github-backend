@@ -4,9 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/morphysm/famed-github-backend/internal/client/apps"
 	"golang.org/x/oauth2"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/apps"
 )
 
 type gitHubTokenSource struct {

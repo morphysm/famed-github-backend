@@ -1,4 +1,4 @@
-package kudo
+package famed
 
 import (
 	"log"
@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v41/github"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
 type Contributors map[string]*Contributor

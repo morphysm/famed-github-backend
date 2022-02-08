@@ -1,4 +1,4 @@
-package kudo
+package famed
 
 import (
 	"context"
@@ -6,9 +6,8 @@ import (
 	"log"
 
 	"github.com/google/go-github/v41/github"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/currency"
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/currency"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
 type CommentGenerator interface {

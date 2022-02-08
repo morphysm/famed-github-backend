@@ -3,13 +3,12 @@ package server
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
-	"github.com/morphysm/kudos-github-backend/internal/client/apps"
-	"github.com/morphysm/kudos-github-backend/internal/client/currency"
-	"github.com/morphysm/kudos-github-backend/internal/client/installation"
-	"github.com/morphysm/kudos-github-backend/internal/config"
-	"github.com/morphysm/kudos-github-backend/internal/health"
-	"github.com/morphysm/kudos-github-backend/internal/kudo"
+	"github.com/morphysm/famed-github-backend/internal/client/apps"
+	"github.com/morphysm/famed-github-backend/internal/client/currency"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/internal/health"
 )
 
 // NewServer returns an echo server with default configuration
@@ -39,12 +38,12 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	kudoConfig := kudo.Config{
+	famedConfig := famed.Config{
 		Label:    config.Kudo.Label,
 		Currency: config.Kudo.Currency,
 		Rewards:  config.Kudo.Rewards,
 	}
-	githubHandler := kudo.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
+	githubHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, famedConfig)
 
 	// Logger
 	e.Use(middleware.Logger())
