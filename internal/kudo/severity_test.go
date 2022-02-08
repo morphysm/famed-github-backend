@@ -47,7 +47,7 @@ func TestIssueToSeverity(t *testing.T) {
 			Name:        "Issue severity critical ",
 			Label:       "",
 			Expected:    "",
-			ExpectedErr: kudo.ErrIssueMissingLabel,
+			ExpectedErr: kudo.ErrIssueMissingSeverityLabel,
 		},
 	}
 

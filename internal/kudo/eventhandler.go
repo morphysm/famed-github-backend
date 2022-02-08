@@ -12,7 +12,12 @@ import (
 // IssueEvents are handled by handleIssuesEvent.
 // All other events are ignored.
 func (gH *githubHandler) PostEvent(c echo.Context) error {
-	payload, err := github.ValidatePayload(c.Request(), []byte(gH.webhookSecret))
+	var webhookSecret []byte
+	if gH.webhookSecret != nil {
+		webhookSecret = []byte(*gH.webhookSecret)
+	}
+
+	payload, err := github.ValidatePayload(c.Request(), webhookSecret)
 	if err != nil {
 		return err
 	}

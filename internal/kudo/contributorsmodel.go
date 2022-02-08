@@ -20,7 +20,7 @@ type Contributor struct {
 	FixCount         int                   `json:"fixCount,omitempty"`
 	Rewards          []Reward              `json:"rewards"`
 	RewardSum        float64               `json:"rewardSum"`
-	RewardUnit       string                `json:"currency"`
+	Currency         string                `json:"currency"`
 	RewardsLastYear  RewardsLastYear       `json:"rewardsLastYear,omitempty"`
 	TimeToDisclosure TimeToDisclosure      `json:"timeToDisclosure"`
 	Severities       map[IssueSeverity]int `json:"severities"`
@@ -33,11 +33,6 @@ type TimeToDisclosure struct {
 	Time              []float64 `json:"time"`
 	Mean              float64   `json:"mean"`
 	StandardDeviation float64   `json:"standardDeviation"`
-}
-
-type WorkLog struct {
-	Start time.Time
-	End   time.Time
 }
 
 type Reward struct {
@@ -85,7 +80,7 @@ func issuesAndEventsToContributors(githubData GithubData, boardOptions BoardOpti
 // TODO investigate if different data handling for rewards works
 func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, boardOptions BoardOptions) error {
 	var (
-		workLogs         = map[string][]WorkLog{}
+		workLogs         = WorkLogs{}
 		reopenCount      = 0
 		issueCreatedAt   = *issue.CreatedAt
 		issueClosedAt    = *issue.ClosedAt
@@ -146,7 +141,7 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rew
 			HTMLURL:          assignee.HTMLURL,
 			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
-			RewardUnit:       rewardUnit,
+			Currency:         rewardUnit,
 			TimeToDisclosure: TimeToDisclosure{},
 			Severities:       map[IssueSeverity]int{},
 			RewardsLastYear:  NewRewardsLastYear(time.Now()),
@@ -168,7 +163,7 @@ func (contributors Contributors) updateFixCounters(assignee *github.User, timeTo
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs map[string][]WorkLog, rewardUnit string) {
+func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, rewardUnit string) {
 	if event.CreatedAt.After(issueClosedAt) {
 		return
 	}
@@ -176,23 +171,15 @@ func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issu
 	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
 
 	// Append work log
-	work := WorkLog{Start: *event.CreatedAt, End: issueClosedAt}
-	assigneeWorkLogs := workLogs[*event.Assignee.Login]
-	assigneeWorkLogs = append(assigneeWorkLogs, work)
-	workLogs[*event.Assignee.Login] = assigneeWorkLogs
+	workLogs.Add(*event.Assignee.Login, WorkLog{*event.CreatedAt, issueClosedAt})
 }
 
 // mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
-func mapEventUnassigned(event *github.IssueEvent, workLogs map[string][]WorkLog) {
-	// Append work log
-	assigneeWorkLogs := workLogs[*event.Assignee.Login]
-	if len(assigneeWorkLogs) == 0 {
-		log.Printf("[mapEventUnassigned] no work log on event unassigned of issue with id %d \n", event.Issue.ID)
-		return
+func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
+	err := workLogs.UpdateEnd(*event.Assignee.Login, *event.CreatedAt)
+	if err != nil {
+		log.Printf("[mapEventUnassigned] %v on map of issue with id %d \n", err, event.Issue.ID)
 	}
-
-	assigneeWorkLogs[len(assigneeWorkLogs)-1].End = *event.CreatedAt
-	workLogs[*event.Assignee.Login] = assigneeWorkLogs
 }
 
 // updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.

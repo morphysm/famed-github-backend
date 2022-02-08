@@ -44,7 +44,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		Currency: config.Kudo.Currency,
 		Rewards:  config.Kudo.Rewards,
 	}
-	githubHandler := kudo.NewHandler(installationClient, currencyClient, config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
+	githubHandler := kudo.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, kudoConfig)
 
 	// Logger
 	e.Use(middleware.Logger())

@@ -22,7 +22,7 @@ func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*gi
 	}
 
 	// Filter issues for missing data
-	filteredIssues := filterIssues(issues)
+	filteredIssues := filterIssues(issues, bG.config.Label)
 
 	// Get all events for each issue
 	events, err := bG.getEvents(ctx, filteredIssues, bG.repo)
@@ -50,10 +50,10 @@ func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*gi
 }
 
 // filterIssues filters for valid issues.
-func filterIssues(issues []*github.Issue) []*github.Issue {
+func filterIssues(issues []*github.Issue, kudoLabel string) []*github.Issue {
 	filteredIssues := make([]*github.Issue, 0)
 	for _, issue := range issues {
-		if _, err := IsIssueValid(issue); err != nil {
+		if _, err := IsIssueValid(issue, kudoLabel); err != nil {
 			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
 			continue
 		}

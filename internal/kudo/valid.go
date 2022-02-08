@@ -10,30 +10,32 @@ import (
 )
 
 var (
-	ErrIssueMissingAssignee = errors.New("the issue is missing an assignee")
-	ErrIssueMissingData     = errors.New("the issue is missing data promised by the GitHub API")
+	ErrIssueMissingAssignee  = errors.New("the issue is missing an assignee")
+	ErrIssueMissingData      = errors.New("the issue is missing data promised by the GitHub API")
+	ErrIssueMissingKudoLabel = errors.New("the issue is missing the kudo label")
 
 	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
 	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
-	ErrEventMissingKudoLabel    = errors.New("the event is missing the kudo label")
 	ErrEventIsNotClose          = errors.New("the event is not a close event")
 )
 
 // IsIssueValid checks weather all necessary issue fields are assigned.
-func IsIssueValid(issue *github.Issue) (bool, error) {
-	if issue.Assignee == nil {
-		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
-		return false, ErrIssueMissingAssignee
-	}
+func IsIssueValid(issue *github.Issue, kudoLabel string) (bool, error) {
 	if issue == nil ||
 		issue.ID == nil ||
 		issue.Number == nil ||
-		issue.Assignee.Login == nil ||
 		issue.CreatedAt == nil ||
-		issue.ClosedAt == nil ||
-		issue.Labels == nil {
+		issue.ClosedAt == nil {
 		log.Printf("[IsIssueValid] missing values in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingData
+	}
+	if issue.Assignee == nil ||
+		issue.Assignee.Login == nil {
+		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
+		return false, ErrIssueMissingAssignee
+	}
+	if !isIssueKudoLabeled(issue, kudoLabel) {
+		return false, ErrIssueMissingKudoLabel
 	}
 
 	return true, nil
@@ -48,11 +50,7 @@ func IsValidCloseEvent(event *github.IssuesEvent, kudoLabel string) (bool, error
 		log.Println("[IsValidCloseEvent] event is not a closed event")
 		return false, ErrEventIsNotClose
 	}
-	if !isIssueKudoLabeled(event.Issue, kudoLabel) {
-		log.Println("[IsValidCloseEvent] event is missing the kudo label")
-		return false, ErrEventMissingKudoLabel
-	}
-	if _, err := IsIssueValid(event.Issue); err != nil {
+	if _, err := IsIssueValid(event.Issue, kudoLabel); err != nil {
 		log.Println("[IsValidCloseEvent] event issue is missing data")
 		return false, err
 	}

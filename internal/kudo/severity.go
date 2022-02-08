@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	ErrIssueMissingLabel           = errors.New("the issue is missing it's severity label")
+	ErrIssueMissingSeverityLabel   = errors.New("the issue is missing it's severity label")
 	ErrIssueMultipleSeverityLabels = errors.New("the issue has multiple severity labels")
 )
 
@@ -51,7 +51,7 @@ func IssueToSeverity(issue *github.Issue) (IssueSeverity, error) {
 	}
 
 	if severity == "" {
-		return "", ErrIssueMissingLabel
+		return "", ErrIssueMissingSeverityLabel
 	}
 
 	return severity, nil

@@ -11,25 +11,11 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // contributors (array of contributors with timeOnIssue)
-func (contributors Contributors) updateReward(workLogs map[string][]WorkLog, open time.Time, closed time.Time, k int, severityReward float64, usdToEthRate float64) {
+func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64, usdToEthRate float64) {
 	baseReward := reward(closed.Sub(open), k)
 	ethReward := rewardToEth(baseReward, severityReward, usdToEthRate)
-	// TotalWork maps contributor login to contributor total work
-	totalWork := map[string]time.Duration{}
-
-	// Calculate total work time of all contributors
-	workSum := time.Duration(0)
-	for login, workLog := range workLogs {
-		// Calculate total work time of a contributor
-		contributorTotalWork := totalWork[login]
-		for _, work := range workLog {
-			contributorTotalWork = contributorTotalWork + work.End.Sub(work.Start)
-		}
-
-		totalWork[login] = contributorTotalWork
-		// Update work total work time of issue
-		workSum += contributorTotalWork
-	}
+	// Get the sum of work per contributor and the total sum of work
+	totalWork, workSum := workLogs.Sum()
 
 	// Divide base reward based on percentage of each contributor
 	for login, contributorTotalWork := range totalWork {
