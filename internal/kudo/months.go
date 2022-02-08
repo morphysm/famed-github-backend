@@ -14,8 +14,8 @@ type MonthlyReward struct {
 
 const monthsInAYear = 12
 
-// NewRewardsLastYear returns RewardsLastYear with instantiated months starting at the current month and going back 11 months.
-func NewRewardsLastYear(timeStart time.Time) RewardsLastYear {
+// newRewardsLastYear returns RewardsLastYear with instantiated months starting at the current month and going back 11 months.
+func newRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	rewardsLastYear := make([]MonthlyReward, monthsInAYear)
 	for i := 0; i < 12; i++ {
 		timeInMonth := timeStart.AddDate(0, -i, 0)

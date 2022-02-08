@@ -144,7 +144,7 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rew
 			Currency:         rewardUnit,
 			TimeToDisclosure: TimeToDisclosure{},
 			Severities:       map[IssueSeverity]int{},
-			RewardsLastYear:  NewRewardsLastYear(time.Now()),
+			RewardsLastYear:  newRewardsLastYear(time.Now()),
 		}
 	}
 }
