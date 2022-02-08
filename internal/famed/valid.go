@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	ErrIssueMissingAssignee  = errors.New("the issue is missing an assignee")
-	ErrIssueMissingData      = errors.New("the issue is missing data promised by the GitHub API")
-	ErrIssueMissingKudoLabel = errors.New("the issue is missing the famed label")
+	ErrIssueMissingAssignee   = errors.New("the issue is missing an assignee")
+	ErrIssueMissingData       = errors.New("the issue is missing data promised by the GitHub API")
+	ErrIssueMissingFamedLabel = errors.New("the issue is missing the famed label")
 
 	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
 	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
@@ -33,8 +33,8 @@ func IsIssueValid(issue *github.Issue, famedLabel string) (bool, error) {
 		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingAssignee
 	}
-	if !isIssueKudoLabeled(issue, famedLabel) {
-		return false, ErrIssueMissingKudoLabel
+	if !isIssueFamedLabeled(issue, famedLabel) {
+		return false, ErrIssueMissingFamedLabel
 	}
 
 	return true, nil
@@ -86,15 +86,15 @@ func isAssigneeDataValid(assignee *github.User) (bool, error) {
 	return true, nil
 }
 
-// isIssueKudoLabeled checks weather the issue labels contain expected famed label.
-func isIssueKudoLabeled(issue *github.Issue, famedLabel string) bool {
+// isIssueFamedLabeled checks weather the issue labels contain expected famed label.
+func isIssueFamedLabeled(issue *github.Issue, famedLabel string) bool {
 	for _, label := range issue.Labels {
 		if label.Name != nil && *label.Name == famedLabel {
 			return true
 		}
 	}
 
-	log.Printf("[IsIssueKudoLabeled] missing famed label: %s in issue with ID: %d", famedLabel, *issue.ID)
+	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, *issue.ID)
 	return false
 }
 

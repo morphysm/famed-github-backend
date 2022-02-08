@@ -79,7 +79,7 @@ func TestPostEvent(t *testing.T) {
 				Sender:       nil,
 				Installation: nil,
 			},
-			ExpectedComment: "### Kudo could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
+			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
 			ExpectedErr:     nil,
 		},
 		{
@@ -105,7 +105,7 @@ func TestPostEvent(t *testing.T) {
 				Sender:       nil,
 				Installation: nil,
 			},
-			ExpectedComment: "### Kudo could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
+			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
 			ExpectedErr:     nil,
 		},
 		{
@@ -131,7 +131,7 @@ func TestPostEvent(t *testing.T) {
 				Sender:       nil,
 				Installation: nil,
 			},
-			ExpectedComment: "### Kudo could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
+			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
 			ExpectedErr:     nil,
 		},
 		{
@@ -157,7 +157,7 @@ func TestPostEvent(t *testing.T) {
 				Sender:       nil,
 				Installation: nil,
 			},
-			ExpectedComment: "### Kudo could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
+			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
 			ExpectedErr:     nil,
 		},
 		{
@@ -190,7 +190,7 @@ func TestPostEvent(t *testing.T) {
 					Assignee:  &github.User{Login: pointers.String("test")},
 				},
 			},
-			ExpectedComment: "### Kudo suggests:\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|0.675000 eth|",
+			ExpectedComment: "### Famed suggests:\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|0.675000 eth|",
 			ExpectedErr:     nil,
 		},
 	}

@@ -25,7 +25,7 @@ func (contributors Contributors) generateCommentFromContributors(currency string
 		return generateCommentFromError(ErrNoContributors)
 	}
 
-	comment := "### Kudo suggests:\n" +
+	comment := "### Famed suggests:\n" +
 		"| Contributor | Time | Reward |\n" +
 		"| ----------- | ----------- | ----------- |"
 	for _, contributor := range contributors {
@@ -36,7 +36,7 @@ func (contributors Contributors) generateCommentFromContributors(currency string
 }
 
 func generateCommentFromError(err error) string {
-	comment := "### Kudo could not generate a reward suggestion. \n" +
+	comment := "### Famed could not generate a reward suggestion. \n" +
 		"Reason: "
 
 	if errors.Is(err, ErrIssueMissingAssignee) {

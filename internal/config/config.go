@@ -27,7 +27,7 @@ type Config struct {
 		InstallationID int64
 	}
 
-	Kudo struct {
+	Famed struct {
 		Label    string
 		Rewards  map[famed.IssueSeverity]float64
 		Currency string
@@ -35,13 +35,13 @@ type Config struct {
 }
 
 const (
-	githubKeyEnvName       = "GITHUB_API_KEY"
-	githubWHSecretEnvName  = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
-	githubKudoLabelEnvName = "GITHUB_KUDO_LABEL"
-	githubAppIDEnvName     = "GITHUB_APP_ID"
-	githubOwner            = "GITHUB_OWNER"
-	githubInstallationID   = "GITHUB_INSTALLATION_ID"
-	githubRepoIDs          = "GITHUB_REPO_IDS"
+	githubKeyEnvName        = "GITHUB_API_KEY"
+	githubWHSecretEnvName   = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
+	githubFamedLabelEnvName = "GITHUB_KUDO_LABEL"
+	githubAppIDEnvName      = "GITHUB_APP_ID"
+	githubOwner             = "GITHUB_OWNER"
+	githubInstallationID    = "GITHUB_INSTALLATION_ID"
+	githubRepoIDs           = "GITHUB_REPO_IDS"
 )
 
 func Load() (*Config, error) {
@@ -71,19 +71,19 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// GitHub Kudo issue label
-	err = bindString(&config.Kudo.Label, githubKudoLabelEnvName)
+	// GitHub Famed issue label
+	err = bindString(&config.Famed.Label, githubFamedLabelEnvName)
 	if err != nil {
 		return nil, err
 	}
 
-	// GitHub Kudo app id
+	// GitHub Famed app id
 	err = bindInt64(&config.Github.AppID, githubAppIDEnvName)
 	if err != nil {
 		return nil, err
 	}
 
-	// GitHub Kudo owner
+	// GitHub Famed owner
 	err = bindString(&config.Github.Owner, githubOwner)
 	if err != nil {
 		return nil, err

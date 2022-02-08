@@ -39,9 +39,9 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	}
 
 	famedConfig := famed.Config{
-		Label:    config.Kudo.Label,
-		Currency: config.Kudo.Currency,
-		Rewards:  config.Kudo.Rewards,
+		Label:    config.Famed.Label,
+		Currency: config.Famed.Currency,
+		Rewards:  config.Famed.Rewards,
 	}
 	githubHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, famedConfig)
 
