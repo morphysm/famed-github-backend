@@ -19,7 +19,7 @@ var (
 )
 
 // IsIssueValid checks weather all necessary issue fields are assigned.
-func IsIssueValid(issue *github.Issue, famedLabel string) (bool, error) {
+func IsIssueValid(issue *github.Issue) (bool, error) {
 	if issue == nil ||
 		issue.ID == nil ||
 		issue.Number == nil ||
@@ -32,9 +32,6 @@ func IsIssueValid(issue *github.Issue, famedLabel string) (bool, error) {
 		issue.Assignee.Login == nil {
 		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingAssignee
-	}
-	if !isIssueFamedLabeled(issue, famedLabel) {
-		return false, ErrIssueMissingFamedLabel
 	}
 
 	return true, nil
@@ -49,7 +46,10 @@ func IsValidCloseEvent(event *github.IssuesEvent, famedLabel string) (bool, erro
 		log.Println("[IsValidCloseEvent] event is not a closed event")
 		return false, ErrEventIsNotClose
 	}
-	if _, err := IsIssueValid(event.Issue, famedLabel); err != nil {
+	if !isIssueFamedLabeled(event.Issue, famedLabel) {
+		return false, ErrIssueMissingFamedLabel
+	}
+	if _, err := IsIssueValid(event.Issue); err != nil {
 		log.Println("[IsValidCloseEvent] event issue is missing data")
 		return false, err
 	}

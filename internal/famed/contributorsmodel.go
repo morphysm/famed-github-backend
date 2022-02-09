@@ -45,51 +45,50 @@ type BoardOptions struct {
 	usdToEthRate float64
 }
 
-type GithubData struct {
-	issues        []*github.Issue
-	eventsByIssue map[int64][]*github.IssueEvent
-}
-
-// GenerateContributors creates a contributors map based on an array of issue and a map of event arrays.
-func GenerateContributors(githubData GithubData, boardOptions BoardOptions) Contributors {
+// contributors creates a contributors map based on an array of issue and a map of event arrays.
+func (r *repo) Contributors() Contributors {
 	// Map issues and events to contributors
-	contributors := issuesAndEventsToContributors(githubData, boardOptions)
+	r.issuesAndEventsToContributors()
 	// Calculate mean and deviation of time to disclosure
-	contributors.updateMeanAndDeviationOfDisclosure()
+	r.contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
-	contributors.updateAverageSeverity()
+	r.contributors.updateAverageSeverity()
 
-	return contributors
+	return r.contributors
 }
 
-func issuesAndEventsToContributors(githubData GithubData, boardOptions BoardOptions) Contributors {
-	contributors := Contributors{}
-	for _, issue := range githubData.issues {
+func (r *repo) issuesAndEventsToContributors() {
+	r.contributors = Contributors{}
+	for issueID, issue := range r.issues {
 		// Map issue to contributors
-		err := contributors.MapIssue(issue, githubData.eventsByIssue[*issue.ID], boardOptions)
+		err := r.contributors.MapIssue(issue, BoardOptions{
+			currency:     r.config.Currency,
+			rewards:      r.config.Rewards,
+			usdToEthRate: r.ethRate,
+		})
 		if err != nil {
-			log.Printf("[GenerateContributors] error while mapping issue with ID: %d, error: %v", issue.ID, err)
+			log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
+			issue.Error = err
+			r.issues[issueID] = issue
 		}
 	}
-
-	return contributors
 }
 
 // MapIssue updates the contributors map based on a set of events and an issue.
 // TODO investigate if different data handling for rewards works
-func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.IssueEvent, boardOptions BoardOptions) error {
+func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions) error {
 	var (
 		workLogs         = WorkLogs{}
 		reopenCount      = 0
-		issueCreatedAt   = *issue.CreatedAt
-		issueClosedAt    = *issue.ClosedAt
+		issueCreatedAt   = *issue.Issue.CreatedAt
+		issueClosedAt    = *issue.Issue.ClosedAt
 		timeToDisclosure = issueClosedAt.Sub(issueCreatedAt).Minutes()
 	)
 
 	// Read severity from issue
-	severity, err := IssueToSeverity(issue)
+	severity, err := issue.severity()
 	if err != nil {
-		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.ID, err)
+		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.Issue.ID, err)
 		return err
 	}
 
@@ -97,7 +96,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	severityReward := boardOptions.rewards[severity]
 
 	// Increment fix count for all assignees assigned to the closed issue
-	for _, assignee := range issue.Assignees {
+	for _, assignee := range issue.Issue.Assignees {
 		// Add on closed assignee
 		contributors.mapAssigneeIfMissing(assignee, boardOptions.currency)
 		// Increment fix counter only for assignees on closed
@@ -105,7 +104,7 @@ func (contributors Contributors) MapIssue(issue *github.Issue, events []*github.
 	}
 
 	// Iterate through issue events and map events if event type is of interest
-	for _, event := range events {
+	for _, event := range issue.Events {
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
 			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
@@ -177,7 +176,7 @@ func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issu
 func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
 	err := workLogs.UpdateEnd(*event.Assignee.Login, *event.CreatedAt)
 	if err != nil {
-		log.Printf("[mapEventUnassigned] %v on map of issue with id %d \n", err, event.Issue.ID)
+		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
 	}
 }
 

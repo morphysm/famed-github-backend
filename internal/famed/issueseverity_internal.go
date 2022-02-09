@@ -2,8 +2,6 @@ package famed
 
 import (
 	"errors"
-
-	"github.com/google/go-github/v41/github"
 )
 
 type IssueSeverity string
@@ -26,12 +24,12 @@ var (
 	ErrIssueMultipleSeverityLabels = errors.New("the issue has multiple severity labels")
 )
 
-// IssueToSeverity returns the issue severity by matching labels against CVSS
+// severity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns the IssueMissingLabelErr
 // if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
-func IssueToSeverity(issue *github.Issue) (IssueSeverity, error) {
+func (i Issue) severity() (IssueSeverity, error) {
 	var severity IssueSeverity
-	for _, label := range issue.Labels {
+	for _, label := range i.Issue.Labels {
 		if !isLabelValid(label) {
 			continue
 		}

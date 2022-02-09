@@ -3,39 +3,30 @@ package famed
 import (
 	"errors"
 	"fmt"
-
-	"github.com/google/go-github/v41/github"
 )
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func generateComment(issue *github.Issue, events []*github.IssueEvent, boardOptions BoardOptions) string {
-	contributors := Contributors{}
-
-	err := contributors.MapIssue(issue, events, boardOptions)
-	if err != nil {
-		return generateCommentFromError(err)
+func (r *repo) comment(issueID int64) string {
+	if err := r.issues[issueID].Error; err != nil {
+		return commentFromError(err)
 	}
 
-	return contributors.generateCommentFromContributors(boardOptions.currency)
-}
-
-func (contributors Contributors) generateCommentFromContributors(currency string) string {
-	if len(contributors) == 0 {
-		return generateCommentFromError(ErrNoContributors)
+	if len(r.contributors) == 0 {
+		return commentFromError(ErrNoContributors)
 	}
 
 	comment := "### Famed suggests:\n" +
 		"| Contributor | Time | Reward |\n" +
 		"| ----------- | ----------- | ----------- |"
-	for _, contributor := range contributors {
-		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, currency)
+	for _, contributor := range r.contributors {
+		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, r.config.Currency)
 	}
 
 	return comment
 }
 
-func generateCommentFromError(err error) string {
+func commentFromError(err error) string {
 	comment := "### Famed could not generate a reward suggestion. \n" +
 		"Reason: "
 

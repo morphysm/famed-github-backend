@@ -212,11 +212,12 @@ func TestPostEvent(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			fakeInstallationClient := &installationfakes.FakeClient{}
+			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
+
 			fakeCurrencyClient := &currencyfakes.FakeClient{}
 			fakeCurrencyClient.GetUSDToETHConversionReturns(1, nil)
-			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, 0, famedConfig)
 
-			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
+			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, 0, famedConfig)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

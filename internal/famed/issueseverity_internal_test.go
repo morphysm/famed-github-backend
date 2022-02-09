@@ -1,10 +1,9 @@
-package famed_test
+package famed
 
 import (
 	"testing"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,39 +13,39 @@ func TestIssueToSeverity(t *testing.T) {
 	testCases := []struct {
 		Name        string
 		Label       string
-		Expected    famed.IssueSeverity
+		Expected    IssueSeverity
 		ExpectedErr error
 	}{
 		{
 			Name:     "Issue severity label none",
 			Label:    "none",
-			Expected: famed.IssueSeverityNone,
+			Expected: IssueSeverityNone,
 		},
 		{
 			Name:     "Issue severity label low",
 			Label:    "low",
-			Expected: famed.IssueSeverityLow,
+			Expected: IssueSeverityLow,
 		},
 		{
 			Name:     "Issue severity label medium",
 			Label:    "medium",
-			Expected: famed.IssueSeverityMedium,
+			Expected: IssueSeverityMedium,
 		},
 		{
 			Name:     "Issue severity high ",
 			Label:    "high",
-			Expected: famed.IssueSeverityHigh,
+			Expected: IssueSeverityHigh,
 		},
 		{
 			Name:     "Issue severity critical ",
 			Label:    "critical",
-			Expected: famed.IssueSeverityCritical,
+			Expected: IssueSeverityCritical,
 		},
 		{
 			Name:        "Issue severity critical ",
 			Label:       "",
 			Expected:    "",
-			ExpectedErr: famed.ErrIssueMissingSeverityLabel,
+			ExpectedErr: ErrIssueMissingSeverityLabel,
 		},
 	}
 
@@ -55,10 +54,10 @@ func TestIssueToSeverity(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// GIVEN
-			issue := &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}
+			issue := Issue{Issue: &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}}
 
 			// WHEN
-			severityResult, err := famed.IssueToSeverity(issue)
+			severityResult, err := issue.severity()
 
 			// THEN
 			assert.Equal(t, testCase.Expected, severityResult)
@@ -72,14 +71,14 @@ func TestIssueToSeverity(t *testing.T) {
 func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	t.Parallel()
 	// GIVEN
-	labelNone := string(famed.IssueSeverityNone)
-	labelLow := string(famed.IssueSeverityCritical)
-	issue := &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}
+	labelNone := string(IssueSeverityNone)
+	labelLow := string(IssueSeverityCritical)
+	issue := Issue{Issue: &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}}
 
 	// WHEN
-	severityResult, err := famed.IssueToSeverity(issue)
+	severityResult, err := issue.severity()
 
 	// THEN
-	assert.Equal(t, famed.IssueSeverity(""), severityResult)
-	assert.ErrorIs(t, famed.ErrIssueMultipleSeverityLabels, err)
+	assert.Equal(t, IssueSeverity(""), severityResult)
+	assert.ErrorIs(t, ErrIssueMultipleSeverityLabels, err)
 }

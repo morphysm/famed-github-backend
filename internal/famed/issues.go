@@ -1,59 +1,37 @@
 package famed
 
 import (
-	"context"
 	"log"
 	"sort"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/labstack/echo/v4"
 )
 
+type Issues map[int64]Issues
+
+type Issue struct {
+	Issue  *github.Issue
+	Events []*github.IssueEvent
+	Error  error
+}
+
 // issuesToContributors generates a contributor list based on a list of issues
-func (bG *boardGenerator) issuesToContributors(ctx context.Context, issues []*github.Issue) ([]*Contributor, error) {
-	if len(issues) == 0 {
-		return []*Contributor{}, nil
-	}
-
-	// Get usd to eth conversion rate
-	usdToEthRate, err := bG.currencyClient.GetUSDToETHConversion(ctx)
-	if err != nil {
-		return nil, echo.ErrBadGateway.SetInternal(err)
-	}
-
-	// Filter issues for missing data
-	filteredIssues := filterIssues(issues, bG.config.Label)
-
-	// Get all events for each issue
-	events, err := bG.getEvents(ctx, filteredIssues, bG.repo)
-	if err != nil {
-		return nil, echo.ErrBadGateway.SetInternal(err)
-	}
-
+func (r *repo) contributorsArray() []*Contributor {
 	// Generate the contributors from the issues and events
-	githubData := GithubData{
-		issues:        filteredIssues,
-		eventsByIssue: events,
-	}
-	boardOptions := BoardOptions{
-		currency:     bG.config.Currency,
-		rewards:      bG.config.Rewards,
-		usdToEthRate: usdToEthRate,
-	}
-	contributors := GenerateContributors(githubData, boardOptions)
+	contributors := r.Contributors()
 	// Transformation of contributors map to contributors array
 	contributorsArray := mapToSlice(contributors)
 	// Sort contributors array by total rewards
 	sortContributors(contributorsArray)
 
-	return contributorsArray, nil
+	return contributorsArray
 }
 
 // filterIssues filters for valid issues.
-func filterIssues(issues []*github.Issue, famedLabel string) []*github.Issue {
+func filterIssues(issues []*github.Issue) []*github.Issue {
 	filteredIssues := make([]*github.Issue, 0)
 	for _, issue := range issues {
-		if _, err := IsIssueValid(issue, famedLabel); err != nil {
+		if _, err := IsIssueValid(issue); err != nil {
 			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
 			continue
 		}

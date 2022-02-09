@@ -1,6 +1,7 @@
 package famed
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
@@ -39,11 +40,8 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 // handleIssuesEvent handles issue events and posts a suggested payout comment to the GitHub API,
 // if the famed label is set and the issue is closed.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	generator := NewCommentGenerator(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, event)
-
-	comment, err := generator.GetComment(c.Request().Context())
+	comment, err := gH.eventToComment(c, event)
 	if err != nil {
-		log.Printf("[handleIssueEvent] error while generating comment: %v", err)
 		return err
 	}
 
@@ -55,4 +53,17 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func (gH *githubHandler) eventToComment(c echo.Context, event *github.IssuesEvent) (string, error) {
+	_, err := IsValidCloseEvent(event, gH.famedConfig.Label)
+	if err != nil {
+		if errors.Is(err, ErrIssueMissingAssignee) {
+			return commentFromError(err), nil
+		}
+		return "", err
+	}
+
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, *event.Repo.Name)
+	return repo.GetComment(c.Request().Context(), event.Issue)
 }

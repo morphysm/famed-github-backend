@@ -4,28 +4,12 @@ import (
 	"context"
 	"log"
 	"sync"
-
-	"github.com/google/go-github/v41/github"
 )
 
-type eventContainer struct {
-	mu     sync.Mutex
-	events map[int64][]*github.IssueEvent
-}
-
-func (eC *eventContainer) add(key int64, events []*github.IssueEvent) {
-	eC.mu.Lock()
-	defer eC.mu.Unlock()
-	eC.events[key] = events
-}
-
 // getEvents requests all events of an issue from the GitHub API in a concurrent fashion.
-func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue, repoName string) (map[int64][]*github.IssueEvent, error) {
+func (r *repo) getEvents(ctx context.Context, repoName string) error {
 	var (
-		events = eventContainer{
-			events: map[int64][]*github.IssueEvent{},
-		}
-		errChannel = make(chan error, len(issues))
+		errChannel = make(chan error, len(r.issues))
 	)
 
 	// Create context with cancel to cancel all request if one fails
@@ -35,7 +19,7 @@ func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue,
 	// Create wait group to wait for all requests to finish
 	wg := sync.WaitGroup{}
 
-	for _, issue := range issues {
+	for _, issue := range r.issues {
 		wg.Add(1)
 
 		// Start go routine to get the issue's events
@@ -47,7 +31,7 @@ func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue,
 			case <-ctx.Done():
 				return
 			default:
-				eventsResp, err := bG.installationClient.GetIssueEvents(ctx, repoName, issueNumber)
+				eventsResp, err := r.installationClient.GetIssueEvents(ctx, repoName, issueNumber)
 				if err != nil {
 					log.Printf("[getEvents] error while getting events for issue with Number: %d, error: %v\n", issueNumber, err)
 					cancel()
@@ -55,9 +39,11 @@ func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue,
 					return
 				}
 
-				events.add(issueID, eventsResp)
+				issue := r.issues[issueID]
+				issue.Events = eventsResp
+				r.issues[issueID] = issue
 			}
-		}(ctx, repoName, *issue.Number, *issue.ID)
+		}(ctx, repoName, *issue.Issue.Number, *issue.Issue.ID)
 	}
 
 	wg.Wait()
@@ -66,9 +52,9 @@ func (bG *boardGenerator) getEvents(ctx context.Context, issues []*github.Issue,
 	// TODO should we return multiple errors
 	select {
 	case err := <-errChannel:
-		return nil, err
+		return err
 	default:
 	}
 
-	return events.events, nil
+	return nil
 }
