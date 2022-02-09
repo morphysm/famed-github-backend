@@ -45,7 +45,30 @@ type BoardOptions struct {
 	usdToEthRate float64
 }
 
-// contributors creates a contributors map based on an array of issue and a map of event arrays.
+func (r *repo) ContributorsForIssue(issueID int64) Contributors {
+	// Map issues and events to contributors
+	r.issueAndEventsToContributors(issueID)
+
+	return r.contributors
+}
+
+func (r *repo) issueAndEventsToContributors(issueID int64) {
+	r.contributors = Contributors{}
+	issue := r.issues[issueID]
+	// Map issue to contributors
+	err := r.contributors.MapIssue(issue, BoardOptions{
+		currency:     r.config.Currency,
+		rewards:      r.config.Rewards,
+		usdToEthRate: r.ethRate,
+	})
+	if err != nil {
+		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
+		issue.Error = err
+		r.issues[issueID] = issue
+	}
+}
+
+// Contributors creates a contributors map based on the repos internal issues corresponding events.
 func (r *repo) Contributors() Contributors {
 	// Map issues and events to contributors
 	r.issuesAndEventsToContributors()

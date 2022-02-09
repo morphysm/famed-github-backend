@@ -9,6 +9,7 @@ import (
 type HTTPHandler interface {
 	GetContributors(c echo.Context) error
 	PostEvent(c echo.Context) error
+	UpdateComments(c echo.Context) error
 }
 
 // githubHandler represents the handler for the GitHub endpoints.

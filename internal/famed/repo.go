@@ -12,6 +12,7 @@ import (
 type Repo interface {
 	GetContributors(ctx context.Context) ([]*Contributor, error)
 	GetComment(ctx context.Context, issue *github.Issue) (string, error)
+	GetComments(ctx context.Context) (map[int64]string, error)
 }
 
 type repo struct {
@@ -60,6 +61,25 @@ func (r *repo) GetComment(ctx context.Context, issue *github.Issue) (string, err
 	comment := r.comment(*issue.ID)
 
 	return comment, nil
+}
+
+func (r *repo) GetComments(ctx context.Context) (map[int64]string, error) {
+	err := r.loadIssuesRateAndEvents(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.issues) == 0 {
+		return map[int64]string{}, nil
+	}
+
+	comments := make(map[int64]string, len(r.issues))
+	for issueID := range r.issues {
+		r.ContributorsForIssue(issueID)
+		comments[issueID] = r.comment(issueID)
+	}
+
+	return comments, nil
 }
 
 func (r *repo) loadRateAndEventsForIssue(ctx context.Context, issue *github.Issue) error {

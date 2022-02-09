@@ -11,6 +11,8 @@ func GitHubRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.GET("/repos/:repo_name/contributors", handler.GetContributors)
 
 	g.POST("/webhooks/event", handler.PostEvent)
+
+	g.POST("/repos/:repo_name/update", handler.UpdateComments)
 }
 
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.

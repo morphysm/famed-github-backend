@@ -1,7 +1,6 @@
 package famed
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -14,16 +13,12 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
 	}
 
-	boardGenerator := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
 
-	contributors, err := boardGenerator.GetContributors(c.Request().Context())
+	comments, err := repo.GetComments(c.Request().Context())
 	if err != nil {
-		if errors.Is(err, echo.ErrBadGateway) {
-			return err
-		}
-
-		return echo.ErrInternalServerError.SetInternal(err)
+		return err
 	}
 
-	return c.JSON(http.StatusOK, contributors)
+	return c.JSON(http.StatusOK, comments)
 }
