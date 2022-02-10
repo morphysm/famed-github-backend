@@ -12,7 +12,7 @@ import (
 type Repo interface {
 	GetContributors(ctx context.Context) ([]*Contributor, error)
 	GetComment(ctx context.Context, issue *github.Issue) (string, error)
-	GetComments(ctx context.Context) (map[int64]string, error)
+	GetComments(ctx context.Context) (map[int]string, error)
 }
 
 type repo struct {
@@ -20,7 +20,7 @@ type repo struct {
 	installationClient installation.Client
 	currencyClient     currency.Client
 	name               string
-	issues             map[int64]Issue
+	issues             map[int]Issue
 	ethRate            float64
 	contributors       Contributors
 }
@@ -64,33 +64,34 @@ func (r *repo) GetComment(ctx context.Context, issue *github.Issue) (string, err
 	}
 
 	r.ContributorsForIssues()
-	comment := r.comment(*issue.ID)
+	comment := r.comment(*issue.Number)
 
 	return comment, nil
 }
 
-func (r *repo) GetComments(ctx context.Context) (map[int64]string, error) {
+func (r *repo) GetComments(ctx context.Context) (map[int]string, error) {
 	err := r.loadIssuesRateAndEvents(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(r.issues) == 0 {
-		return map[int64]string{}, nil
+		return map[int]string{}, nil
 	}
 
-	comments := make(map[int64]string, len(r.issues))
-	for issueID := range r.issues {
-		r.ContributorsForIssue(issueID)
-		comments[issueID] = r.comment(issueID)
+	comments := make(map[int]string, len(r.issues))
+	for issueNumber := range r.issues {
+		r.ContributorsForIssue(issueNumber)
+
+		comments[issueNumber] = r.comment(issueNumber)
 	}
 
 	return comments, nil
 }
 
 func (r *repo) loadRateAndEventsForIssue(ctx context.Context, issue *github.Issue) error {
-	r.issues = make(map[int64]Issue, 1)
-	r.issues[*issue.ID] = Issue{Issue: issue}
+	r.issues = make(map[int]Issue, 1)
+	r.issues[*issue.Number] = Issue{Issue: issue}
 
 	return r.loadRateAndEvents(ctx)
 }
@@ -107,9 +108,9 @@ func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
 		return nil
 	}
 
-	r.issues = make(map[int64]Issue, len(filteredIssues))
+	r.issues = make(map[int]Issue, len(filteredIssues))
 	for _, issue := range filteredIssues {
-		r.issues[*issue.ID] = Issue{Issue: issue}
+		r.issues[*issue.Number] = Issue{Issue: issue}
 	}
 
 	return r.loadRateAndEvents(ctx)

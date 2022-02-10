@@ -7,8 +7,8 @@ import (
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func (r *repo) comment(issueID int64) string {
-	if err := r.issues[issueID].Error; err != nil {
+func (r *repo) comment(issueNumber int) string {
+	if err := r.issues[issueNumber].Error; err != nil {
 		return commentFromError(err)
 	}
 
@@ -16,10 +16,12 @@ func (r *repo) comment(issueID int64) string {
 		return commentFromError(ErrNoContributors)
 	}
 
+	contributors := r.contributors.toSortedSlice()
+
 	comment := "### Famed suggests:\n" +
 		"| Contributor | Time | Reward |\n" +
 		"| ----------- | ----------- | ----------- |"
-	for _, contributor := range r.contributors {
+	for _, contributor := range contributors {
 		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, r.config.Currency)
 	}
 

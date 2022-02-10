@@ -21,7 +21,7 @@ func (r *repo) contributorsArray() []*Contributor {
 	// Generate the contributors from the issues and events
 	contributors := r.ContributorsForIssues()
 	// Transformation of contributors map to contributors array
-	contributorsArray := mapToSlice(contributors)
+	contributorsArray := contributors.toSortedSlice()
 	// Sort contributors array by total rewards
 	sortContributors(contributorsArray)
 
@@ -42,14 +42,20 @@ func filterIssues(issues []*github.Issue) []*github.Issue {
 	return filteredIssues
 }
 
+func (contributors Contributors) toSortedSlice() []*Contributor {
+	contributorsSlice := contributors.toSlice()
+	sortContributors(contributorsSlice)
+	return contributorsSlice
+}
+
 // mapToSlice transforms the contributors map to a contributors slice.
-func mapToSlice(contributors Contributors) []*Contributor {
-	contributorsArray := make([]*Contributor, 0)
+func (contributors Contributors) toSlice() []*Contributor {
+	contributorsSlice := make([]*Contributor, 0)
 	for _, contributor := range contributors {
-		contributorsArray = append(contributorsArray, contributor)
+		contributorsSlice = append(contributorsSlice, contributor)
 	}
 
-	return contributorsArray
+	return contributorsSlice
 }
 
 // sortContributors sorts the contributors by descending reward sum.

@@ -13,6 +13,8 @@ import (
 type Client interface {
 	GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
 	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error)
+
+	GetComments(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error)
 }
 

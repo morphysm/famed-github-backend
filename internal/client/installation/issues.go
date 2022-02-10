@@ -72,3 +72,9 @@ func (c *githubInstallationClient) PostComment(ctx context.Context, repoName str
 	issueCommentResponse, _, err := c.client.Issues.CreateComment(ctx, c.owner, repoName, issueNumber, &github.IssueComment{Body: &comment})
 	return issueCommentResponse, err
 }
+
+func (c *githubInstallationClient) GetComments(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueComment, error) {
+	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
+	issueCommentResponse, _, err := c.client.Issues.ListComments(ctx, c.owner, repoName, issueNumber, nil)
+	return issueCommentResponse, err
+}

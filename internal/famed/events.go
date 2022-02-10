@@ -37,9 +37,9 @@ func (r *repo) getEvents(ctx context.Context, repoName string) error {
 					return
 				}
 
-				issue := r.issues[issueID]
+				issue := r.issues[issueNumber]
 				issue.Events = eventsResp
-				r.issues[issueID] = issue
+				r.issues[issueNumber] = issue
 			}
 		}(ctx, repoName, *issue.Issue.Number, *issue.Issue.ID)
 	}

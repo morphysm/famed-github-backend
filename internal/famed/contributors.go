@@ -47,9 +47,9 @@ type BoardOptions struct {
 
 // ContributorsForIssue returns a contributors map generated from the repo's internal issue with issueID
 // and its corresponding events.
-func (r *repo) ContributorsForIssue(issueID int64) Contributors {
+func (r *repo) ContributorsForIssue(issueNumber int) Contributors {
 	r.contributors = Contributors{}
-	issue := r.issues[issueID]
+	issue := r.issues[issueNumber]
 	// Map issue to contributors
 	err := r.contributors.MapIssue(issue, BoardOptions{
 		currency:     r.config.Currency,
@@ -59,7 +59,7 @@ func (r *repo) ContributorsForIssue(issueID int64) Contributors {
 	if err != nil {
 		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
 		issue.Error = err
-		r.issues[issueID] = issue
+		r.issues[issueNumber] = issue
 	}
 
 	return r.contributors
