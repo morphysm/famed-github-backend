@@ -25,6 +25,12 @@ type repo struct {
 	contributors       Contributors
 }
 
+type Config struct {
+	Label    string
+	Currency string
+	Rewards  map[IssueSeverity]float64
+}
+
 // NewRepo returns a new instance of the famed repo representation.
 func NewRepo(config Config, installationClient installation.Client, currencyClient currency.Client, name string) Repo {
 	return &repo{
@@ -57,7 +63,7 @@ func (r *repo) GetComment(ctx context.Context, issue *github.Issue) (string, err
 		return "", err
 	}
 
-	r.Contributors()
+	r.ContributorsForIssues()
 	comment := r.comment(*issue.ID)
 
 	return comment, nil

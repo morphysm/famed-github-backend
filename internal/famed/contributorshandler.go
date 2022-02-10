@@ -16,9 +16,9 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
 	}
 
-	boardGenerator := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
 
-	contributors, err := boardGenerator.GetContributors(c.Request().Context())
+	contributors, err := repo.GetContributors(c.Request().Context())
 	if err != nil {
 		if errors.Is(err, echo.ErrBadGateway) {
 			return err

@@ -45,14 +45,9 @@ type BoardOptions struct {
 	usdToEthRate float64
 }
 
+// ContributorsForIssue returns a contributors map generated from the repo's internal issue with issueID
+// and its corresponding events.
 func (r *repo) ContributorsForIssue(issueID int64) Contributors {
-	// Map issues and events to contributors
-	r.issueAndEventsToContributors(issueID)
-
-	return r.contributors
-}
-
-func (r *repo) issueAndEventsToContributors(issueID int64) {
 	r.contributors = Contributors{}
 	issue := r.issues[issueID]
 	// Map issue to contributors
@@ -66,10 +61,12 @@ func (r *repo) issueAndEventsToContributors(issueID int64) {
 		issue.Error = err
 		r.issues[issueID] = issue
 	}
+
+	return r.contributors
 }
 
-// Contributors creates a contributors map based on the repos internal issues corresponding events.
-func (r *repo) Contributors() Contributors {
+// ContributorsForIssues returns a contributors map generated from the repo's internal issues corresponding events.
+func (r *repo) ContributorsForIssues() Contributors {
 	// Map issues and events to contributors
 	r.issuesAndEventsToContributors()
 	// Calculate mean and deviation of time to disclosure

@@ -8,9 +8,7 @@ import (
 
 // getEvents requests all events of an issue from the GitHub API in a concurrent fashion.
 func (r *repo) getEvents(ctx context.Context, repoName string) error {
-	var (
-		errChannel = make(chan error, len(r.issues))
-	)
+	errChannel := make(chan error, len(r.issues))
 
 	// Create context with cancel to cancel all request if one fails
 	ctx, cancel := context.WithCancel(ctx)

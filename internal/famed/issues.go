@@ -12,13 +12,14 @@ type Issues map[int64]Issues
 type Issue struct {
 	Issue  *github.Issue
 	Events []*github.IssueEvent
-	Error  error
+	// For issue comment generation
+	Error error
 }
 
 // issuesToContributors generates a contributor list based on a list of issues
 func (r *repo) contributorsArray() []*Contributor {
 	// Generate the contributors from the issues and events
-	contributors := r.Contributors()
+	contributors := r.ContributorsForIssues()
 	// Transformation of contributors map to contributors array
 	contributorsArray := mapToSlice(contributors)
 	// Sort contributors array by total rewards
