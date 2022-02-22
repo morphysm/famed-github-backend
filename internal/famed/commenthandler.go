@@ -63,7 +63,7 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 		issueCommentUpdate.Error = err.Error()
 		return
 	}
-	lastCommentByBot := getLastCommentsByUser(issueComments, 96487857)
+	lastCommentByBot := getLastCommentsByUser(issueComments, gH.famedConfig.BotUserID)
 
 	if isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment {
 		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)

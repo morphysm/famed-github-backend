@@ -26,9 +26,10 @@ type repo struct {
 }
 
 type Config struct {
-	Label    string
-	Currency string
-	Rewards  map[IssueSeverity]float64
+	Label     string
+	Currency  string
+	Rewards   map[IssueSeverity]float64
+	BotUserID int64
 }
 
 // NewRepo returns a new instance of the famed repo representation.

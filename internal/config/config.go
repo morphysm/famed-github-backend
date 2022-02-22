@@ -23,6 +23,7 @@ type Config struct {
 		WebhookSecret  string
 		AppID          int64
 		Owner          string
+		BotID          int64
 		RepoIDs        []int64
 		InstallationID int64
 	}
@@ -40,6 +41,7 @@ const (
 	githubFamedLabelEnvName = "GITHUB_KUDO_LABEL"
 	githubAppIDEnvName      = "GITHUB_APP_ID"
 	githubOwner             = "GITHUB_OWNER"
+	githubBotID             = "GITHUB_BOT_ID"
 	githubInstallationID    = "GITHUB_INSTALLATION_ID"
 	githubRepoIDs           = "GITHUB_REPO_IDS"
 )
@@ -85,6 +87,12 @@ func Load() (*Config, error) {
 
 	// GitHub Famed owner
 	err = bindString(&config.Github.Owner, githubOwner)
+	if err != nil {
+		return nil, err
+	}
+
+	// Github bot id
+	err = bindInt64(&config.Github.BotID, githubBotID)
 	if err != nil {
 		return nil, err
 	}
