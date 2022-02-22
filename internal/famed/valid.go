@@ -106,3 +106,7 @@ func isLabelValid(label *github.Label) bool {
 
 	return true
 }
+
+func isCommentValid(comment *github.IssueComment) bool {
+	return comment != nil && comment.Body != nil
+}

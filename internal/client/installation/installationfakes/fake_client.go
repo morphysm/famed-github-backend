@@ -10,6 +10,21 @@ import (
 )
 
 type FakeClient struct {
+	GetCommentsStub        func(context.Context, string, int) ([]*github.IssueComment, error)
+	getCommentsMutex       sync.RWMutex
+	getCommentsArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 int
+	}
+	getCommentsReturns struct {
+		result1 []*github.IssueComment
+		result2 error
+	}
+	getCommentsReturnsOnCall map[int]struct {
+		result1 []*github.IssueComment
+		result2 error
+	}
 	GetIssueEventsStub        func(context.Context, string, int) ([]*github.IssueEvent, error)
 	getIssueEventsMutex       sync.RWMutex
 	getIssueEventsArgsForCall []struct {
@@ -59,6 +74,72 @@ type FakeClient struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 int) ([]*github.IssueComment, error) {
+	fake.getCommentsMutex.Lock()
+	ret, specificReturn := fake.getCommentsReturnsOnCall[len(fake.getCommentsArgsForCall)]
+	fake.getCommentsArgsForCall = append(fake.getCommentsArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 int
+	}{arg1, arg2, arg3})
+	stub := fake.GetCommentsStub
+	fakeReturns := fake.getCommentsReturns
+	fake.recordInvocation("GetComments", []interface{}{arg1, arg2, arg3})
+	fake.getCommentsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClient) GetCommentsCallCount() int {
+	fake.getCommentsMutex.RLock()
+	defer fake.getCommentsMutex.RUnlock()
+	return len(fake.getCommentsArgsForCall)
+}
+
+func (fake *FakeClient) GetCommentsCalls(stub func(context.Context, string, int) ([]*github.IssueComment, error)) {
+	fake.getCommentsMutex.Lock()
+	defer fake.getCommentsMutex.Unlock()
+	fake.GetCommentsStub = stub
+}
+
+func (fake *FakeClient) GetCommentsArgsForCall(i int) (context.Context, string, int) {
+	fake.getCommentsMutex.RLock()
+	defer fake.getCommentsMutex.RUnlock()
+	argsForCall := fake.getCommentsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeClient) GetCommentsReturns(result1 []*github.IssueComment, result2 error) {
+	fake.getCommentsMutex.Lock()
+	defer fake.getCommentsMutex.Unlock()
+	fake.GetCommentsStub = nil
+	fake.getCommentsReturns = struct {
+		result1 []*github.IssueComment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) GetCommentsReturnsOnCall(i int, result1 []*github.IssueComment, result2 error) {
+	fake.getCommentsMutex.Lock()
+	defer fake.getCommentsMutex.Unlock()
+	fake.GetCommentsStub = nil
+	if fake.getCommentsReturnsOnCall == nil {
+		fake.getCommentsReturnsOnCall = make(map[int]struct {
+			result1 []*github.IssueComment
+			result2 error
+		})
+	}
+	fake.getCommentsReturnsOnCall[i] = struct {
+		result1 []*github.IssueComment
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 int) ([]*github.IssueEvent, error) {
@@ -269,6 +350,8 @@ func (fake *FakeClient) PostCommentReturnsOnCall(i int, result1 *github.IssueCom
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getCommentsMutex.RLock()
+	defer fake.getCommentsMutex.RUnlock()
 	fake.getIssueEventsMutex.RLock()
 	defer fake.getIssueEventsMutex.RUnlock()
 	fake.getIssuesByRepoMutex.RLock()

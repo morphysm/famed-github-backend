@@ -65,8 +65,7 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 	}
 	lastCommentByBot := getLastCommentsByUser(issueComments, 96487857)
 
-	// TODO Add checks
-	if lastCommentByBot != nil && lastCommentByBot.Body != nil && *lastCommentByBot.Body != comment {
+	if isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment {
 		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)
 		_, err := gH.githubInstallationClient.PostComment(ctx, repoName, issueNumber, comment)
 		if err != nil {
