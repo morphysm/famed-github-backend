@@ -21,7 +21,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	e := newServer()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://famed.morphysm.com"},
+		AllowOrigins: []string{"https://www.famed.morphysm.com", "https://famed.morphysm.com"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
