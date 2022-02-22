@@ -22,7 +22,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 
 	// TODO set constant origin as soon as development is completed
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"https://famed.morphysm.com"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
