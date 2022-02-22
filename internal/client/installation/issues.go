@@ -59,13 +59,51 @@ const (
 )
 
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
-	issuesResponse, _, err := c.client.Issues.ListByRepo(ctx, c.owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
-	return issuesResponse, err
+	var (
+		allIssues   []*github.Issue
+		listOptions = &github.ListOptions{
+			Page:    1,
+			PerPage: 100,
+		}
+	)
+
+	for {
+		issues, resp, err := c.client.Issues.ListByRepo(ctx, c.owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
+		if err != nil {
+			return allIssues, err
+		}
+		allIssues = append(allIssues, issues...)
+		if resp.NextPage == 0 {
+			break
+		}
+		listOptions.Page = resp.NextPage
+	}
+
+	return allIssues, nil
 }
 
 func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
-	issueEventsResponse, _, err := c.client.Issues.ListIssueEvents(ctx, c.owner, repoName, issueNumber, nil)
-	return issueEventsResponse, err
+	var (
+		allEvents   []*github.IssueEvent
+		listOptions = &github.ListOptions{
+			Page:    1,
+			PerPage: 100,
+		}
+	)
+
+	for {
+		events, resp, err := c.client.Issues.ListIssueEvents(ctx, c.owner, repoName, issueNumber, listOptions)
+		if err != nil {
+			return allEvents, err
+		}
+		allEvents = append(allEvents, events...)
+		if resp.NextPage == 0 {
+			break
+		}
+		listOptions.Page = resp.NextPage
+	}
+
+	return allEvents, nil
 }
 
 func (c *githubInstallationClient) PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error) {
@@ -75,6 +113,27 @@ func (c *githubInstallationClient) PostComment(ctx context.Context, repoName str
 
 func (c *githubInstallationClient) GetComments(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
-	issueCommentResponse, _, err := c.client.Issues.ListComments(ctx, c.owner, repoName, issueNumber, nil)
-	return issueCommentResponse, err
+	var (
+		allComments []*github.IssueComment
+		listOptions = &github.IssueListCommentsOptions{
+			ListOptions: github.ListOptions{
+				Page:    1,
+				PerPage: 100,
+			},
+		}
+	)
+
+	for {
+		comments, resp, err := c.client.Issues.ListComments(ctx, c.owner, repoName, issueNumber, listOptions)
+		if err != nil {
+			return allComments, err
+		}
+		allComments = append(allComments, comments...)
+		if resp.NextPage == 0 {
+			break
+		}
+		listOptions.Page = resp.NextPage
+	}
+
+	return allComments, nil
 }
