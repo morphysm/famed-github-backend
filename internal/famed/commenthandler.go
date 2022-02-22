@@ -31,6 +31,7 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+// checkAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, repoName string) ([]*IssueCommentUpdate, error) {
 	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, repoName)
 
@@ -53,6 +54,7 @@ func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, repoName st
 	return issueCommentUpdates, nil
 }
 
+// checkAndUpdateComment should be run as  a go routine to check a comment and update the comment if necessary.
 func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.WaitGroup, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
 	defer wg.Done()
 	issueCommentUpdate.IssueNumber = issueNumber
@@ -63,8 +65,8 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 		issueCommentUpdate.Error = err.Error()
 		return
 	}
-	lastCommentByBot := getLastCommentsByUser(issueComments, gH.famedConfig.BotUserID)
 
+	lastCommentByBot := getLastCommentsByUser(issueComments, gH.famedConfig.BotUserID)
 	if isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment {
 		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)
 		_, err := gH.githubInstallationClient.PostComment(ctx, repoName, issueNumber, comment)
@@ -78,6 +80,7 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 	}
 }
 
+// getLastCommentsByUser returns the last comment made by a user in a list of comments.
 func getLastCommentsByUser(issueComments []*github.IssueComment, userID int64) *github.IssueComment {
 	for i := len(issueComments) - 1; i >= 0; i-- {
 		comment := issueComments[i]
