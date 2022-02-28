@@ -22,12 +22,11 @@ type githubHandler struct {
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret *string, installationID int64, famedConfig Config) HTTPHandler {
+func NewHandler(githubInstallationClient installation.Client, currencyClient currency.Client, webhookSecret *string, famedConfig Config) HTTPHandler {
 	return &githubHandler{
 		githubInstallationClient: githubInstallationClient,
 		currencyClient:           currencyClient,
 		webhookSecret:            webhookSecret,
-		installationID:           installationID,
 		famedConfig:              famedConfig,
 	}
 }

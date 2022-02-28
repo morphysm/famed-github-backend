@@ -60,7 +60,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		Rewards:   config.Famed.Rewards,
 		BotUserID: config.Github.BotID,
 	}
-	famedHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, famedConfig)
+	famedHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, famedConfig)
 
 	// Logger
 	e.Use(middleware.Logger())

@@ -18,14 +18,11 @@ type Config struct {
 	}
 
 	Github struct {
-		Host           string
-		Key            string
-		WebhookSecret  string
-		AppID          int64
-		Owner          string
-		BotID          int64
-		RepoIDs        []int64
-		InstallationID int64
+		Host          string
+		Key           string
+		WebhookSecret string
+		AppID         int64
+		BotID         int64
 	}
 
 	Famed struct {
@@ -38,12 +35,9 @@ type Config struct {
 const (
 	githubKeyEnvName        = "GITHUB_API_KEY"
 	githubWHSecretEnvName   = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
-	githubFamedLabelEnvName = "GITHUB_KUDO_LABEL"
+	githubFamedLabelEnvName = "GITHUB_FAMED_LABEL"
 	githubAppIDEnvName      = "GITHUB_APP_ID"
-	githubOwner             = "GITHUB_OWNER"
 	githubBotID             = "GITHUB_BOT_ID"
-	githubInstallationID    = "GITHUB_INSTALLATION_ID"
-	githubRepoIDs           = "GITHUB_REPO_IDS"
 )
 
 func Load() (*Config, error) {
@@ -85,26 +79,8 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// GitHub Famed owner
-	err = bindString(&config.Github.Owner, githubOwner)
-	if err != nil {
-		return nil, err
-	}
-
 	// Github bot id
 	err = bindInt64(&config.Github.BotID, githubBotID)
-	if err != nil {
-		return nil, err
-	}
-
-	// GitHub installation id
-	err = bindInt64(&config.Github.InstallationID, githubInstallationID)
-	if err != nil {
-		return nil, err
-	}
-
-	// GitHub repos
-	err = bindInt64Slice(&config.Github.RepoIDs, githubRepoIDs)
 	if err != nil {
 		return nil, err
 	}
