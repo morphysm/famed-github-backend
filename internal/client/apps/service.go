@@ -12,7 +12,9 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
 type Client interface {
-	GetAccessTokens(ctx context.Context, installationID int64, repositoryIDs []int64) (*github.InstallationToken, error)
+	GetInstallations(ctx context.Context) ([]*github.Installation, error)
+
+	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
 }
 
 type githubAppClient struct {

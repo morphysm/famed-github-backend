@@ -58,8 +58,9 @@ const (
 	IssueEventActionReviewRequested IssueEventAction = "review_requested"
 )
 
-func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
+func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
 	var (
+		client      = c.clients[owner]
 		allIssues   []*github.Issue
 		listOptions = &github.ListOptions{
 			Page:    1,
@@ -68,7 +69,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, repoName
 	)
 
 	for {
-		issues, resp, err := c.client.Issues.ListByRepo(ctx, c.owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
+		issues, resp, err := client.Issues.ListByRepo(ctx, owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
 		if err != nil {
 			return allIssues, err
 		}
@@ -82,8 +83,9 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, repoName
 	return allIssues, nil
 }
 
-func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
+func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
 	var (
+		client      = c.clients[owner]
 		allEvents   []*github.IssueEvent
 		listOptions = &github.ListOptions{
 			Page:    1,
@@ -92,7 +94,7 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName 
 	)
 
 	for {
-		events, resp, err := c.client.Issues.ListIssueEvents(ctx, c.owner, repoName, issueNumber, listOptions)
+		events, resp, err := client.Issues.ListIssueEvents(ctx, owner, repoName, issueNumber, listOptions)
 		if err != nil {
 			return allEvents, err
 		}
@@ -106,14 +108,17 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, repoName 
 	return allEvents, nil
 }
 
-func (c *githubInstallationClient) PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error) {
-	issueCommentResponse, _, err := c.client.Issues.CreateComment(ctx, c.owner, repoName, issueNumber, &github.IssueComment{Body: &comment})
+func (c *githubInstallationClient) PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) (*github.IssueComment, error) {
+	client := c.clients[owner]
+
+	issueCommentResponse, _, err := client.Issues.CreateComment(ctx, owner, repoName, issueNumber, &github.IssueComment{Body: &comment})
 	return issueCommentResponse, err
 }
 
-func (c *githubInstallationClient) GetComments(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueComment, error) {
+func (c *githubInstallationClient) GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
 	var (
+		client      = c.clients[owner]
 		allComments []*github.IssueComment
 		listOptions = &github.IssueListCommentsOptions{
 			ListOptions: github.ListOptions{
@@ -124,7 +129,7 @@ func (c *githubInstallationClient) GetComments(ctx context.Context, repoName str
 	)
 
 	for {
-		comments, resp, err := c.client.Issues.ListComments(ctx, c.owner, repoName, issueNumber, listOptions)
+		comments, resp, err := client.Issues.ListComments(ctx, owner, repoName, issueNumber, listOptions)
 		if err != nil {
 			return allComments, err
 		}

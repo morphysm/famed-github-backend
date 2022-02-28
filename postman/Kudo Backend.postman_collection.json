@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "f7f631b4-c97c-47f4-a038-25901c3fcda4",
-		"name": "Famed Backend",
+		"name": "Kudo Backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -11,18 +11,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/github/repos/:repo_name/contributors",
+					"raw": "localhost:8080/famed/repos/:owner/:repo_name/contributors",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"github",
+						"famed",
 						"repos",
+						":owner",
 						":repo_name",
 						"contributors"
 					],
 					"variable": [
+						{
+							"key": "owner",
+							"value": "morphysm"
+						},
 						{
 							"key": "repo_name",
 							"value": "famed-git-api-test"
@@ -58,6 +63,38 @@
 						"github",
 						"webhooks",
 						"event"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateComments",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/famed/repos/:owner/:repo_name/update",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"famed",
+						"repos",
+						":owner",
+						":repo_name",
+						"update"
+					],
+					"variable": [
+						{
+							"key": "owner",
+							"value": "morphysm"
+						},
+						{
+							"key": "repo_name",
+							"value": "kudos-git-api-test"
+						}
 					]
 				}
 			},

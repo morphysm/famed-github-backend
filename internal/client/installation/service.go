@@ -11,32 +11,38 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
 type Client interface {
-	GetIssuesByRepo(ctx context.Context, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
-	GetIssueEvents(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueEvent, error)
+	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
+	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
 
-	GetComments(ctx context.Context, repoName string, issueNumber int) ([]*github.IssueComment, error)
-	PostComment(ctx context.Context, repoName string, issueNumber int, comment string) (*github.IssueComment, error)
+	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
+	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) (*github.IssueComment, error)
 }
 
 type githubInstallationClient struct {
-	baseURL string
-	owner   string
-	client  *github.Client
+	baseURL       string
+	installations map[string]int64
+	clients       map[string]*github.Client
 }
 
 // NewClient returns a new instance of the GitHub client
-func NewClient(baseURL string, client apps.Client, installationID int64, repoIDs []int64, owner string) (Client, error) {
-	ts := NewGithubTokenSource(client, installationID, repoIDs)
-	oAuthClient := oauth2.NewClient(context.Background(), ts)
+func NewClient(baseURL string, client apps.Client, installations map[string]int64) (Client, error) {
+	clients := make(map[string]*github.Client)
 
-	apiClient, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
-	if err != nil {
-		return nil, err
+	for owner, installationID := range installations {
+		ts := NewGithubTokenSource(client, installationID)
+		oAuthClient := oauth2.NewClient(context.Background(), ts)
+
+		installationClient, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
+		if err != nil {
+			return nil, err
+		}
+
+		clients[owner] = installationClient
 	}
 
 	return &githubInstallationClient{
-		baseURL: baseURL,
-		owner:   owner,
-		client:  apiClient,
+		baseURL:       baseURL,
+		installations: installations,
+		clients:       clients,
 	}, nil
 }

@@ -19,6 +19,7 @@ type repo struct {
 	config             Config
 	installationClient installation.Client
 	currencyClient     currency.Client
+	owner              string
 	name               string
 	issues             map[int]Issue
 	ethRate            float64
@@ -33,11 +34,12 @@ type Config struct {
 }
 
 // NewRepo returns a new instance of the famed repo representation.
-func NewRepo(config Config, installationClient installation.Client, currencyClient currency.Client, name string) Repo {
+func NewRepo(config Config, installationClient installation.Client, currencyClient currency.Client, owner string, name string) Repo {
 	return &repo{
 		config:             config,
 		installationClient: installationClient,
 		currencyClient:     currencyClient,
+		owner:              owner,
 		name:               name,
 	}
 }
@@ -99,7 +101,7 @@ func (r *repo) loadRateAndEventsForIssue(ctx context.Context, issue *github.Issu
 
 func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
 	// Get all issues filtered by label and closed state
-	issuesResponse, err := r.installationClient.GetIssuesByRepo(ctx, r.name, []string{r.config.Label}, installation.Closed)
+	issuesResponse, err := r.installationClient.GetIssuesByRepo(ctx, r.owner, r.name, []string{r.config.Label}, installation.Closed)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}
@@ -126,7 +128,7 @@ func (r *repo) loadRateAndEvents(ctx context.Context) error {
 	r.ethRate = ethRate
 
 	// Get all events for each issue
-	err = r.getEvents(ctx, r.name)
+	err = r.getEvents(ctx, r.owner, r.name)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}

@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/morphysm/famed-github-backend/internal/client/apps"
@@ -27,32 +29,47 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 
 	currencyClient := currency.NewCurrencyClient(config.Currency.Host)
 
+	// Create new app client to fetch installations and installation tokens.
 	appClient, err := apps.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
 
-	installationClient, err := installation.NewClient(config.Github.Host, appClient, config.Github.InstallationID, config.Github.RepoIDs, config.Github.Owner)
+	// Get installations
+	installations, err := appClient.GetInstallations(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
+	// Transform all installations to owner installationID map
+	transformedInstallations := make(map[string]int64)
+	for _, installation := range installations {
+		transformedInstallations[*installation.Account.Login] = *installation.ID
+	}
+
+	// Create new installation client to fetch repo data
+	installationClient, err := installation.NewClient(config.Github.Host, appClient, transformedInstallations)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create
 	famedConfig := famed.Config{
 		Label:     config.Famed.Label,
 		Currency:  config.Famed.Currency,
 		Rewards:   config.Famed.Rewards,
 		BotUserID: config.Github.BotID,
 	}
-	githubHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, famedConfig)
+	famedHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, config.Github.InstallationID, famedConfig)
 
 	// Logger
 	e.Use(middleware.Logger())
 
 	// GitHubRoutes endpoints exposed for Github requests.
-	githubGroup := e.Group("/github")
+	famedGroup := e.Group("/famed")
 	{
-		GitHubRoutes(
-			githubGroup, githubHandler,
+		FamedRoutes(
+			famedGroup, famedHandler,
 		)
 	}
 

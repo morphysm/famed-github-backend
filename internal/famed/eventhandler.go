@@ -46,7 +46,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	}
 
 	// Post comment to GitHub
-	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Name, *event.Issue.Number, comment)
+	_, err = gH.githubInstallationClient.PostComment(c.Request().Context(), *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number, comment)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting comment: %v", err)
 		return err
@@ -64,6 +64,6 @@ func (gH *githubHandler) eventToComment(c echo.Context, event *github.IssuesEven
 		return "", err
 	}
 
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, *event.Repo.Name)
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, *event.Repo.Owner.Login, *event.Repo.Name)
 	return repo.GetComment(c.Request().Context(), event.Issue)
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // getEvents requests all events of an issue from the GitHub API in a concurrent fashion.
-func (r *repo) getEvents(ctx context.Context, repoName string) error {
+func (r *repo) getEvents(ctx context.Context, owner string, repoName string) error {
 	errChannel := make(chan error, len(r.issues))
 
 	// Create context with cancel to cancel all request if one fails
@@ -29,7 +29,7 @@ func (r *repo) getEvents(ctx context.Context, repoName string) error {
 			case <-ctx.Done():
 				return
 			default:
-				eventsResp, err := r.installationClient.GetIssueEvents(ctx, repoName, issueNumber)
+				eventsResp, err := r.installationClient.GetIssueEvents(ctx, owner, repoName, issueNumber)
 				if err != nil {
 					log.Printf("[getEvents] error while getting events for issue with Number: %d, error: %v\n", issueNumber, err)
 					cancel()

@@ -6,13 +6,13 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/health"
 )
 
-// GitHubRoutes defines endpoints exposed to serve relay calls to the GitHub api.
-func GitHubRoutes(g *echo.Group, handler famed.HTTPHandler) {
-	g.GET("/repos/:repo_name/contributors", handler.GetContributors)
+// FamedRoutes defines endpoints exposed to serve famed api endpoints.
+func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
+	g.GET("/repos/:owner/:repo_name/contributors", handler.GetContributors)
 
 	g.POST("/webhooks/event", handler.PostEvent)
 
-	g.POST("/repos/:repo_name/update", handler.UpdateComments)
+	g.POST("/repos/:owner/:repo_name/update", handler.UpdateComments)
 }
 
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.
