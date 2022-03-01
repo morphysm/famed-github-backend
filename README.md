@@ -40,7 +40,7 @@ This repository contains the code of the Famed-Backend.
 1. Install the Famed GitHub App (https://github.com/apps/get-famed) and allow it access to your repository.
 2. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
 3. Setup frontend:
-   1. Let us know through telegram that you installed the app, and we will set up a frontend for you. All we need is the app owner and the repository name. You can copy them from your repository URL: https://github.com/<owner>/<repoName>
+   1. You can find a public board at https://www.famed.morphysm.com/boards/<owner>/<repoName>
    2. Use our famed-board react component (work in progress)
    3. Use our famed-board js script (work in progress)
 4. Setup your repository issues:
