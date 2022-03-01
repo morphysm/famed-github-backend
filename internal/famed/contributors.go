@@ -1,6 +1,7 @@
 package famed
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -98,6 +99,8 @@ func (r *repo) issuesAndEventsToContributors() {
 // TODO investigate if different data handling for rewards works
 func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions) error {
 	var (
+		// areIncremented tracks contributors that have had their fix counters incremented
+		areIncremented   = make(map[string]bool)
 		workLogs         = WorkLogs{}
 		reopenCount      = 0
 		issueCreatedAt   = *issue.Issue.CreatedAt
@@ -115,28 +118,31 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 	// Get severity reward from config
 	severityReward := boardOptions.rewards[severity]
 
-	// Increment fix count for all assignees assigned to the closed issue
-	for _, assignee := range issue.Issue.Assignees {
-		// Add on closed assignee
-		contributors.mapAssigneeIfMissing(assignee, boardOptions.currency)
-		// Increment fix counter only for assignees on closed
-		contributors.updateFixCounters(assignee, timeToDisclosure, severity)
-	}
-
 	// Iterate through issue events and map events if event type is of interest
 	for _, event := range issue.Events {
 		switch *event.Event {
 		case string(installation.IssueEventActionAssigned):
-			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
+			if eventValid, err := isIssueUnAssignedEventDataValid(event); !eventValid {
 				log.Printf("[MapIssue] event assigned data is invalid for event with ID: %d, err: %v", event.ID, err)
 				continue
 			}
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency)
+			if event.CreatedAt.After(issueClosedAt) {
+				continue
+			}
+
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency, timeToDisclosure, severity)
+
+			// Increment fix count if not yet done
+			if isIncremented := areIncremented[*event.Assignee.Login]; !isIncremented {
+				contributors.incrementFixCounters(event.Assignee, timeToDisclosure, severity)
+				areIncremented[*event.Assignee.Login] = true
+			}
 		case string(installation.IssueEventActionUnassigned):
-			if _, err = isIssueUnAssignedEventDataValid(event); err != nil {
+			if eventValid, err := isIssueUnAssignedEventDataValid(event); !eventValid {
 				log.Printf("[MapIssue] event unassigened data is invalid for event with ID: %d, err: %v", event.ID, err)
 				continue
 			}
+
 			mapEventUnassigned(event, workLogs)
 		case string(installation.IssueEventActionReopened):
 			reopenCount++
@@ -147,6 +153,22 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, boardOptions.usdToEthRate)
 
 	return nil
+}
+
+// mapEventAssigned handles an assigned event, updating the contributor map.
+func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, rewardUnit string, timeToDisclosure float64, severity IssueSeverity) {
+	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
+
+	// Append work log
+	workLogs.Add(*event.Assignee.Login, WorkLog{*event.CreatedAt, issueClosedAt})
+}
+
+// mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
+func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
+	err := workLogs.UpdateEnd(*event.Assignee.Login, *event.CreatedAt)
+	if err != nil {
+		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
+	}
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
@@ -168,8 +190,12 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rew
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) updateFixCounters(assignee *github.User, timeToDisclosure float64, severity IssueSeverity) {
+func (contributors Contributors) incrementFixCounters(assignee *github.User, timeToDisclosure float64, severity IssueSeverity) {
 	contributor, _ := contributors[*assignee.Login]
+	if contributor == nil {
+		fmt.Println(*assignee.Login)
+		fmt.Println(contributor)
+	}
 
 	// Increment fix count
 	contributor.FixCount++
@@ -178,26 +204,6 @@ func (contributors Contributors) updateFixCounters(assignee *github.User, timeTo
 	contributor.Severities[severity] = counterSeverities + 1
 	// Append time to disclosure
 	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
-}
-
-// mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, rewardUnit string) {
-	if event.CreatedAt.After(issueClosedAt) {
-		return
-	}
-
-	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
-
-	// Append work log
-	workLogs.Add(*event.Assignee.Login, WorkLog{*event.CreatedAt, issueClosedAt})
-}
-
-// mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
-func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
-	err := workLogs.UpdateEnd(*event.Assignee.Login, *event.CreatedAt)
-	if err != nil {
-		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
-	}
 }
 
 // updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.
