@@ -13,9 +13,9 @@ import (
 type Client interface {
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
 	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
-
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
-	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) (*github.IssueComment, error)
+	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
+	PostLabel(ctx context.Context, owner string, repo string, label Label) error
 }
 
 type githubInstallationClient struct {

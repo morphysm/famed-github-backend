@@ -73,7 +73,7 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 	lastCommentByBot := getLastCommentsByUser(issueComments, gH.famedConfig.BotUserID)
 	if isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment {
 		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)
-		_, err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
 		if err != nil {
 			log.Printf("[UpdateComments] error while posting comment for issue #%d, error: %v", issueNumber, err)
 			issueCommentUpdate.Error = err.Error()

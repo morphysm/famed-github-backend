@@ -217,7 +217,7 @@ func TestPostEvent(t *testing.T) {
 			fakeCurrencyClient := &currencyfakes.FakeClient{}
 			fakeCurrencyClient.GetUSDToETHConversionReturns(1, nil)
 
-			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, 0, famedConfig)
+			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, famedConfig)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)
@@ -225,7 +225,7 @@ func TestPostEvent(t *testing.T) {
 			// THEN
 			if testCase.ExpectedComment != "" {
 				assert.Equal(t, 1, fakeInstallationClient.PostCommentCallCount())
-				_, _, _, comment := fakeInstallationClient.PostCommentArgsForCall(0)
+				_, _, _, _, comment := fakeInstallationClient.PostCommentArgsForCall(0)
 				assert.Equal(t, testCase.ExpectedComment, comment)
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)

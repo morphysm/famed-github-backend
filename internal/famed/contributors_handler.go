@@ -7,8 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var ErrMissingRepoPathParameter = errors.New("missing name name path parameter")
-var ErrMissingOwnerPathParameter = errors.New("missing owner path parameter")
+var (
+	ErrMissingRepoPathParameter  = errors.New("missing name name path parameter")
+	ErrMissingOwnerPathParameter = errors.New("missing owner path parameter")
+)
 
 // GetContributors returns a list of contributors for the famed board.
 func (gH *githubHandler) GetContributors(c echo.Context) error {

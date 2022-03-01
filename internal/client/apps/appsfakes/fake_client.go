@@ -10,44 +10,50 @@ import (
 )
 
 type FakeClient struct {
-	GetAccessTokensStub        func(context.Context, int64, []int64) (*github.InstallationToken, error)
-	getAccessTokensMutex       sync.RWMutex
-	getAccessTokensArgsForCall []struct {
+	GetAccessTokenStub        func(context.Context, int64) (*github.InstallationToken, error)
+	getAccessTokenMutex       sync.RWMutex
+	getAccessTokenArgsForCall []struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 []int64
 	}
-	getAccessTokensReturns struct {
+	getAccessTokenReturns struct {
 		result1 *github.InstallationToken
 		result2 error
 	}
-	getAccessTokensReturnsOnCall map[int]struct {
+	getAccessTokenReturnsOnCall map[int]struct {
 		result1 *github.InstallationToken
+		result2 error
+	}
+	GetInstallationsStub        func(context.Context) ([]*github.Installation, error)
+	getInstallationsMutex       sync.RWMutex
+	getInstallationsArgsForCall []struct {
+		arg1 context.Context
+	}
+	getInstallationsReturns struct {
+		result1 []*github.Installation
+		result2 error
+	}
+	getInstallationsReturnsOnCall map[int]struct {
+		result1 []*github.Installation
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClient) GetAccessTokens(arg1 context.Context, arg2 int64, arg3 []int64) (*github.InstallationToken, error) {
-	var arg3Copy []int64
-	if arg3 != nil {
-		arg3Copy = make([]int64, len(arg3))
-		copy(arg3Copy, arg3)
-	}
-	fake.getAccessTokensMutex.Lock()
-	ret, specificReturn := fake.getAccessTokensReturnsOnCall[len(fake.getAccessTokensArgsForCall)]
-	fake.getAccessTokensArgsForCall = append(fake.getAccessTokensArgsForCall, struct {
+func (fake *FakeClient) GetAccessToken(arg1 context.Context, arg2 int64) (*github.InstallationToken, error) {
+	fake.getAccessTokenMutex.Lock()
+	ret, specificReturn := fake.getAccessTokenReturnsOnCall[len(fake.getAccessTokenArgsForCall)]
+	fake.getAccessTokenArgsForCall = append(fake.getAccessTokenArgsForCall, struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 []int64
-	}{arg1, arg2, arg3Copy})
-	stub := fake.GetAccessTokensStub
-	fakeReturns := fake.getAccessTokensReturns
-	fake.recordInvocation("GetAccessTokens", []interface{}{arg1, arg2, arg3Copy})
-	fake.getAccessTokensMutex.Unlock()
+	}{arg1, arg2})
+	stub := fake.GetAccessTokenStub
+	fakeReturns := fake.getAccessTokenReturns
+	fake.recordInvocation("GetAccessToken", []interface{}{arg1, arg2})
+	fake.getAccessTokenMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -55,47 +61,111 @@ func (fake *FakeClient) GetAccessTokens(arg1 context.Context, arg2 int64, arg3 [
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeClient) GetAccessTokensCallCount() int {
-	fake.getAccessTokensMutex.RLock()
-	defer fake.getAccessTokensMutex.RUnlock()
-	return len(fake.getAccessTokensArgsForCall)
+func (fake *FakeClient) GetAccessTokenCallCount() int {
+	fake.getAccessTokenMutex.RLock()
+	defer fake.getAccessTokenMutex.RUnlock()
+	return len(fake.getAccessTokenArgsForCall)
 }
 
-func (fake *FakeClient) GetAccessTokensCalls(stub func(context.Context, int64, []int64) (*github.InstallationToken, error)) {
-	fake.getAccessTokensMutex.Lock()
-	defer fake.getAccessTokensMutex.Unlock()
-	fake.GetAccessTokensStub = stub
+func (fake *FakeClient) GetAccessTokenCalls(stub func(context.Context, int64) (*github.InstallationToken, error)) {
+	fake.getAccessTokenMutex.Lock()
+	defer fake.getAccessTokenMutex.Unlock()
+	fake.GetAccessTokenStub = stub
 }
 
-func (fake *FakeClient) GetAccessTokensArgsForCall(i int) (context.Context, int64, []int64) {
-	fake.getAccessTokensMutex.RLock()
-	defer fake.getAccessTokensMutex.RUnlock()
-	argsForCall := fake.getAccessTokensArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+func (fake *FakeClient) GetAccessTokenArgsForCall(i int) (context.Context, int64) {
+	fake.getAccessTokenMutex.RLock()
+	defer fake.getAccessTokenMutex.RUnlock()
+	argsForCall := fake.getAccessTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeClient) GetAccessTokensReturns(result1 *github.InstallationToken, result2 error) {
-	fake.getAccessTokensMutex.Lock()
-	defer fake.getAccessTokensMutex.Unlock()
-	fake.GetAccessTokensStub = nil
-	fake.getAccessTokensReturns = struct {
+func (fake *FakeClient) GetAccessTokenReturns(result1 *github.InstallationToken, result2 error) {
+	fake.getAccessTokenMutex.Lock()
+	defer fake.getAccessTokenMutex.Unlock()
+	fake.GetAccessTokenStub = nil
+	fake.getAccessTokenReturns = struct {
 		result1 *github.InstallationToken
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetAccessTokensReturnsOnCall(i int, result1 *github.InstallationToken, result2 error) {
-	fake.getAccessTokensMutex.Lock()
-	defer fake.getAccessTokensMutex.Unlock()
-	fake.GetAccessTokensStub = nil
-	if fake.getAccessTokensReturnsOnCall == nil {
-		fake.getAccessTokensReturnsOnCall = make(map[int]struct {
+func (fake *FakeClient) GetAccessTokenReturnsOnCall(i int, result1 *github.InstallationToken, result2 error) {
+	fake.getAccessTokenMutex.Lock()
+	defer fake.getAccessTokenMutex.Unlock()
+	fake.GetAccessTokenStub = nil
+	if fake.getAccessTokenReturnsOnCall == nil {
+		fake.getAccessTokenReturnsOnCall = make(map[int]struct {
 			result1 *github.InstallationToken
 			result2 error
 		})
 	}
-	fake.getAccessTokensReturnsOnCall[i] = struct {
+	fake.getAccessTokenReturnsOnCall[i] = struct {
 		result1 *github.InstallationToken
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) GetInstallations(arg1 context.Context) ([]*github.Installation, error) {
+	fake.getInstallationsMutex.Lock()
+	ret, specificReturn := fake.getInstallationsReturnsOnCall[len(fake.getInstallationsArgsForCall)]
+	fake.getInstallationsArgsForCall = append(fake.getInstallationsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetInstallationsStub
+	fakeReturns := fake.getInstallationsReturns
+	fake.recordInvocation("GetInstallations", []interface{}{arg1})
+	fake.getInstallationsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClient) GetInstallationsCallCount() int {
+	fake.getInstallationsMutex.RLock()
+	defer fake.getInstallationsMutex.RUnlock()
+	return len(fake.getInstallationsArgsForCall)
+}
+
+func (fake *FakeClient) GetInstallationsCalls(stub func(context.Context) ([]*github.Installation, error)) {
+	fake.getInstallationsMutex.Lock()
+	defer fake.getInstallationsMutex.Unlock()
+	fake.GetInstallationsStub = stub
+}
+
+func (fake *FakeClient) GetInstallationsArgsForCall(i int) context.Context {
+	fake.getInstallationsMutex.RLock()
+	defer fake.getInstallationsMutex.RUnlock()
+	argsForCall := fake.getInstallationsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClient) GetInstallationsReturns(result1 []*github.Installation, result2 error) {
+	fake.getInstallationsMutex.Lock()
+	defer fake.getInstallationsMutex.Unlock()
+	fake.GetInstallationsStub = nil
+	fake.getInstallationsReturns = struct {
+		result1 []*github.Installation
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) GetInstallationsReturnsOnCall(i int, result1 []*github.Installation, result2 error) {
+	fake.getInstallationsMutex.Lock()
+	defer fake.getInstallationsMutex.Unlock()
+	fake.GetInstallationsStub = nil
+	if fake.getInstallationsReturnsOnCall == nil {
+		fake.getInstallationsReturnsOnCall = make(map[int]struct {
+			result1 []*github.Installation
+			result2 error
+		})
+	}
+	fake.getInstallationsReturnsOnCall[i] = struct {
+		result1 []*github.Installation
 		result2 error
 	}{result1, result2}
 }
@@ -103,8 +173,10 @@ func (fake *FakeClient) GetAccessTokensReturnsOnCall(i int, result1 *github.Inst
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getAccessTokensMutex.RLock()
-	defer fake.getAccessTokensMutex.RUnlock()
+	fake.getAccessTokenMutex.RLock()
+	defer fake.getAccessTokenMutex.RUnlock()
+	fake.getInstallationsMutex.RLock()
+	defer fake.getInstallationsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

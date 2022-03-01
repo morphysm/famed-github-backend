@@ -10,12 +10,13 @@ import (
 )
 
 type FakeClient struct {
-	GetCommentsStub        func(context.Context, string, int) ([]*github.IssueComment, error)
+	GetCommentsStub        func(context.Context, string, string, int) ([]*github.IssueComment, error)
 	getCommentsMutex       sync.RWMutex
 	getCommentsArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
+		arg3 string
+		arg4 int
 	}
 	getCommentsReturns struct {
 		result1 []*github.IssueComment
@@ -25,12 +26,13 @@ type FakeClient struct {
 		result1 []*github.IssueComment
 		result2 error
 	}
-	GetIssueEventsStub        func(context.Context, string, int) ([]*github.IssueEvent, error)
+	GetIssueEventsStub        func(context.Context, string, string, int) ([]*github.IssueEvent, error)
 	getIssueEventsMutex       sync.RWMutex
 	getIssueEventsArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
+		arg3 string
+		arg4 int
 	}
 	getIssueEventsReturns struct {
 		result1 []*github.IssueEvent
@@ -40,13 +42,14 @@ type FakeClient struct {
 		result1 []*github.IssueEvent
 		result2 error
 	}
-	GetIssuesByRepoStub        func(context.Context, string, []string, installation.IssueState) ([]*github.Issue, error)
+	GetIssuesByRepoStub        func(context.Context, string, string, []string, installation.IssueState) ([]*github.Issue, error)
 	getIssuesByRepoMutex       sync.RWMutex
 	getIssuesByRepoArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []string
-		arg4 installation.IssueState
+		arg3 string
+		arg4 []string
+		arg5 installation.IssueState
 	}
 	getIssuesByRepoReturns struct {
 		result1 []*github.Issue
@@ -56,40 +59,54 @@ type FakeClient struct {
 		result1 []*github.Issue
 		result2 error
 	}
-	PostCommentStub        func(context.Context, string, int, string) (*github.IssueComment, error)
+	PostCommentStub        func(context.Context, string, string, int, string) error
 	postCommentMutex       sync.RWMutex
 	postCommentArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
-		arg4 string
+		arg3 string
+		arg4 int
+		arg5 string
 	}
 	postCommentReturns struct {
-		result1 *github.IssueComment
-		result2 error
+		result1 error
 	}
 	postCommentReturnsOnCall map[int]struct {
-		result1 *github.IssueComment
-		result2 error
+		result1 error
+	}
+	PostLabelStub        func(context.Context, string, string, installation.Label) error
+	postLabelMutex       sync.RWMutex
+	postLabelArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 installation.Label
+	}
+	postLabelReturns struct {
+		result1 error
+	}
+	postLabelReturnsOnCall map[int]struct {
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 int) ([]*github.IssueComment, error) {
+func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]*github.IssueComment, error) {
 	fake.getCommentsMutex.Lock()
 	ret, specificReturn := fake.getCommentsReturnsOnCall[len(fake.getCommentsArgsForCall)]
 	fake.getCommentsArgsForCall = append(fake.getCommentsArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
-	}{arg1, arg2, arg3})
+		arg3 string
+		arg4 int
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.GetCommentsStub
 	fakeReturns := fake.getCommentsReturns
-	fake.recordInvocation("GetComments", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetComments", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getCommentsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -103,17 +120,17 @@ func (fake *FakeClient) GetCommentsCallCount() int {
 	return len(fake.getCommentsArgsForCall)
 }
 
-func (fake *FakeClient) GetCommentsCalls(stub func(context.Context, string, int) ([]*github.IssueComment, error)) {
+func (fake *FakeClient) GetCommentsCalls(stub func(context.Context, string, string, int) ([]*github.IssueComment, error)) {
 	fake.getCommentsMutex.Lock()
 	defer fake.getCommentsMutex.Unlock()
 	fake.GetCommentsStub = stub
 }
 
-func (fake *FakeClient) GetCommentsArgsForCall(i int) (context.Context, string, int) {
+func (fake *FakeClient) GetCommentsArgsForCall(i int) (context.Context, string, string, int) {
 	fake.getCommentsMutex.RLock()
 	defer fake.getCommentsMutex.RUnlock()
 	argsForCall := fake.getCommentsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeClient) GetCommentsReturns(result1 []*github.IssueComment, result2 error) {
@@ -142,20 +159,21 @@ func (fake *FakeClient) GetCommentsReturnsOnCall(i int, result1 []*github.IssueC
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 int) ([]*github.IssueEvent, error) {
+func (fake *FakeClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]*github.IssueEvent, error) {
 	fake.getIssueEventsMutex.Lock()
 	ret, specificReturn := fake.getIssueEventsReturnsOnCall[len(fake.getIssueEventsArgsForCall)]
 	fake.getIssueEventsArgsForCall = append(fake.getIssueEventsArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
-	}{arg1, arg2, arg3})
+		arg3 string
+		arg4 int
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.GetIssueEventsStub
 	fakeReturns := fake.getIssueEventsReturns
-	fake.recordInvocation("GetIssueEvents", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetIssueEvents", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getIssueEventsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -169,17 +187,17 @@ func (fake *FakeClient) GetIssueEventsCallCount() int {
 	return len(fake.getIssueEventsArgsForCall)
 }
 
-func (fake *FakeClient) GetIssueEventsCalls(stub func(context.Context, string, int) ([]*github.IssueEvent, error)) {
+func (fake *FakeClient) GetIssueEventsCalls(stub func(context.Context, string, string, int) ([]*github.IssueEvent, error)) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = stub
 }
 
-func (fake *FakeClient) GetIssueEventsArgsForCall(i int) (context.Context, string, int) {
+func (fake *FakeClient) GetIssueEventsArgsForCall(i int) (context.Context, string, string, int) {
 	fake.getIssueEventsMutex.RLock()
 	defer fake.getIssueEventsMutex.RUnlock()
 	argsForCall := fake.getIssueEventsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeClient) GetIssueEventsReturns(result1 []*github.IssueEvent, result2 error) {
@@ -208,26 +226,27 @@ func (fake *FakeClient) GetIssueEventsReturnsOnCall(i int, result1 []*github.Iss
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetIssuesByRepo(arg1 context.Context, arg2 string, arg3 []string, arg4 installation.IssueState) ([]*github.Issue, error) {
-	var arg3Copy []string
-	if arg3 != nil {
-		arg3Copy = make([]string, len(arg3))
-		copy(arg3Copy, arg3)
+func (fake *FakeClient) GetIssuesByRepo(arg1 context.Context, arg2 string, arg3 string, arg4 []string, arg5 installation.IssueState) ([]*github.Issue, error) {
+	var arg4Copy []string
+	if arg4 != nil {
+		arg4Copy = make([]string, len(arg4))
+		copy(arg4Copy, arg4)
 	}
 	fake.getIssuesByRepoMutex.Lock()
 	ret, specificReturn := fake.getIssuesByRepoReturnsOnCall[len(fake.getIssuesByRepoArgsForCall)]
 	fake.getIssuesByRepoArgsForCall = append(fake.getIssuesByRepoArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []string
-		arg4 installation.IssueState
-	}{arg1, arg2, arg3Copy, arg4})
+		arg3 string
+		arg4 []string
+		arg5 installation.IssueState
+	}{arg1, arg2, arg3, arg4Copy, arg5})
 	stub := fake.GetIssuesByRepoStub
 	fakeReturns := fake.getIssuesByRepoReturns
-	fake.recordInvocation("GetIssuesByRepo", []interface{}{arg1, arg2, arg3Copy, arg4})
+	fake.recordInvocation("GetIssuesByRepo", []interface{}{arg1, arg2, arg3, arg4Copy, arg5})
 	fake.getIssuesByRepoMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -241,17 +260,17 @@ func (fake *FakeClient) GetIssuesByRepoCallCount() int {
 	return len(fake.getIssuesByRepoArgsForCall)
 }
 
-func (fake *FakeClient) GetIssuesByRepoCalls(stub func(context.Context, string, []string, installation.IssueState) ([]*github.Issue, error)) {
+func (fake *FakeClient) GetIssuesByRepoCalls(stub func(context.Context, string, string, []string, installation.IssueState) ([]*github.Issue, error)) {
 	fake.getIssuesByRepoMutex.Lock()
 	defer fake.getIssuesByRepoMutex.Unlock()
 	fake.GetIssuesByRepoStub = stub
 }
 
-func (fake *FakeClient) GetIssuesByRepoArgsForCall(i int) (context.Context, string, []string, installation.IssueState) {
+func (fake *FakeClient) GetIssuesByRepoArgsForCall(i int) (context.Context, string, string, []string, installation.IssueState) {
 	fake.getIssuesByRepoMutex.RLock()
 	defer fake.getIssuesByRepoMutex.RUnlock()
 	argsForCall := fake.getIssuesByRepoArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeClient) GetIssuesByRepoReturns(result1 []*github.Issue, result2 error) {
@@ -280,26 +299,27 @@ func (fake *FakeClient) GetIssuesByRepoReturnsOnCall(i int, result1 []*github.Is
 	}{result1, result2}
 }
 
-func (fake *FakeClient) PostComment(arg1 context.Context, arg2 string, arg3 int, arg4 string) (*github.IssueComment, error) {
+func (fake *FakeClient) PostComment(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 string) error {
 	fake.postCommentMutex.Lock()
 	ret, specificReturn := fake.postCommentReturnsOnCall[len(fake.postCommentArgsForCall)]
 	fake.postCommentArgsForCall = append(fake.postCommentArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 int
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
+		arg3 string
+		arg4 int
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.PostCommentStub
 	fakeReturns := fake.postCommentReturns
-	fake.recordInvocation("PostComment", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("PostComment", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.postCommentMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeClient) PostCommentCallCount() int {
@@ -308,43 +328,104 @@ func (fake *FakeClient) PostCommentCallCount() int {
 	return len(fake.postCommentArgsForCall)
 }
 
-func (fake *FakeClient) PostCommentCalls(stub func(context.Context, string, int, string) (*github.IssueComment, error)) {
+func (fake *FakeClient) PostCommentCalls(stub func(context.Context, string, string, int, string) error) {
 	fake.postCommentMutex.Lock()
 	defer fake.postCommentMutex.Unlock()
 	fake.PostCommentStub = stub
 }
 
-func (fake *FakeClient) PostCommentArgsForCall(i int) (context.Context, string, int, string) {
+func (fake *FakeClient) PostCommentArgsForCall(i int) (context.Context, string, string, int, string) {
 	fake.postCommentMutex.RLock()
 	defer fake.postCommentMutex.RUnlock()
 	argsForCall := fake.postCommentArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeClient) PostCommentReturns(result1 *github.IssueComment, result2 error) {
+func (fake *FakeClient) PostCommentReturns(result1 error) {
 	fake.postCommentMutex.Lock()
 	defer fake.postCommentMutex.Unlock()
 	fake.PostCommentStub = nil
 	fake.postCommentReturns = struct {
-		result1 *github.IssueComment
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeClient) PostCommentReturnsOnCall(i int, result1 *github.IssueComment, result2 error) {
+func (fake *FakeClient) PostCommentReturnsOnCall(i int, result1 error) {
 	fake.postCommentMutex.Lock()
 	defer fake.postCommentMutex.Unlock()
 	fake.PostCommentStub = nil
 	if fake.postCommentReturnsOnCall == nil {
 		fake.postCommentReturnsOnCall = make(map[int]struct {
-			result1 *github.IssueComment
-			result2 error
+			result1 error
 		})
 	}
 	fake.postCommentReturnsOnCall[i] = struct {
-		result1 *github.IssueComment
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClient) PostLabel(arg1 context.Context, arg2 string, arg3 string, arg4 installation.Label) error {
+	fake.postLabelMutex.Lock()
+	ret, specificReturn := fake.postLabelReturnsOnCall[len(fake.postLabelArgsForCall)]
+	fake.postLabelArgsForCall = append(fake.postLabelArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 installation.Label
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.PostLabelStub
+	fakeReturns := fake.postLabelReturns
+	fake.recordInvocation("PostLabel", []interface{}{arg1, arg2, arg3, arg4})
+	fake.postLabelMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClient) PostLabelCallCount() int {
+	fake.postLabelMutex.RLock()
+	defer fake.postLabelMutex.RUnlock()
+	return len(fake.postLabelArgsForCall)
+}
+
+func (fake *FakeClient) PostLabelCalls(stub func(context.Context, string, string, installation.Label) error) {
+	fake.postLabelMutex.Lock()
+	defer fake.postLabelMutex.Unlock()
+	fake.PostLabelStub = stub
+}
+
+func (fake *FakeClient) PostLabelArgsForCall(i int) (context.Context, string, string, installation.Label) {
+	fake.postLabelMutex.RLock()
+	defer fake.postLabelMutex.RUnlock()
+	argsForCall := fake.postLabelArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeClient) PostLabelReturns(result1 error) {
+	fake.postLabelMutex.Lock()
+	defer fake.postLabelMutex.Unlock()
+	fake.PostLabelStub = nil
+	fake.postLabelReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClient) PostLabelReturnsOnCall(i int, result1 error) {
+	fake.postLabelMutex.Lock()
+	defer fake.postLabelMutex.Unlock()
+	fake.PostLabelStub = nil
+	if fake.postLabelReturnsOnCall == nil {
+		fake.postLabelReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.postLabelReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
@@ -358,6 +439,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.getIssuesByRepoMutex.RUnlock()
 	fake.postCommentMutex.RLock()
 	defer fake.postCommentMutex.RUnlock()
+	fake.postLabelMutex.RLock()
+	defer fake.postLabelMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
