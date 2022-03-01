@@ -1,6 +1,7 @@
 package famed
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
@@ -9,12 +10,12 @@ import (
 )
 
 var labels = []installation.Label{
-	{Name: "famed", Color: "566FDB", Description: "Issues with this label will be tracked by Famed"},
-	{Name: "none", Color: "566FDB", Description: "Common Vulnerability Scoring System (CVSS) label to be used with Famed"},
-	{Name: "low", Color: "566FDB", Description: "Common Vulnerability Scoring System (CVSS) label to be used with Famed"},
-	{Name: "medium", Color: "566FDB", Description: "Common Vulnerability Scoring System (CVSS) label to be used with Famed"},
-	{Name: "high", Color: "566FDB", Description: "Common Vulnerability Scoring System (CVSS) label to be used with Famed"},
-	{Name: "critical", Color: "566FDB", Description: "Common Vulnerability Scoring System (CVSS) label to be used with Famed"},
+	{Name: "famed", Color: "566FDB", Description: "Famed - Tracked by Famed"},
+	{Name: "none", Color: "566FDB", Description: "Famed - Common Vulnerability Scoring System (CVSS) - None"},
+	{Name: "low", Color: "566FDB", Description: "Famed - Common Vulnerability Scoring System (CVSS) - Low"},
+	{Name: "medium", Color: "566FDB", Description: "Famed - Common Vulnerability Scoring System (CVSS) - Medium"},
+	{Name: "high", Color: "566FDB", Description: "Famed - Common Vulnerability Scoring System (CVSS) - High"},
+	{Name: "critical", Color: "566FDB", Description: "Famed - Common Vulnerability Scoring System (CVSS) - Critical"},
 }
 
 // handleInstallationRepositoriesEvent adds the labels needed for Famed to the added repository
@@ -26,7 +27,10 @@ func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, eve
 
 	for _, repository := range event.RepositoriesAdded {
 		for _, label := range labels {
-			gH.githubInstallationClient.PostLabel(c.Request().Context(), *repository.Owner.Login, *repository.Name, label)
+			err := gH.githubInstallationClient.PostLabel(c.Request().Context(), *event.Installation.Account.Login, *repository.Name, label)
+			if err != nil {
+				log.Printf("[handleInstallationRepositoriesEvent] error while posting label: %v", err)
+			}
 		}
 	}
 
