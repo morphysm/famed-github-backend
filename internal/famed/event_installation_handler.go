@@ -11,7 +11,7 @@ import (
 // handleInstallationRepositoriesEvent adds the labels needed for Famed to the added repository
 func (gH *githubHandler) handleInstallationEvent(c echo.Context, event *github.InstallationEvent) error {
 	if valid, err := isValidInstallationEvent(event); !valid {
-		log.Printf("[handleInstallationEvent] error is not valid insatllation event: %v", err)
+		log.Printf("[handleInstallationEvent] error is not valid insatllation created event: %v", err)
 		return err
 	}
 

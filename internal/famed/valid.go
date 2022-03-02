@@ -13,10 +13,11 @@ var (
 	ErrIssueMissingData       = errors.New("the issue is missing data promised by the GitHub API")
 	ErrIssueMissingFamedLabel = errors.New("the issue is missing the famed label")
 
-	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
-	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
-	ErrEventIsNotClose          = errors.New("the event is not a close event")
-	ErrEventIsNotRepoAdded      = errors.New("the event is not a repo added to installation event")
+	ErrEventMissingData              = errors.New("the event is missing data promised by the GitHub API")
+	ErrEventAssigneeMissingData      = errors.New("the event assignee is missing data promised by the GitHub API")
+	ErrEventIsNotClose               = errors.New("the event is not a close event")
+	ErrEventIsNotRepoAdded           = errors.New("the event is not a repo added to installation event")
+	ErrEventIsNotInstallationCreated = errors.New("the event is not a installation created event")
 )
 
 // isIssueValid checks weather all necessary issue fields are assigned.
@@ -44,7 +45,7 @@ func isValidInstallationEvent(event *github.InstallationEvent) (bool, error) {
 		return false, ErrEventMissingData
 	}
 	if *event.Action != "created" {
-		return false, ErrEventIsNotRepoAdded
+		return false, ErrEventIsNotInstallationCreated
 	}
 	if event.Installation == nil ||
 		event.Installation.Account == nil ||
