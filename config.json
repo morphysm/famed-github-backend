@@ -20,11 +20,11 @@
     },
     "rewards": {
       "none" : 0,
-      "low" : 2000,
-      "medium" : 10000,
-      "high" : 20000,
-      "critical": 50000
+      "low" : 1000,
+      "medium" : 5000,
+      "high" : 10000,
+      "critical": 25000
     },
-    "currency": "ETH"
+    "currency": "POINTS"
   }
 }
