@@ -18,6 +18,7 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	if owner == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
 	}
+
 	repoName := c.Param("repo_name")
 	if repoName == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)

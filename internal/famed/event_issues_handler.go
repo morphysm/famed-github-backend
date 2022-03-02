@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 // handleIssuesEvent handles issue events and posts a suggested payout comment to the GitHub API,
@@ -31,7 +32,9 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 }
 
 func (gH *githubHandler) eventToComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
-	_, err := IsValidCloseEvent(event, gH.famedConfig.Label)
+	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+
+	_, err := IsValidCloseEvent(event, famedLabel.Name)
 	if err != nil {
 		if errors.Is(err, ErrIssueMissingAssignee) {
 			return commentFromError(err), nil

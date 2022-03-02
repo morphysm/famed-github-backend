@@ -55,9 +55,9 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 
 	// Create
 	famedConfig := famed.Config{
-		Label:     config.Famed.Label,
 		Currency:  config.Famed.Currency,
 		Rewards:   config.Famed.Rewards,
+		Labels:    config.Famed.Labels,
 		BotUserID: config.Github.BotID,
 	}
 	famedHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, famedConfig)

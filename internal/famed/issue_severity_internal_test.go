@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,33 +14,33 @@ func TestIssueToSeverity(t *testing.T) {
 	testCases := []struct {
 		Name        string
 		Label       string
-		Expected    IssueSeverity
+		Expected    config.IssueSeverity
 		ExpectedErr error
 	}{
 		{
 			Name:     "Issue severity label none",
 			Label:    "none",
-			Expected: IssueSeverityNone,
+			Expected: config.CVSSNone,
 		},
 		{
 			Name:     "Issue severity label low",
 			Label:    "low",
-			Expected: IssueSeverityLow,
+			Expected: config.CVSSLow,
 		},
 		{
 			Name:     "Issue severity label medium",
 			Label:    "medium",
-			Expected: IssueSeverityMedium,
+			Expected: config.CVSSMedium,
 		},
 		{
 			Name:     "Issue severity high ",
 			Label:    "high",
-			Expected: IssueSeverityHigh,
+			Expected: config.CVSSHigh,
 		},
 		{
 			Name:     "Issue severity critical ",
 			Label:    "critical",
-			Expected: IssueSeverityCritical,
+			Expected: config.CVSSCritical,
 		},
 		{
 			Name:        "Issue severity critical ",
@@ -71,14 +72,14 @@ func TestIssueToSeverity(t *testing.T) {
 func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	t.Parallel()
 	// GIVEN
-	labelNone := string(IssueSeverityNone)
-	labelLow := string(IssueSeverityCritical)
+	labelNone := string(config.CVSSNone)
+	labelLow := string(config.CVSSCritical)
 	issue := Issue{Issue: &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}}
 
 	// WHEN
 	severityResult, err := issue.severity()
 
 	// THEN
-	assert.Equal(t, IssueSeverity(""), severityResult)
+	assert.Equal(t, config.IssueSeverity(""), severityResult)
 	assert.ErrorIs(t, ErrIssueMultipleSeverityLabels, err)
 }

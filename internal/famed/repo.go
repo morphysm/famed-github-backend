@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/currency"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 type Repo interface {
@@ -27,9 +28,9 @@ type repo struct {
 }
 
 type Config struct {
-	Label     string
 	Currency  string
-	Rewards   map[IssueSeverity]float64
+	Rewards   map[config.IssueSeverity]float64
+	Labels    map[string]installation.Label
 	BotUserID int64
 }
 
@@ -101,7 +102,8 @@ func (r *repo) loadRateAndEventsForIssue(ctx context.Context, issue *github.Issu
 
 func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
 	// Get all issues filtered by label and closed state
-	issuesResponse, err := r.installationClient.GetIssuesByRepo(ctx, r.owner, r.name, []string{r.config.Label}, installation.Closed)
+	famedLabel := r.config.Labels[config.FamedLabel]
+	issuesResponse, err := r.installationClient.GetIssuesByRepo(ctx, r.owner, r.name, []string{famedLabel.Name}, installation.Closed)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}

@@ -22,6 +22,7 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 	if owner == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
 	}
+
 	repoName := c.Param("repo_name")
 	if repoName == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)

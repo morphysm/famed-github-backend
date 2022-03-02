@@ -16,6 +16,7 @@ var (
 	ErrEventMissingData         = errors.New("the event is missing data promised by the GitHub API")
 	ErrEventAssigneeMissingData = errors.New("the event assignee is missing data promised by the GitHub API")
 	ErrEventIsNotClose          = errors.New("the event is not a close event")
+	ErrEventIsNotRepoAdded      = errors.New("the event is not a repo added to installation event")
 )
 
 // IsIssueValid checks weather all necessary issue fields are assigned.
@@ -32,6 +33,22 @@ func IsIssueValid(issue *github.Issue) (bool, error) {
 		issue.Assignee.Login == nil {
 		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingAssignee
+	}
+
+	return true, nil
+}
+
+func isValidRepoAddedEvent(event *github.InstallationRepositoriesEvent) (bool, error) {
+	if event == nil || event.Action == nil {
+		return false, ErrEventMissingData
+	}
+	if *event.Action != "added" {
+		return false, ErrEventIsNotRepoAdded
+	}
+	if event.Installation == nil ||
+		event.Installation.Account == nil ||
+		event.Installation.Account.Login == nil {
+		return false, ErrEventMissingData
 	}
 
 	return true, nil
@@ -61,7 +78,9 @@ func isIssuesEventDataValid(event *github.IssuesEvent) (bool, error) {
 	if event == nil ||
 		event.Action == nil ||
 		event.Repo == nil ||
-		event.Repo.Name == nil {
+		event.Repo.Name == nil ||
+		event.Repo.Owner == nil ||
+		event.Repo.Owner.Login == nil {
 		log.Println("[isIssuesEventValid] event is not a valid issuesEvent")
 		return false, ErrEventMissingData
 	}

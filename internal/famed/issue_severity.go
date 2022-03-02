@@ -2,21 +2,8 @@ package famed
 
 import (
 	"errors"
-)
 
-type IssueSeverity string
-
-const (
-	// IssueSeverityNone represents a CVSS of 0
-	IssueSeverityNone IssueSeverity = "none"
-	// IssueSeverityLow represents a CVSS of 0.1-3.9
-	IssueSeverityLow IssueSeverity = "low"
-	// IssueSeverityMedium represents a CVSS of 4.0-6.9
-	IssueSeverityMedium IssueSeverity = "medium"
-	// IssueSeverityHigh represents a CVSS of 7.0-8.9
-	IssueSeverityHigh IssueSeverity = "high"
-	// IssueSeverityCritical represents a CVSS of 9.0-10.0
-	IssueSeverityCritical IssueSeverity = "critical"
+	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 var (
@@ -27,24 +14,24 @@ var (
 // severity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns the IssueMissingLabelErr
 // if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
-func (i Issue) severity() (IssueSeverity, error) {
-	var severity IssueSeverity
+func (i Issue) severity() (config.IssueSeverity, error) {
+	var severity config.IssueSeverity
 	for _, label := range i.Issue.Labels {
 		if !isLabelValid(label) {
 			continue
 		}
 
 		// Check if label is equal to one of the predefined severity labels.
-		if *label.Name == string(IssueSeverityNone) ||
-			*label.Name == string(IssueSeverityLow) ||
-			*label.Name == string(IssueSeverityMedium) ||
-			*label.Name == string(IssueSeverityHigh) ||
-			*label.Name == string(IssueSeverityCritical) {
+		if *label.Name == string(config.CVSSNone) ||
+			*label.Name == string(config.CVSSLow) ||
+			*label.Name == string(config.CVSSMedium) ||
+			*label.Name == string(config.CVSSHigh) ||
+			*label.Name == string(config.CVSSCritical) {
 			// If
 			if severity != "" {
 				return "", ErrIssueMultipleSeverityLabels
 			}
-			severity = IssueSeverity(*label.Name)
+			severity = config.IssueSeverity(*label.Name)
 		}
 	}
 

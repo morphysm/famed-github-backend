@@ -8,23 +8,24 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 type Contributors map[string]*Contributor
 
 type Contributor struct {
-	Login            string                `json:"login"`
-	AvatarURL        *string               `json:"avatarUrl,omitempty"`
-	HTMLURL          *string               `json:"htmlUrl,omitempty"`
-	GravatarID       *string               `json:"gravatarId,omitempty"`
-	FixCount         int                   `json:"fixCount,omitempty"`
-	Rewards          []Reward              `json:"rewards"`
-	RewardSum        float64               `json:"rewardSum"`
-	Currency         string                `json:"currency"`
-	RewardsLastYear  RewardsLastYear       `json:"rewardsLastYear,omitempty"`
-	TimeToDisclosure TimeToDisclosure      `json:"timeToDisclosure"`
-	Severities       map[IssueSeverity]int `json:"severities"`
-	MeanSeverity     float64               `json:"meanSeverity"`
+	Login            string                       `json:"login"`
+	AvatarURL        *string                      `json:"avatarUrl,omitempty"`
+	HTMLURL          *string                      `json:"htmlUrl,omitempty"`
+	GravatarID       *string                      `json:"gravatarId,omitempty"`
+	FixCount         int                          `json:"fixCount,omitempty"`
+	Rewards          []Reward                     `json:"rewards"`
+	RewardSum        float64                      `json:"rewardSum"`
+	Currency         string                       `json:"currency"`
+	RewardsLastYear  RewardsLastYear              `json:"rewardsLastYear,omitempty"`
+	TimeToDisclosure TimeToDisclosure             `json:"timeToDisclosure"`
+	Severities       map[config.IssueSeverity]int `json:"severities"`
+	MeanSeverity     float64                      `json:"meanSeverity"`
 	// For issue comment generation
 	TotalWorkTime time.Duration
 }
@@ -42,7 +43,7 @@ type Reward struct {
 
 type BoardOptions struct {
 	currency     string
-	rewards      map[IssueSeverity]float64
+	rewards      map[config.IssueSeverity]float64
 	usdToEthRate float64
 }
 
@@ -130,7 +131,7 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 				continue
 			}
 
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency, timeToDisclosure, severity)
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency)
 
 			// Increment fix count if not yet done
 			if isIncremented := areIncremented[*event.Assignee.Login]; !isIncremented {
@@ -156,8 +157,8 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, rewardUnit string, timeToDisclosure float64, severity IssueSeverity) {
-	contributors.mapAssigneeIfMissing(event.Assignee, rewardUnit)
+func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
+	contributors.mapAssigneeIfMissing(event.Assignee, currency)
 
 	// Append work log
 	workLogs.Add(*event.Assignee.Login, WorkLog{*event.CreatedAt, issueClosedAt})
@@ -172,7 +173,7 @@ func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rewardUnit string) {
+func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, currency string) {
 	_, ok := contributors[*assignee.Login]
 	if !ok {
 		contributors[*assignee.Login] = &Contributor{
@@ -181,16 +182,16 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, rew
 			HTMLURL:          assignee.HTMLURL,
 			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
-			Currency:         rewardUnit,
+			Currency:         currency,
 			TimeToDisclosure: TimeToDisclosure{},
-			Severities:       map[IssueSeverity]int{},
+			Severities:       map[config.IssueSeverity]int{},
 			RewardsLastYear:  newRewardsLastYear(time.Now()),
 		}
 	}
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) incrementFixCounters(assignee *github.User, timeToDisclosure float64, severity IssueSeverity) {
+func (contributors Contributors) incrementFixCounters(assignee *github.User, timeToDisclosure float64, severity config.IssueSeverity) {
 	contributor, _ := contributors[*assignee.Login]
 	if contributor == nil {
 		fmt.Println(*assignee.Login)
@@ -237,9 +238,9 @@ func (contributors Contributors) updateAverageSeverity() {
 			continue
 		}
 
-		contributor.MeanSeverity = (2*float64(contributor.Severities[IssueSeverityLow]) +
-			5.5*float64(contributor.Severities[IssueSeverityMedium]) +
-			9*float64(contributor.Severities[IssueSeverityHigh]) +
-			9.5*float64(contributor.Severities[IssueSeverityCritical])) / float64(contributor.FixCount)
+		contributor.MeanSeverity = (2*float64(contributor.Severities[config.CVSSLow]) +
+			5.5*float64(contributor.Severities[config.CVSSMedium]) +
+			9*float64(contributor.Severities[config.CVSSHigh]) +
+			9.5*float64(contributor.Severities[config.CVSSCritical])) / float64(contributor.FixCount)
 	}
 }

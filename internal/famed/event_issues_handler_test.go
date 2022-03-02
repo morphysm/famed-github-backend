@@ -11,24 +11,26 @@ import (
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/currency/currencyfakes"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
+	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointers"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostEvent(t *testing.T) {
+func TestPostIssuesEvent(t *testing.T) {
 	t.Parallel()
 
-	rewards := map[famed.IssueSeverity]float64{
-		famed.IssueSeverityNone:     0,
-		famed.IssueSeverityLow:      1,
-		famed.IssueSeverityMedium:   2,
-		famed.IssueSeverityHigh:     3,
-		famed.IssueSeverityCritical: 4,
+	rewards := map[config.IssueSeverity]float64{
+		config.CVSSNone:     0,
+		config.CVSSLow:      1,
+		config.CVSSMedium:   2,
+		config.CVSSHigh:     3,
+		config.CVSSCritical: 4,
 	}
 	famedConfig := famed.Config{
-		Label:    "famed",
+		Labels:   map[string]installation.Label{"famed": {Name: "famed"}},
 		Currency: "eth",
 		Rewards:  rewards,
 	}
@@ -74,7 +76,8 @@ func TestPostEvent(t *testing.T) {
 				// The following fields are only populated by Webhook events.
 				Changes: nil,
 				Repo: &github.Repository{
-					Name: pointers.String("test"),
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
 				},
 				Sender:       nil,
 				Installation: nil,
@@ -100,7 +103,8 @@ func TestPostEvent(t *testing.T) {
 				// The following fields are only populated by Webhook events.
 				Changes: nil,
 				Repo: &github.Repository{
-					Name: pointers.String("test"),
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
 				},
 				Sender:       nil,
 				Installation: nil,
@@ -126,7 +130,8 @@ func TestPostEvent(t *testing.T) {
 				// The following fields are only populated by Webhook events.
 				Changes: nil,
 				Repo: &github.Repository{
-					Name: pointers.String("test"),
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
 				},
 				Sender:       nil,
 				Installation: nil,
@@ -152,7 +157,8 @@ func TestPostEvent(t *testing.T) {
 				// The following fields are only populated by Webhook events.
 				Changes: nil,
 				Repo: &github.Repository{
-					Name: pointers.String("test"),
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
 				},
 				Sender:       nil,
 				Installation: nil,
@@ -178,7 +184,8 @@ func TestPostEvent(t *testing.T) {
 				// The following fields are only populated by Webhook events.
 				Changes: nil,
 				Repo: &github.Repository{
-					Name: pointers.String("test"),
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
 				},
 				Sender:       nil,
 				Installation: nil,
