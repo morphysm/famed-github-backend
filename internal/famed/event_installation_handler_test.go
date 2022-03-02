@@ -9,46 +9,31 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointers"
 	"github.com/stretchr/testify/assert"
 )
 
 //nolint:funlen
-func TestPostInstallationRepositoriesEvent(t *testing.T) {
+func TestPostInstallationEvent(t *testing.T) {
 	t.Parallel()
-
-	labels := map[string]installation.Label{
-		config.FamedLabel:           {Name: config.FamedLabel, Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSNone):     {Name: string(config.CVSSNone), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSLow):      {Name: string(config.CVSSLow), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSMedium):   {Name: string(config.CVSSMedium), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSHigh):     {Name: string(config.CVSSHigh), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSCritical): {Name: string(config.CVSSCritical), Color: "TestColor", Description: "TestDescription"},
-	}
-	famedConfig := famed.Config{
-		Labels: labels,
-	}
 
 	testCases := []struct {
 		Name        string
-		Event       *github.InstallationRepositoriesEvent
+		Event       *github.InstallationEvent
 		ExpectedErr error
 	}{
 		{
 			Name:        "Empty installation repository event",
-			Event:       &github.InstallationRepositoriesEvent{},
+			Event:       &github.InstallationEvent{},
 			ExpectedErr: famed.ErrEventMissingData,
 		},
 		{
 			Name: "Valid",
-			Event: &github.InstallationRepositoriesEvent{
-				Action:            pointers.String("added"),
-				RepositoriesAdded: []*github.Repository{{Name: pointers.String("TestRepo1")}},
-				Installation:      &github.Installation{Account: &github.User{Login: pointers.String("TestUser")}},
+			Event: &github.InstallationEvent{
+				Action:       pointers.String("created"),
+				Installation: &github.Installation{ID: pointers.Int64(0), Account: &github.User{Login: pointers.String("TestUser")}},
 			},
 			ExpectedErr: nil,
 		},
@@ -66,35 +51,26 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/github/webhooks/event", b)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-			req.Header.Set(github.EventTypeHeader, "installation_repositories")
+			req.Header.Set(github.EventTypeHeader, "installation")
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
 			fakeInstallationClient := &installationfakes.FakeClient{}
-			fakeInstallationClient.PostLabelReturns(nil)
+			fakeInstallationClient.AddInstallationReturns(nil)
 
-			githubHandler := famed.NewHandler(fakeInstallationClient, nil, nil, famedConfig)
+			githubHandler := famed.NewHandler(fakeInstallationClient, nil, nil, famed.Config{})
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)
 
 			// THEN
 			if testCase.ExpectedErr == nil {
-				assert.Equal(t, len(famedConfig.Labels)*len(testCase.Event.RepositoriesAdded), fakeInstallationClient.PostLabelCallCount())
+				callCount := fakeInstallationClient.AddInstallationCallCount()
+				assert.Equal(t, 1, callCount)
 
-				callCount := 0
-				for _, repoExp := range testCase.Event.RepositoriesAdded {
-					allLabels := make(map[string]installation.Label)
-					for j := 0; j < len(famedConfig.Labels); j++ {
-						_, owner, repo, label := fakeInstallationClient.PostLabelArgsForCall(callCount)
-						assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
-						assert.Equal(t, *repoExp.Name, repo)
-						allLabels[label.Name] = label
-
-						callCount++
-					}
-					assert.Equal(t, famedConfig.Labels, allLabels)
-				}
+				owner, installationID := fakeInstallationClient.AddInstallationArgsForCall(0)
+				assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
+				assert.Equal(t, *testCase.Event.Installation.ID, installationID)
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)
 		})

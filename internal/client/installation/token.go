@@ -4,17 +4,17 @@ import (
 	"context"
 	"log"
 
-	"github.com/morphysm/famed-github-backend/internal/client/apps"
+	"github.com/morphysm/famed-github-backend/internal/client/app"
 	"golang.org/x/oauth2"
 )
 
 type gitHubTokenSource struct {
-	client         apps.Client
+	client         app.Client
 	installationID int64
 	repoIDs        []int64
 }
 
-func NewGithubTokenSource(client apps.Client, installationID int64) oauth2.TokenSource {
+func NewGithubTokenSource(client app.Client, installationID int64) oauth2.TokenSource {
 	return &gitHubTokenSource{
 		client:         client,
 		installationID: installationID,

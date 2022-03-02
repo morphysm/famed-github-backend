@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/internal/client/apps"
+	"github.com/morphysm/famed-github-backend/internal/client/app"
 	"golang.org/x/oauth2"
 )
 
@@ -16,20 +16,22 @@ type Client interface {
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	PostLabel(ctx context.Context, owner string, repo string, label Label) error
+
+	AddInstallation(owner string, installationID int64) error
 }
 
 type githubInstallationClient struct {
-	baseURL       string
-	installations map[string]int64
-	clients       map[string]*github.Client
+	baseURL   string
+	appClient app.Client
+	clients   map[string]*github.Client
 }
 
 // NewClient returns a new instance of the GitHub client
-func NewClient(baseURL string, client apps.Client, installations map[string]int64) (Client, error) {
+func NewClient(baseURL string, appClient app.Client, installations map[string]int64) (Client, error) {
 	clients := make(map[string]*github.Client)
 
 	for owner, installationID := range installations {
-		ts := NewGithubTokenSource(client, installationID)
+		ts := NewGithubTokenSource(appClient, installationID)
 		oAuthClient := oauth2.NewClient(context.Background(), ts)
 
 		installationClient, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
@@ -41,8 +43,21 @@ func NewClient(baseURL string, client apps.Client, installations map[string]int6
 	}
 
 	return &githubInstallationClient{
-		baseURL:       baseURL,
-		installations: installations,
-		clients:       clients,
+		baseURL:   baseURL,
+		appClient: appClient,
+		clients:   clients,
 	}, nil
+}
+
+func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
+	ts := NewGithubTokenSource(c.appClient, installationID)
+	oAuthClient := oauth2.NewClient(context.Background(), ts)
+
+	client, err := github.NewEnterpriseClient(c.baseURL, c.baseURL, oAuthClient)
+	if err != nil {
+		return err
+	}
+
+	c.clients[owner] = client
+	return nil
 }

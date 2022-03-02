@@ -10,6 +10,18 @@ import (
 )
 
 type FakeClient struct {
+	AddInstallationStub        func(string, int64) error
+	addInstallationMutex       sync.RWMutex
+	addInstallationArgsForCall []struct {
+		arg1 string
+		arg2 int64
+	}
+	addInstallationReturns struct {
+		result1 error
+	}
+	addInstallationReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetCommentsStub        func(context.Context, string, string, int) ([]*github.IssueComment, error)
 	getCommentsMutex       sync.RWMutex
 	getCommentsArgsForCall []struct {
@@ -90,6 +102,68 @@ type FakeClient struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeClient) AddInstallation(arg1 string, arg2 int64) error {
+	fake.addInstallationMutex.Lock()
+	ret, specificReturn := fake.addInstallationReturnsOnCall[len(fake.addInstallationArgsForCall)]
+	fake.addInstallationArgsForCall = append(fake.addInstallationArgsForCall, struct {
+		arg1 string
+		arg2 int64
+	}{arg1, arg2})
+	stub := fake.AddInstallationStub
+	fakeReturns := fake.addInstallationReturns
+	fake.recordInvocation("AddInstallation", []interface{}{arg1, arg2})
+	fake.addInstallationMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClient) AddInstallationCallCount() int {
+	fake.addInstallationMutex.RLock()
+	defer fake.addInstallationMutex.RUnlock()
+	return len(fake.addInstallationArgsForCall)
+}
+
+func (fake *FakeClient) AddInstallationCalls(stub func(string, int64) error) {
+	fake.addInstallationMutex.Lock()
+	defer fake.addInstallationMutex.Unlock()
+	fake.AddInstallationStub = stub
+}
+
+func (fake *FakeClient) AddInstallationArgsForCall(i int) (string, int64) {
+	fake.addInstallationMutex.RLock()
+	defer fake.addInstallationMutex.RUnlock()
+	argsForCall := fake.addInstallationArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClient) AddInstallationReturns(result1 error) {
+	fake.addInstallationMutex.Lock()
+	defer fake.addInstallationMutex.Unlock()
+	fake.AddInstallationStub = nil
+	fake.addInstallationReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClient) AddInstallationReturnsOnCall(i int, result1 error) {
+	fake.addInstallationMutex.Lock()
+	defer fake.addInstallationMutex.Unlock()
+	fake.AddInstallationStub = nil
+	if fake.addInstallationReturnsOnCall == nil {
+		fake.addInstallationReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.addInstallationReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]*github.IssueComment, error) {
@@ -431,6 +505,8 @@ func (fake *FakeClient) PostLabelReturnsOnCall(i int, result1 error) {
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.addInstallationMutex.RLock()
+	defer fake.addInstallationMutex.RUnlock()
 	fake.getCommentsMutex.RLock()
 	defer fake.getCommentsMutex.RUnlock()
 	fake.getIssueEventsMutex.RLock()

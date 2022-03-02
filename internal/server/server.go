@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/morphysm/famed-github-backend/internal/client/apps"
+	"github.com/morphysm/famed-github-backend/internal/client/app"
 	"github.com/morphysm/famed-github-backend/internal/client/currency"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
@@ -30,7 +30,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	currencyClient := currency.NewCurrencyClient(config.Currency.Host)
 
 	// Create new app client to fetch installations and installation tokens.
-	appClient, err := apps.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
+	appClient, err := app.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
 	if err != nil {
 		return nil, err
 	}

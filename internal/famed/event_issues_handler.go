@@ -34,7 +34,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 func (gH *githubHandler) eventToComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 
-	_, err := IsValidCloseEvent(event, famedLabel.Name)
+	_, err := isValidCloseEvent(event, famedLabel.Name)
 	if err != nil {
 		if errors.Is(err, ErrIssueMissingAssignee) {
 			return commentFromError(err), nil

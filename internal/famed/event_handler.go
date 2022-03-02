@@ -32,6 +32,8 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 		return gH.handleIssuesEvent(c, event)
 	case *github.InstallationRepositoriesEvent:
 		return gH.handleInstallationRepositoriesEvent(c, event)
+	case *github.InstallationEvent:
+		return gH.handleInstallationEvent(c, event)
 	default:
 		log.Printf("received unhandled event: %v\n", event)
 		return c.NoContent(http.StatusOK)

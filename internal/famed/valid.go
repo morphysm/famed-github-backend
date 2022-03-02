@@ -19,25 +19,44 @@ var (
 	ErrEventIsNotRepoAdded      = errors.New("the event is not a repo added to installation event")
 )
 
-// IsIssueValid checks weather all necessary issue fields are assigned.
-func IsIssueValid(issue *github.Issue) (bool, error) {
+// isIssueValid checks weather all necessary issue fields are assigned.
+func isIssueValid(issue *github.Issue) (bool, error) {
 	if issue == nil ||
 		issue.ID == nil ||
 		issue.Number == nil ||
 		issue.CreatedAt == nil ||
 		issue.ClosedAt == nil {
-		log.Printf("[IsIssueValid] missing values in issue with ID: %d", issue.ID)
+		log.Printf("[isIssueValid] missing values in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingData
 	}
 	if issue.Assignee == nil ||
 		issue.Assignee.Login == nil {
-		log.Printf("[IsIssueValid] missing assignee in issue with ID: %d", issue.ID)
+		log.Printf("[isIssueValid] missing assignee in issue with ID: %d", issue.ID)
 		return false, ErrIssueMissingAssignee
 	}
 
 	return true, nil
 }
 
+// isValidInstallationEvent checks weather all necessary event fields are assigned.
+func isValidInstallationEvent(event *github.InstallationEvent) (bool, error) {
+	if event == nil || event.Action == nil {
+		return false, ErrEventMissingData
+	}
+	if *event.Action != "created" {
+		return false, ErrEventIsNotRepoAdded
+	}
+	if event.Installation == nil ||
+		event.Installation.Account == nil ||
+		event.Installation.Account.Login == nil ||
+		event.Installation.ID == nil {
+		return false, ErrEventMissingData
+	}
+
+	return true, nil
+}
+
+// isIssueValid checks weather all necessary event fields are assigned.
 func isValidRepoAddedEvent(event *github.InstallationRepositoriesEvent) (bool, error) {
 	if event == nil || event.Action == nil {
 		return false, ErrEventMissingData
@@ -54,20 +73,20 @@ func isValidRepoAddedEvent(event *github.InstallationRepositoriesEvent) (bool, e
 	return true, nil
 }
 
-// IsValidCloseEvent checks weather all necessary event fields are assigned.
-func IsValidCloseEvent(event *github.IssuesEvent, famedLabel string) (bool, error) {
+// isValidCloseEvent checks weather all necessary event fields are assigned.
+func isValidCloseEvent(event *github.IssuesEvent, famedLabel string) (bool, error) {
 	if _, err := isIssuesEventDataValid(event); err != nil {
 		return false, err
 	}
 	if *event.Action != string(installation.Closed) {
-		log.Println("[IsValidCloseEvent] event is not a closed event")
+		log.Println("[isValidCloseEvent] event is not a closed event")
 		return false, ErrEventIsNotClose
 	}
 	if !isIssueFamedLabeled(event.Issue, famedLabel) {
 		return false, ErrIssueMissingFamedLabel
 	}
-	if _, err := IsIssueValid(event.Issue); err != nil {
-		log.Println("[IsValidCloseEvent] event issue is missing data")
+	if _, err := isIssueValid(event.Issue); err != nil {
+		log.Println("[isValidCloseEvent] event issue is missing data")
 		return false, err
 	}
 

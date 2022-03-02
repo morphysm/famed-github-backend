@@ -1,4 +1,4 @@
-package apps
+package app
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func NewClient(baseURL string, apiKey string, appID int64) (Client, error) {
 
 	itr.BaseURL = baseURL
 
-	// Create git client with apps transport
+	// Create git client with app transport
 	client, err := github.NewEnterpriseClient(
 		baseURL,
 		baseURL,

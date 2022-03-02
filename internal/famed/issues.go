@@ -32,7 +32,7 @@ func (r *repo) contributorsArray() []*Contributor {
 func filterIssues(issues []*github.Issue) []*github.Issue {
 	filteredIssues := make([]*github.Issue, 0)
 	for _, issue := range issues {
-		if _, err := IsIssueValid(issue); err != nil {
+		if _, err := isIssueValid(issue); err != nil {
 			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
 			continue
 		}
