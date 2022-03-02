@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type Conversion struct {
+type exchangeRate struct {
 	Date string  `json:"date"`
 	Eth  float64 `json:"eth"`
 }
@@ -13,7 +13,7 @@ type Conversion struct {
 // GetUSDToETHConversion returns the conversion rate from usd to eth.
 // TODO think about making this generic
 func (c *currencyClient) GetUSDToETHConversion(ctx context.Context) (float64, error) {
-	var data Conversion
+	var data exchangeRate
 
 	path := "/latest/currencies/usd/eth.json"
 

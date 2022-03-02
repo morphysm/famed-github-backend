@@ -42,9 +42,8 @@ type Reward struct {
 }
 
 type BoardOptions struct {
-	currency     string
-	rewards      map[config.IssueSeverity]float64
-	usdToEthRate float64
+	currency string
+	rewards  map[config.IssueSeverity]float64
 }
 
 // ContributorsForIssue returns a contributors map generated from the repo's internal issue with issueID
@@ -54,9 +53,8 @@ func (r *repo) ContributorsForIssue(issueNumber int) Contributors {
 	issue := r.issues[issueNumber]
 	// Map issue to contributors
 	err := r.contributors.MapIssue(issue, BoardOptions{
-		currency:     r.config.Currency,
-		rewards:      r.config.Rewards,
-		usdToEthRate: r.ethRate,
+		currency: r.config.Currency,
+		rewards:  r.config.Rewards,
 	})
 	if err != nil {
 		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
@@ -84,9 +82,8 @@ func (r *repo) issuesAndEventsToContributors() {
 	for issueID, issue := range r.issues {
 		// Map issue to contributors
 		err := r.contributors.MapIssue(issue, BoardOptions{
-			currency:     r.config.Currency,
-			rewards:      r.config.Rewards,
-			usdToEthRate: r.ethRate,
+			currency: r.config.Currency,
+			rewards:  r.config.Rewards,
 		})
 		if err != nil {
 			log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
@@ -151,7 +148,7 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 	}
 
 	// Calculate the reward
-	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward, boardOptions.usdToEthRate)
+	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward)
 
 	return nil
 }

@@ -23,7 +23,6 @@ type repo struct {
 	owner              string
 	name               string
 	issues             map[int]Issue
-	ethRate            float64
 	contributors       Contributors
 }
 
@@ -122,15 +121,8 @@ func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
 }
 
 func (r *repo) loadRateAndEvents(ctx context.Context) error {
-	ethRate, err := r.currencyClient.GetUSDToETHConversion(ctx)
-	if err != nil {
-		return echo.ErrBadGateway.SetInternal(err)
-	}
-
-	r.ethRate = ethRate
-
 	// Get all events for each issue
-	err = r.getEvents(ctx, r.owner, r.name)
+	err := r.getEvents(ctx, r.owner, r.name)
 	if err != nil {
 		return echo.ErrBadGateway.SetInternal(err)
 	}

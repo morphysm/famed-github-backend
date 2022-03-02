@@ -11,9 +11,9 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // contributors (array of contributors with timeOnIssue)
-func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64, usdToEthRate float64) {
+func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64) {
 	baseReward := reward(closed.Sub(open), k)
-	ethReward := rewardToEth(baseReward, severityReward, usdToEthRate)
+	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
 	totalWork, workSum := workLogs.Sum()
 
@@ -30,7 +30,7 @@ func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time,
 		contributor.TotalWorkTime = contributorTotalWork
 
 		// Calculated share of reward
-		reward := ethReward * float64(contributorTotalWork) / float64(workSum)
+		reward := points * float64(contributorTotalWork) / float64(workSum)
 
 		// Updated reward sum
 		contributor.RewardSum += reward
@@ -48,9 +48,9 @@ func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time,
 	}
 }
 
-// rewardToEth returns the base reward multiplied by the severity reward and changed to eth.
-func rewardToEth(baseReward float64, severityReward float64, usdToEthRate float64) float64 {
-	return baseReward * severityReward * usdToEthRate
+// rewardToPoints returns the base reward multiplied by the severity reward.
+func rewardToPoints(baseReward float64, severityReward float64) float64 {
+	return baseReward * severityReward
 }
 
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).
