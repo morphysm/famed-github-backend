@@ -2,6 +2,7 @@ package installation
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/app"
@@ -21,26 +22,44 @@ type Client interface {
 	CheckInstallation(owner string) bool
 }
 
+// safeClientMap represents a map from owner to client.
+// The map is wrapped to avoid any capitalization errors.
+type safeClientMap struct {
+	m map[string]*github.Client
+}
+
+// add adds an owner client pair to the safeClientMap.
+func (s safeClientMap) add(owner string, client *github.Client) {
+	s.m[strings.ToLower(owner)] = client
+}
+
+// get gets an owner client pair from the safeClientMap.
+func (s safeClientMap) get(owner string) (*github.Client, bool) {
+	client, ok := s.m[strings.ToLower(owner)]
+	return client, ok
+}
+
+// githubInstallationClient represents all GitHub installation clients
 type githubInstallationClient struct {
 	baseURL   string
 	appClient app.Client
-	clients   map[string]*github.Client
+	clients   safeClientMap
 }
 
 // NewClient returns a new instance of the GitHub client
 func NewClient(baseURL string, appClient app.Client, installations map[string]int64) (Client, error) {
-	clients := make(map[string]*github.Client)
+	clients := safeClientMap{m: make(map[string]*github.Client)}
 
 	for owner, installationID := range installations {
 		ts := NewGithubTokenSource(appClient, installationID)
 		oAuthClient := oauth2.NewClient(context.Background(), ts)
 
-		installationClient, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
+		client, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
 		if err != nil {
 			return nil, err
 		}
 
-		clients[owner] = installationClient
+		clients.add(owner, client)
 	}
 
 	return &githubInstallationClient{
@@ -50,6 +69,7 @@ func NewClient(baseURL string, appClient app.Client, installations map[string]in
 	}, nil
 }
 
+// AddInstallation adds a new installation to the githubInstallationClient.
 func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
 	ts := NewGithubTokenSource(c.appClient, installationID)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)
@@ -59,11 +79,12 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 		return err
 	}
 
-	c.clients[owner] = client
+	c.clients.add(owner, client)
 	return nil
 }
 
+// CheckInstallation checks if an installations is present in the githubInstallationClient.
 func (c *githubInstallationClient) CheckInstallation(owner string) bool {
-	_, ok := c.clients[owner]
+	_, ok := c.clients.get(owner)
 	return ok
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func (c *githubInstallationClient) PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error {
-	client := c.clients[owner]
+	client, _ := c.clients.get(owner)
 
 	_, _, err := client.Issues.CreateComment(ctx, owner, repoName, issueNumber, &github.IssueComment{Body: &comment})
 	return err
@@ -16,7 +16,7 @@ func (c *githubInstallationClient) PostComment(ctx context.Context, owner string
 func (c *githubInstallationClient) GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
 	var (
-		client      = c.clients[owner]
+		client, _   = c.clients.get(owner)
 		allComments []*github.IssueComment
 		listOptions = &github.IssueListCommentsOptions{
 			ListOptions: github.ListOptions{

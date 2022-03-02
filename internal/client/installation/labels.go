@@ -13,7 +13,7 @@ type Label struct {
 }
 
 func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, repo string, label Label) error {
-	client := c.clients[owner]
+	client, _ := c.clients.get(owner)
 
 	_, _, err := client.Issues.CreateLabel(ctx, owner, repo, &github.Label{
 		Name:        &label.Name,

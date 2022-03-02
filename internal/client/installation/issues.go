@@ -16,7 +16,7 @@ const (
 
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
 	var (
-		client      = c.clients[owner]
+		client, _   = c.clients.get(owner)
 		allIssues   []*github.Issue
 		listOptions = &github.ListOptions{
 			Page:    1,

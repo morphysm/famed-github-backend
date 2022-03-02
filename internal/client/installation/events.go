@@ -54,7 +54,7 @@ const (
 
 func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
 	var (
-		client      = c.clients[owner]
+		client, _   = c.clients.get(owner)
 		allEvents   []*github.IssueEvent
 		listOptions = &github.ListOptions{
 			Page:    1,
