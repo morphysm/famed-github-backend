@@ -22,6 +22,17 @@ type FakeClient struct {
 	addInstallationReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CheckInstallationStub        func(string) bool
+	checkInstallationMutex       sync.RWMutex
+	checkInstallationArgsForCall []struct {
+		arg1 string
+	}
+	checkInstallationReturns struct {
+		result1 bool
+	}
+	checkInstallationReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	GetCommentsStub        func(context.Context, string, string, int) ([]*github.IssueComment, error)
 	getCommentsMutex       sync.RWMutex
 	getCommentsArgsForCall []struct {
@@ -163,6 +174,67 @@ func (fake *FakeClient) AddInstallationReturnsOnCall(i int, result1 error) {
 	}
 	fake.addInstallationReturnsOnCall[i] = struct {
 		result1 error
+	}{result1}
+}
+
+func (fake *FakeClient) CheckInstallation(arg1 string) bool {
+	fake.checkInstallationMutex.Lock()
+	ret, specificReturn := fake.checkInstallationReturnsOnCall[len(fake.checkInstallationArgsForCall)]
+	fake.checkInstallationArgsForCall = append(fake.checkInstallationArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.CheckInstallationStub
+	fakeReturns := fake.checkInstallationReturns
+	fake.recordInvocation("CheckInstallation", []interface{}{arg1})
+	fake.checkInstallationMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClient) CheckInstallationCallCount() int {
+	fake.checkInstallationMutex.RLock()
+	defer fake.checkInstallationMutex.RUnlock()
+	return len(fake.checkInstallationArgsForCall)
+}
+
+func (fake *FakeClient) CheckInstallationCalls(stub func(string) bool) {
+	fake.checkInstallationMutex.Lock()
+	defer fake.checkInstallationMutex.Unlock()
+	fake.CheckInstallationStub = stub
+}
+
+func (fake *FakeClient) CheckInstallationArgsForCall(i int) string {
+	fake.checkInstallationMutex.RLock()
+	defer fake.checkInstallationMutex.RUnlock()
+	argsForCall := fake.checkInstallationArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClient) CheckInstallationReturns(result1 bool) {
+	fake.checkInstallationMutex.Lock()
+	defer fake.checkInstallationMutex.Unlock()
+	fake.CheckInstallationStub = nil
+	fake.checkInstallationReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeClient) CheckInstallationReturnsOnCall(i int, result1 bool) {
+	fake.checkInstallationMutex.Lock()
+	defer fake.checkInstallationMutex.Unlock()
+	fake.CheckInstallationStub = nil
+	if fake.checkInstallationReturnsOnCall == nil {
+		fake.checkInstallationReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.checkInstallationReturnsOnCall[i] = struct {
+		result1 bool
 	}{result1}
 }
 
@@ -507,6 +579,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addInstallationMutex.RLock()
 	defer fake.addInstallationMutex.RUnlock()
+	fake.checkInstallationMutex.RLock()
+	defer fake.checkInstallationMutex.RUnlock()
 	fake.getCommentsMutex.RLock()
 	defer fake.getCommentsMutex.RUnlock()
 	fake.getIssueEventsMutex.RLock()

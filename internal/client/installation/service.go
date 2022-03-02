@@ -18,6 +18,7 @@ type Client interface {
 	PostLabel(ctx context.Context, owner string, repo string, label Label) error
 
 	AddInstallation(owner string, installationID int64) error
+	CheckInstallation(owner string) bool
 }
 
 type githubInstallationClient struct {
@@ -60,4 +61,9 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 
 	c.clients[owner] = client
 	return nil
+}
+
+func (c *githubInstallationClient) CheckInstallation(owner string) bool {
+	_, ok := c.clients[owner]
+	return ok
 }

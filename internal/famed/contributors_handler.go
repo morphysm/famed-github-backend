@@ -2,6 +2,7 @@ package famed
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -10,6 +11,8 @@ import (
 var (
 	ErrMissingRepoPathParameter  = errors.New("missing name name path parameter")
 	ErrMissingOwnerPathParameter = errors.New("missing owner path parameter")
+
+	ErrAppNotInstalled = errors.New("app not installed")
 )
 
 // GetContributors returns a list of contributors for the famed board.
@@ -22,6 +25,11 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	repoName := c.Param("repo_name")
 	if repoName == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
+	}
+
+	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
+		log.Printf("[GetContributors] error on request for contributors: %v", ErrAppNotInstalled)
+		return ErrAppNotInstalled
 	}
 
 	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, owner, repoName)

@@ -28,6 +28,11 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
 	}
 
+	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
+		log.Printf("[GetContributors] error on request for contributors: %v", ErrAppNotInstalled)
+		return ErrAppNotInstalled
+	}
+
 	response, err := gH.checkAndUpdateComments(c.Request().Context(), owner, repoName)
 	if err != nil {
 		return err
