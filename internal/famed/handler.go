@@ -17,7 +17,6 @@ type githubHandler struct {
 	githubInstallationClient installation.Client
 	currencyClient           currency.Client
 	webhookSecret            *string
-	installationID           int64
 	famedConfig              Config
 }
 
