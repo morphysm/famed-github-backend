@@ -37,18 +37,21 @@ This repository contains the code of the Famed-Backend.
 
 # How to Famed
 
-1. Install the Famed GitHub App (https://github.com/apps/get-famed) and allow the app to access to your repository.
-2. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
-3. Setup frontend:
-   1. Note: We populate the issue labels when you allow the app to access to your repository: "famed", "none", "low", "medium", "high", "critical". We do not override and labes if labels with the same name are present.
+1. Install the Famed GitHub App (https://github.com/apps/get-famed) and allow the app to access to your repository.</br>
+   ***Note:** We populate the issue labels when you allow the app to access to your repository: "famed", "none", "low", "medium", "high", "critical". We do not override and labes if labels with the same name are present.*
+2. Setup frontend:
+   1. You can find your public board at https://www.famed.morphysm.com/boards/<owner>/<repoName>
    2. Use our famed-board react component (work in progress)
    3. Use our famed-board js script (work in progress)
-4. Setup your repository issues:
+3. Label your repository issues:
    1. Assign a “famed” label to the issues you want to track with Famed
    2. Assign a severity label to each issue tracked by Famed. We follow the Common Vulnerability Scoring System (CVSS). (Low, Medium, High, Critical )
-   3. Make sure the issue has an assignee when closing the issue
+   3. Make sure the issue has an assignee when closing the issue<br><br>
+      
+   You will see comments by the Famed bot on your issues labeled with "famed" - the frontend is updated once the first issues are closed.
 
-If all is set up correctly, you will see comments by the Famed bot on your closed issues, and the frontend should be updated accordingly.
+
+4. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
 
 # Develop
 
