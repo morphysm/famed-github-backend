@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/currency/currencyfakes"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
 	"github.com/morphysm/famed-github-backend/internal/config"
@@ -221,10 +220,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 
-			fakeCurrencyClient := &currencyfakes.FakeClient{}
-			fakeCurrencyClient.GetUSDToETHConversionReturns(1, nil)
-
-			githubHandler := famed.NewHandler(fakeInstallationClient, fakeCurrencyClient, nil, famedConfig)
+			githubHandler := famed.NewHandler(fakeInstallationClient, nil, famedConfig)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

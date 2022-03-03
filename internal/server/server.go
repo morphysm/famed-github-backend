@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/morphysm/famed-github-backend/internal/client/app"
-	"github.com/morphysm/famed-github-backend/internal/client/currency"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
@@ -26,8 +25,6 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		AllowOrigins: []string{"https://www.famed.morphysm.com", "https://famed.morphysm.com"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
-
-	currencyClient := currency.NewCurrencyClient(config.Currency.Host)
 
 	// Create new app client to fetch installations and installation tokens.
 	appClient, err := app.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
@@ -60,7 +57,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		Labels:    config.Famed.Labels,
 		BotUserID: config.Github.BotID,
 	}
-	famedHandler := famed.NewHandler(installationClient, currencyClient, &config.Github.WebhookSecret, famedConfig)
+	famedHandler := famed.NewHandler(installationClient, &config.Github.WebhookSecret, famedConfig)
 
 	// Logger
 	e.Use(middleware.Logger())

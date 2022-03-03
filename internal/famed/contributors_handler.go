@@ -28,13 +28,13 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	}
 
 	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
-		log.Printf("[GetContributors] error on request for contributors: %v", ErrAppNotInstalled)
+		log.Printf("[Contributors] error on request for contributors: %v", ErrAppNotInstalled)
 		return ErrAppNotInstalled
 	}
 
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, owner, repoName)
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, owner, repoName)
 
-	contributors, err := repo.GetContributors(c.Request().Context())
+	contributors, err := repo.Contributors(c.Request().Context())
 	if err != nil {
 		if errors.Is(err, echo.ErrBadGateway) {
 			return err

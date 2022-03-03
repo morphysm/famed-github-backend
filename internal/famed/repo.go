@@ -2,24 +2,26 @@ package famed
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/currency"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 type Repo interface {
-	GetContributors(ctx context.Context) ([]*Contributor, error)
-	GetComment(ctx context.Context, issue *github.Issue) (string, error)
-	GetComments(ctx context.Context) (map[int]string, error)
+	Contributors(ctx context.Context) ([]*Contributor, error)
+
+	ContributorComment(ctx context.Context, issue *github.Issue) (string, error)
+	ContributorComments(ctx context.Context) (map[int]string, error)
+
+	IssueStateComment(ctx context.Context, issue *github.Issue) (string, error)
 }
 
 type repo struct {
 	config             Config
 	installationClient installation.Client
-	currencyClient     currency.Client
 	owner              string
 	name               string
 	issues             map[int]Issue
@@ -34,17 +36,16 @@ type Config struct {
 }
 
 // NewRepo returns a new instance of the famed repo representation.
-func NewRepo(config Config, installationClient installation.Client, currencyClient currency.Client, owner string, name string) Repo {
+func NewRepo(config Config, installationClient installation.Client, owner string, name string) Repo {
 	return &repo{
 		config:             config,
 		installationClient: installationClient,
-		currencyClient:     currencyClient,
 		owner:              owner,
 		name:               name,
 	}
 }
 
-func (r *repo) GetContributors(ctx context.Context) ([]*Contributor, error) {
+func (r *repo) Contributors(ctx context.Context) ([]*Contributor, error) {
 	err := r.loadIssuesRateAndEvents(ctx)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func (r *repo) GetContributors(ctx context.Context) ([]*Contributor, error) {
 	return contributors, nil
 }
 
-func (r *repo) GetComment(ctx context.Context, issue *github.Issue) (string, error) {
+func (r *repo) ContributorComment(ctx context.Context, issue *github.Issue) (string, error) {
 	err := r.loadRateAndEventsForIssue(ctx, issue)
 	if err != nil {
 		return "", err
@@ -72,7 +73,7 @@ func (r *repo) GetComment(ctx context.Context, issue *github.Issue) (string, err
 	return comment, nil
 }
 
-func (r *repo) GetComments(ctx context.Context) (map[int]string, error) {
+func (r *repo) ContributorComments(ctx context.Context) (map[int]string, error) {
 	err := r.loadIssuesRateAndEvents(ctx)
 	if err != nil {
 		return nil, err
@@ -128,4 +129,47 @@ func (r *repo) loadRateAndEvents(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (r *repo) IssueStateComment(ctx context.Context, issue *github.Issue) (string, error) {
+	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
+
+	// Check that an assignee is assigned
+	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
+
+	// Check that a valid severity label is assigned
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(Issue{Issue: issue}))
+
+	// Check that a PR is assigned
+	comment = fmt.Sprintf("%s\n%s", comment, prComment(issue))
+
+	// Final note
+	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)
+
+	return comment, nil
+}
+
+func assigneeComment(issue *github.Issue) string {
+	if issue.Assignee != nil {
+		return "- [x] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+	}
+
+	return "- [ ] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+}
+
+func severityComment(issue Issue) string {
+	_, err := issue.severity()
+	if err == nil {
+		return "- [x] Add a severity (CVSS) label to compute the score 🏷️"
+	}
+
+	return "- [ ] Add a severity (CVSS) label to compute the score 🏷️"
+}
+
+func prComment(issue *github.Issue) string {
+	if issue.PullRequestLinks != nil {
+		return "- [x] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+	}
+
+	return "- [ ] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 }

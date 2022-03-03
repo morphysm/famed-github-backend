@@ -29,7 +29,7 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 	}
 
 	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
-		log.Printf("[GetContributors] error on request for contributors: %v", ErrAppNotInstalled)
+		log.Printf("[Contributors] error on request for contributors: %v", ErrAppNotInstalled)
 		return ErrAppNotInstalled
 	}
 
@@ -43,9 +43,9 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 
 // checkAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, gH.currencyClient, owner, repoName)
+	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, owner, repoName)
 
-	comments, err := repo.GetComments(ctx)
+	comments, err := repo.ContributorComments(ctx)
 	if err != nil {
 		return nil, err
 	}

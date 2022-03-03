@@ -20,5 +20,7 @@ func (gH *githubHandler) handleInstallationEvent(c echo.Context, event *github.I
 		return err
 	}
 
+	gH.postLabels(c.Request().Context(), event.Repositories, *event.Installation.Account.Login)
+
 	return c.NoContent(http.StatusOK)
 }
