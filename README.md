@@ -14,12 +14,15 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
  <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
 </h1>
 
+
+# Famed-Backend
+
+This repository contains the code of the Famed-Backend.
+
 # Table of Contents
 
 <!--ts-->
 
-- [Table of Contents](#table-of-contents)
-- [Famed-Backend](#famed-backend)
 - [How to Famed](#how-to-famed)
 - [Develop](#develop)
   - [Prerequisites](#prerequisites)
@@ -31,9 +34,6 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 - [Contact](#contact)
 <!--te-->
 
-# Famed-Backend
-
-This repository contains the code of the Famed-Backend.
 
 # How to Famed
 
