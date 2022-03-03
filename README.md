@@ -38,7 +38,7 @@ This repository contains the code of the Famed-Backend.
 # How to Famed
 
 1. Install the Famed GitHub App (https://github.com/apps/get-famed) and allow the app to access to your repository.</br>
-   ***Note:** We populate the issue labels when you allow the app to access your repository: "famed", "none", "low", "medium", "high", "critical". We do not overwride if labels with the same name are present.*
+   ***Note:** We populate the issue labels when you allow the app to access your repository: "famed", "none", "low", "medium", "high", "critical". We do not overwrite your labels if labels with the same name are present.*
 2. Setup frontend:
    1. You can find your public board at https://www.famed.morphysm.com/boards/<owner>/<repoName>
    2. Use our famed-board react component (work in progress)
