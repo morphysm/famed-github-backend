@@ -45,7 +45,7 @@ This repository contains the code of the Famed-Backend.
    3. Use our famed-board js script (work in progress)
 3. Label your repository issues:
    1. Assign a “famed” label to the issues you want to track with Famed
-   2. Assign a severity label to each issue tracked by Famed. We follow the Common Vulnerability Scoring System (CVSS). (Low, Medium, High, Critical )
+   2. Assign a severity label to each issue tracked by Famed. We follow the Common Vulnerability Scoring System (CVSS). (Low, Medium, High, Critical)
    3. Make sure the issue has an assignee when closing the issue<br><br>
       
    You will see comments by the Famed bot on your issues labeled with "famed" - the frontend is updated once the first issues are closed.
