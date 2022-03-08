@@ -15,6 +15,10 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.POST("/repos/:owner/:repo_name/update", handler.UpdateComments)
 }
 
+func FamedAdminRoutes(g *echo.Group, handler famed.HTTPHandler) {
+	g.GET("/installations", handler.GetInstallations)
+}
+
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.
 func HealthRoutes(g *echo.Group, handler health.HTTPHandler) {
 	g.GET("", handler.GetHealth)

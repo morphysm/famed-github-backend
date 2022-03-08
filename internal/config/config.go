@@ -32,6 +32,11 @@ type Config struct {
 		Rewards  map[IssueSeverity]float64
 		Currency string
 	}
+
+	Admin struct {
+		Username string
+		Password string
+	}
 }
 
 type IssueSeverity string
@@ -41,6 +46,8 @@ const (
 	githubWHSecretEnvName = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
 	githubAppIDEnvName    = "GITHUB_APP_ID"
 	githubBotID           = "GITHUB_BOT_ID"
+	adminUsername         = "ADMIN_USERNAME"
+	adminPassword         = "ADMIN_PASSWORD"
 
 	FamedLabel = "famed"
 	// CVSSNone represents a CVSS of 0
@@ -85,6 +92,16 @@ func Load() (*Config, error) {
 
 	// Github bot id
 	if err := bindInt64(&config.Github.BotID, githubBotID); err != nil {
+		return nil, err
+	}
+
+	// Admin username
+	if err := bindString(&config.Admin.Username, adminUsername); err != nil {
+		return nil, err
+	}
+
+	// Admin password
+	if err := bindString(&config.Admin.Password, adminPassword); err != nil {
 		return nil, err
 	}
 

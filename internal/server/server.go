@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,18 +58,34 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		Labels:    config.Famed.Labels,
 		BotUserID: config.Github.BotID,
 	}
-	famedHandler := famed.NewHandler(installationClient, &config.Github.WebhookSecret, famedConfig)
+	famedHandler := famed.NewHandler(appClient, installationClient, &config.Github.WebhookSecret, famedConfig)
 
 	// Logger
 	e.Use(middleware.Logger())
 
-	// GitHubRoutes endpoints exposed for Github requests.
+	// FamedRoutes endpoints exposed for Famed frontend client requests
 	famedGroup := e.Group("/famed")
 	{
 		FamedRoutes(
 			famedGroup, famedHandler,
 		)
 	}
+
+	// FamedAdminRoutes endpoints exposed for Famed admin requests
+	famedAdminGroup := e.Group("/admin")
+	{
+		FamedAdminRoutes(
+			famedAdminGroup, famedHandler,
+		)
+	}
+	famedAdminGroup.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		// Be careful to use constant time comparison to prevent timing attacks
+		if subtle.ConstantTimeCompare([]byte(username), []byte("joe")) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte("secret")) == 1 {
+			return true, nil
+		}
+		return false, nil
+	}))
 
 	// Health endpoints exposed for heartbeat.
 	healthGroup := e.Group("/health")
