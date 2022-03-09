@@ -24,7 +24,6 @@ type Config struct {
 		Key           string
 		WebhookSecret string
 		AppID         int64
-		BotID         int64
 		BotLogin      string
 	}
 
@@ -46,7 +45,6 @@ const (
 	githubKeyEnvName      = "GITHUB_API_KEY"
 	githubWHSecretEnvName = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
 	githubAppIDEnvName    = "GITHUB_APP_ID"
-	githubBotID           = "GITHUB_BOT_ID"
 	githubBotLogin        = "GITHUB_BOT_LOGIN"
 	adminUsername         = "ADMIN_USERNAME"
 	adminPassword         = "ADMIN_PASSWORD"
@@ -89,11 +87,6 @@ func Load() (*Config, error) {
 
 	// GitHub Famed app id
 	if err := bindInt64(&config.Github.AppID, githubAppIDEnvName); err != nil {
-		return nil, err
-	}
-
-	// GitHub bot id
-	if err := bindInt64(&config.Github.BotID, githubBotID); err != nil {
 		return nil, err
 	}
 

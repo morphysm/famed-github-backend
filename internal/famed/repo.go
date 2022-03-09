@@ -32,7 +32,6 @@ type Config struct {
 	Currency string
 	Rewards  map[config.IssueSeverity]float64
 	Labels   map[string]installation.Label
-	BotID    int64
 	BotLogin string
 }
 
