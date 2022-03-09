@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
@@ -15,8 +16,10 @@ type Config struct {
 		Port string
 	}
 
-	Currency struct {
-		Host string
+	NewRelic struct {
+		Name    string
+		Key     string
+		Enabled bool
 	}
 
 	Github struct {
@@ -42,12 +45,17 @@ type Config struct {
 type IssueSeverity string
 
 const (
+	newRelicNameEnvName    = "NEWRELIC_NAME"
+	newRelicKeyEnvName     = "NEWRELIC_KEY"
+	newRelicEnabledEnvName = "NEWRELIC_ENABLED"
+
 	githubKeyEnvName      = "GITHUB_API_KEY"
 	githubWHSecretEnvName = "GITHUB_WEBHOOK_SECRET" //nolint:gosec
 	githubAppIDEnvName    = "GITHUB_APP_ID"
 	githubBotLogin        = "GITHUB_BOT_LOGIN"
-	adminUsername         = "ADMIN_USERNAME"
-	adminPassword         = "ADMIN_PASSWORD"
+
+	adminUsername = "ADMIN_USERNAME"
+	adminPassword = "ADMIN_PASSWORD"
 
 	FamedLabel = "famed"
 	// CVSSNone represents a CVSS of 0
@@ -63,49 +71,75 @@ const (
 )
 
 func Load() (*Config, error) {
-	config := Config{}
+	cfg := Config{}
 
-	// Read json config file
-	err := bindConfigFile(&config)
-	if err != nil {
+	// Read json cfg file
+	if err := bindConfigFile(&cfg); err != nil {
 		return nil, err
 	}
 
-	if err := verifyConfig(config); err != nil {
+	// Verify cfg read from file
+	if err := verifyConfig(cfg); err != nil {
+		return nil, err
+	}
+
+	// NewRelic
+	if err := loadNewRelic(&cfg); err != nil {
 		return nil, err
 	}
 
 	// GitHub api key
-	if err := bindString(&config.Github.Key, githubKeyEnvName); err != nil {
+	if err := bindString(&cfg.Github.Key, githubKeyEnvName); err != nil {
 		return nil, err
 	}
 
 	// GitHub api key
-	if err := bindString(&config.Github.WebhookSecret, githubWHSecretEnvName); err != nil {
+	if err := bindString(&cfg.Github.WebhookSecret, githubWHSecretEnvName); err != nil {
 		return nil, err
 	}
 
 	// GitHub Famed app id
-	if err := bindInt64(&config.Github.AppID, githubAppIDEnvName); err != nil {
+	if err := bindInt64(&cfg.Github.AppID, githubAppIDEnvName); err != nil {
 		return nil, err
 	}
 
 	// GitHub bot name
-	if err := bindString(&config.Github.BotLogin, githubBotLogin); err != nil {
+	if err := bindString(&cfg.Github.BotLogin, githubBotLogin); err != nil {
 		return nil, err
 	}
 
 	// Admin username
-	if err := bindString(&config.Admin.Username, adminUsername); err != nil {
+	if err := bindString(&cfg.Admin.Username, adminUsername); err != nil {
 		return nil, err
 	}
 
 	// Admin password
-	if err := bindString(&config.Admin.Password, adminPassword); err != nil {
+	if err := bindString(&cfg.Admin.Password, adminPassword); err != nil {
 		return nil, err
 	}
 
-	return &config, nil
+	return &cfg, nil
+}
+
+// loadNewRelic loads the config for NewRelic
+func loadNewRelic(cfg *Config) error {
+	// NewRelic enabled
+	if err := bindBool(&cfg.NewRelic.Enabled, newRelicEnabledEnvName); err != nil {
+		log.Printf("%s not found", newRelicEnabledEnvName)
+		cfg.NewRelic.Enabled = false
+	}
+	if cfg.NewRelic.Enabled {
+		// NewRelic api key
+		if err := bindString(&cfg.NewRelic.Key, newRelicKeyEnvName); err != nil {
+			return err
+		}
+		// NewRelic app name
+		if err := bindString(&cfg.NewRelic.Name, newRelicNameEnvName); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func bindConfigFile(cfg *Config) error {
@@ -130,9 +164,6 @@ func verifyConfig(cfg Config) error {
 	}
 	if cfg.App.Port == "" {
 		return errors.New("config.json app.host must be set")
-	}
-	if cfg.Currency.Host == "" {
-		return errors.New("config.json currency.host must be set")
 	}
 	if cfg.Github.Host == "" {
 		return errors.New("config.json github.host must be set")

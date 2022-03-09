@@ -30,16 +30,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Prepare Main
+	// Prepare server
 	echoServer := prepareServer(cfg)
 
-	// Start server.
+	// Start server
 	start(echoServer, cfg)
 }
 
 // Main setup
 func prepareServer(cfg *config.Config) *echo.Echo {
-	echoServer, echoServerErr := server.NewBackendsServer(cfg)
+	echoServer, echoServerErr := server.NewBackendServer(cfg)
 	if echoServerErr != nil {
 		log.Fatal(echoServerErr)
 	}

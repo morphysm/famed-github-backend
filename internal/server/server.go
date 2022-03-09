@@ -11,6 +11,8 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/health"
+	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 // NewServer returns an echo server with default configuration
@@ -18,17 +20,26 @@ func newServer() *echo.Echo {
 	return echo.New()
 }
 
-// NewBackendsServer instantiates new application Echo server.
-func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
+// NewBackendServer instantiates new application Echo server.
+func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
+	nrApp, err := configureNewRelic(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	e := newServer()
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://www.famed.morphysm.com", "https://famed.morphysm.com"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-	}))
+	e.Use(
+		nrecho.Middleware(nrApp),
+		middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"https://www.famed.morphysm.com", "https://famed.morphysm.com"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}),
+		middleware.Logger(),
+	)
 
 	// Create new app client to fetch installations and installation tokens.
-	appClient, err := app.NewClient(config.Github.Host, config.Github.Key, config.Github.AppID)
+	appClient, err := app.NewClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,22 +57,19 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create new installation client to fetch repo data
-	installationClient, err := installation.NewClient(config.Github.Host, appClient, transformedInstallations)
+	installationClient, err := installation.NewClient(cfg.Github.Host, appClient, transformedInstallations)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create
 	famedConfig := famed.Config{
-		Currency: config.Famed.Currency,
-		Rewards:  config.Famed.Rewards,
-		Labels:   config.Famed.Labels,
-		BotLogin: config.Github.BotLogin,
+		Currency: cfg.Famed.Currency,
+		Rewards:  cfg.Famed.Rewards,
+		Labels:   cfg.Famed.Labels,
+		BotLogin: cfg.Github.BotLogin,
 	}
-	famedHandler := famed.NewHandler(appClient, installationClient, &config.Github.WebhookSecret, famedConfig)
-
-	// Logger
-	e.Use(middleware.Logger())
+	famedHandler := famed.NewHandler(appClient, installationClient, &cfg.Github.WebhookSecret, famedConfig)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests
 	famedGroup := e.Group("/famed")
@@ -79,7 +87,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		)
 	}
 	famedAdminGroup.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		// Be careful to use constant time comparison to prevent timing attacks
+		// Use of constant time comparison to prevent timing attacks
 		if subtle.ConstantTimeCompare([]byte(username), []byte("joe")) == 1 &&
 			subtle.ConstantTimeCompare([]byte(password), []byte("secret")) == 1 {
 			return true, nil
@@ -87,7 +95,7 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 		return false, nil
 	}))
 
-	// Health endpoints exposed for heartbeat.
+	// Health endpoints exposed for heartbeat
 	healthGroup := e.Group("/health")
 	{
 		HealthRoutes(
@@ -96,4 +104,18 @@ func NewBackendsServer(config *config.Config) (*echo.Echo, error) {
 	}
 
 	return e, nil
+}
+
+func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
+	if !cfg.NewRelic.Enabled {
+		return newrelic.NewApplication(
+			newrelic.ConfigEnabled(cfg.NewRelic.Enabled),
+		)
+	}
+	return newrelic.NewApplication(
+		newrelic.ConfigAppName(cfg.NewRelic.Name),
+		newrelic.ConfigLicense(cfg.NewRelic.Key),
+		newrelic.ConfigDistributedTracerEnabled(true),
+		newrelic.ConfigEnabled(cfg.NewRelic.Enabled),
+	)
 }

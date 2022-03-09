@@ -7,6 +7,26 @@ import (
 	"github.com/spf13/viper"
 )
 
+func bindBool(s *bool, name string) error {
+	envValue, ok := loadBoolFromEnvironment(name)
+	if ok != nil {
+		return ok
+	}
+
+	*s = envValue
+
+	return nil
+}
+
+func loadBoolFromEnvironment(name string) (bool, error) {
+	if err := viper.BindEnv(name); err != nil {
+		return false, err
+	}
+
+	envValue := viper.GetBool(name)
+	return envValue, nil
+}
+
 func bindString(s *string, name string) error {
 	envValue, ok := loadStringFromEnvironment(name)
 	if ok != nil {
