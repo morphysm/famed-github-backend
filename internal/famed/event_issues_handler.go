@@ -85,10 +85,8 @@ func (gH *githubHandler) labeledEventToComment(ctx context.Context, event *githu
 		return "", errors.New("label is not \"famed\" label")
 	}
 
-	// TODO move this
-	issue, _ := gH.githubInstallationClient.GetIssue(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
 	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, *event.Repo.Owner.Login, *event.Repo.Name)
-	return repo.IssueStateComment(ctx, issue)
+	return repo.IssueStateComment(ctx, event.Issue)
 }
 
 func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) error {
