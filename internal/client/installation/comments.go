@@ -13,6 +13,13 @@ func (c *githubInstallationClient) PostComment(ctx context.Context, owner string
 	return err
 }
 
+func (c *githubInstallationClient) UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error {
+	client, _ := c.clients.get(owner)
+
+	_, _, err := client.Issues.EditComment(ctx, owner, repoName, commentID, &github.IssueComment{Body: &comment})
+	return err
+}
+
 func (c *githubInstallationClient) GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
 	var (

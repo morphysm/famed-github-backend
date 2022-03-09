@@ -17,6 +17,7 @@ type Client interface {
 
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
+	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
 
 	PostLabel(ctx context.Context, owner string, repo string, label Label) error
 
