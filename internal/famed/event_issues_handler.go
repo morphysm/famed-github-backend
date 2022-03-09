@@ -16,8 +16,8 @@ import (
 type commentType int
 
 const (
-	closed commentType = iota
-	labeled
+	commentEligible commentType = iota
+	commentReward
 )
 
 // handleIssuesEvent handles issue events and posts a suggested payout comment to the GitHub API,
@@ -25,33 +25,41 @@ const (
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
 	ctx := c.Request().Context()
 
+	// Check event base requirements
+	if !isWebhookEventValid(event) {
+		log.Printf("[handleIssuesEvent] err: %v", ErrEventMissingData)
+		return c.NoContent(http.StatusOK)
+	}
+
 	var commentType commentType
 	var comment string
 	var err error
-	//TODO add action check
 	switch *event.Action {
 	case string(installation.Closed):
-		comment, err = gH.closeEventToComment(ctx, event)
+		comment, err = gH.rewardComment(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating comment for closed event: %v", err)
 			// TODO return c.NoContent(http.StatusOK)
 			return err
 		}
-		commentType = closed
+		commentType = commentReward
+	case string(installation.Assigned):
+		fallthrough
 	case string(installation.Labeled):
-		comment, err = gH.labeledEventToComment(ctx, event)
+		comment, err = gH.eligibleComment(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating comment for labeled event: %v", err)
 			// TODO return c.NoContent(http.StatusOK)
 			return err
 		}
-		commentType = labeled
+		commentType = commentEligible
 	default:
 		log.Print("received unhandled issues event")
 		return c.NoContent(http.StatusOK)
 	}
 
 	// Post comment to GitHub
+	// TODO Add repo and issue check
 	err = gH.postOrUpdateComment(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number, comment, commentType)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting comment: %v", err)
@@ -61,14 +69,16 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	return c.NoContent(http.StatusOK)
 }
 
-func (gH *githubHandler) closeEventToComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
+// rewardComment returns a reward comment if event and issue qualifies
+func (gH *githubHandler) rewardComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 
-	_, err := isValidCloseEvent(event, famedLabel.Name)
+	_, err := isCloseEventValid(event, famedLabel.Name)
 	if err != nil {
 		if errors.Is(err, ErrIssueMissingAssignee) {
 			return commentFromError(err), nil
 		}
+
 		return "", err
 	}
 
@@ -76,12 +86,10 @@ func (gH *githubHandler) closeEventToComment(ctx context.Context, event *github.
 	return repo.ContributorComment(ctx, event.Issue)
 }
 
-func (gH *githubHandler) labeledEventToComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
+// rewardComment returns an eligible comment if event and issue qualifies
+func (gH *githubHandler) eligibleComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
-
-	// TODO add severity labels
-	// TODO add validity check
-	if event.Label == nil || event.Label.Name == nil || *event.Label.Name != famedLabel.Name {
+	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
 		return "", errors.New("label is not \"famed\" label")
 	}
 
@@ -89,37 +97,54 @@ func (gH *githubHandler) labeledEventToComment(ctx context.Context, event *githu
 	return repo.IssueStateComment(ctx, event.Issue)
 }
 
+// postOrUpdateComment checks if a comment of a type is present,
+// if so, the comment body is checked for equality against the new comment,
+// if the comments are not equal the comment is updated,
+// if no comment was found a new comment is posted.
 func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) error {
 	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
 		return err
 	}
 
-	commentID, found := findComment(comments, gH.famedConfig.BotLogin, commentType)
-	if found {
-		return gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, commentID, comment)
+	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, commentType)
+	if !found {
+		return gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+
 	}
 
-	return gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+	if *foundComment.Body != comment {
+		return gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, *foundComment.ID, comment)
+	}
+
+	return nil
 }
 
-func findComment(comments []*github.IssueComment, botLogin string, commentType commentType) (int64, bool) {
+// findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
+func findComment(comments []*github.IssueComment, botLogin string, commentType commentType) (*github.IssueComment, bool) {
 	for _, comment := range comments {
-		// TODO validate comment
-		if *comment.User.Login == botLogin && checkCommentType(*comment.Body, commentType) {
-			return *comment.ID, true
+		if isCommentValid(comment) &&
+			isUserValid(comment.User) &&
+			*comment.User.Login == botLogin &&
+			verifyCommentType(*comment.Body, commentType) {
+			return comment, true
 		}
 	}
 
-	return -1, false
+	return nil, false
 }
 
-func checkCommentType(str string, commentType commentType) bool {
+// verifyCommentType checks if a comment is of the commentType
+func verifyCommentType(str string, commentType commentType) bool {
 	var substr string
 	switch commentType {
-	case labeled:
+	case commentEligible:
 		substr = "are now eligible to Get Famed."
-	case closed:
+	case commentReward:
+		substr = "Famed could not generate a reward suggestion."
+		if strings.Contains(str, substr) {
+			return true
+		}
 		substr = "Famed suggests:"
 	}
 

@@ -76,8 +76,8 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 		return
 	}
 
-	lastCommentByBot := getLastCommentsByUser(issueComments, gH.famedConfig.BotUserID)
-	if isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment {
+	lastCommentByBot := getRewardComment(issueComments, gH.famedConfig.BotLogin)
+	if lastCommentByBot == nil || (isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment) {
 		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)
 		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
 		if err != nil {
@@ -91,11 +91,11 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 }
 
 // getLastCommentsByUser returns the last comment made by a user in a list of comments.
-func getLastCommentsByUser(issueComments []*github.IssueComment, userID int64) *github.IssueComment {
+func getRewardComment(issueComments []*github.IssueComment, botLogin string) *github.IssueComment {
 	for i := len(issueComments) - 1; i >= 0; i-- {
 		comment := issueComments[i]
 
-		if comment.User != nil && *comment.User.ID == userID {
+		if comment.User != nil && *comment.User.Login == botLogin && verifyCommentType(*comment.Body, commentReward) {
 			return comment
 		}
 	}
