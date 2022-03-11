@@ -53,6 +53,13 @@ This repository contains the code of the Famed-Backend.
 
 4. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
 
+# Self Host
+Coming Soon
+
+### GitHub App
+Coming Soon
+
+
 # Develop
 
 ## Prerequisites
