@@ -3,32 +3,34 @@ package famed
 import (
 	"errors"
 	"fmt"
+
+	"github.com/google/go-github/v41/github"
 )
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func (r *repo) comment(issueNumber int) string {
-	if err := r.issues[issueNumber].Error; err != nil {
-		return commentFromError(err)
+func RewardComment(issue Issue, contributors Contributors, currency string) string {
+	if err := issue.Error; err != nil {
+		return RewardCommentFromError(err)
 	}
 
-	if len(r.contributors) == 0 {
-		return commentFromError(ErrNoContributors)
+	if len(contributors) == 0 {
+		return RewardCommentFromError(ErrNoContributors)
 	}
 
-	contributors := r.contributors.toSortedSlice()
+	sortedContributors := contributors.toSortedSlice()
 
 	comment := "### Famed suggests:\n" +
 		"| Contributor | Time | Reward |\n" +
 		"| ----------- | ----------- | ----------- |"
-	for _, contributor := range contributors {
-		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, r.config.Currency)
+	for _, contributor := range sortedContributors {
+		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, currency)
 	}
 
 	return comment
 }
 
-func commentFromError(err error) string {
+func RewardCommentFromError(err error) string {
 	comment := "### Famed could not generate a reward suggestion. \n" +
 		"Reason: "
 
@@ -49,4 +51,47 @@ func commentFromError(err error) string {
 	}
 
 	return fmt.Sprintf("%s Unknown.", comment)
+}
+
+// IssueEligibleComment generate an issue eligible RewardComment.
+func IssueEligibleComment(issue *github.Issue) (string, error) {
+	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
+
+	// Check that an assignee is assigned
+	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
+
+	// Check that a valid severity label is assigned
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(Issue{Issue: issue}))
+
+	// Check that a PR is assigned
+	comment = fmt.Sprintf("%s\n%s", comment, prComment(issue))
+
+	// Final note
+	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)
+
+	return comment, nil
+}
+
+func assigneeComment(issue *github.Issue) string {
+	if issue.Assignee != nil {
+		return "- [x] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+	}
+
+	return "- [ ] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+}
+
+func severityComment(issue Issue) string {
+	if _, err := issue.severity(); err == nil {
+		return "- [x] Add a severity (CVSS) label to compute the score 🏷️"
+	}
+
+	return "- [ ] Add a severity (CVSS) label to compute the score 🏷️"
+}
+
+func prComment(issue *github.Issue) string {
+	if issue.PullRequestLinks != nil {
+		return "- [x] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+	}
+
+	return "- [ ] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 }

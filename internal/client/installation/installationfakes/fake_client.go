@@ -111,6 +111,21 @@ type FakeClient struct {
 	postLabelReturnsOnCall map[int]struct {
 		result1 error
 	}
+	UpdateCommentStub        func(context.Context, string, string, int64, string) error
+	updateCommentMutex       sync.RWMutex
+	updateCommentArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int64
+		arg5 string
+	}
+	updateCommentReturns struct {
+		result1 error
+	}
+	updateCommentReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -574,6 +589,71 @@ func (fake *FakeClient) PostLabelReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeClient) UpdateComment(arg1 context.Context, arg2 string, arg3 string, arg4 int64, arg5 string) error {
+	fake.updateCommentMutex.Lock()
+	ret, specificReturn := fake.updateCommentReturnsOnCall[len(fake.updateCommentArgsForCall)]
+	fake.updateCommentArgsForCall = append(fake.updateCommentArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int64
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.UpdateCommentStub
+	fakeReturns := fake.updateCommentReturns
+	fake.recordInvocation("UpdateComment", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.updateCommentMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClient) UpdateCommentCallCount() int {
+	fake.updateCommentMutex.RLock()
+	defer fake.updateCommentMutex.RUnlock()
+	return len(fake.updateCommentArgsForCall)
+}
+
+func (fake *FakeClient) UpdateCommentCalls(stub func(context.Context, string, string, int64, string) error) {
+	fake.updateCommentMutex.Lock()
+	defer fake.updateCommentMutex.Unlock()
+	fake.UpdateCommentStub = stub
+}
+
+func (fake *FakeClient) UpdateCommentArgsForCall(i int) (context.Context, string, string, int64, string) {
+	fake.updateCommentMutex.RLock()
+	defer fake.updateCommentMutex.RUnlock()
+	argsForCall := fake.updateCommentArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeClient) UpdateCommentReturns(result1 error) {
+	fake.updateCommentMutex.Lock()
+	defer fake.updateCommentMutex.Unlock()
+	fake.UpdateCommentStub = nil
+	fake.updateCommentReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClient) UpdateCommentReturnsOnCall(i int, result1 error) {
+	fake.updateCommentMutex.Lock()
+	defer fake.updateCommentMutex.Unlock()
+	fake.UpdateCommentStub = nil
+	if fake.updateCommentReturnsOnCall == nil {
+		fake.updateCommentReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateCommentReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -591,6 +671,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.postCommentMutex.RUnlock()
 	fake.postLabelMutex.RLock()
 	defer fake.postLabelMutex.RUnlock()
+	fake.updateCommentMutex.RLock()
+	defer fake.updateCommentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

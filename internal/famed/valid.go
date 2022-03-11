@@ -13,11 +13,12 @@ var (
 	ErrIssueMissingData       = errors.New("the issue is missing data promised by the GitHub API")
 	ErrIssueMissingFamedLabel = errors.New("the issue is missing the famed label")
 
-	ErrEventMissingData              = errors.New("the event is missing data promised by the GitHub API")
-	ErrEventAssigneeMissingData      = errors.New("the event assignee is missing data promised by the GitHub API")
-	ErrEventIsNotClose               = errors.New("the event is not a close event")
-	ErrEventIsNotRepoAdded           = errors.New("the event is not a repo added to installation event")
-	ErrEventIsNotInstallationCreated = errors.New("the event is not a installation created event")
+	ErrEventMissingData            = errors.New("the event is missing data promised by the GitHub API")
+	ErrEventAssigneeMissingData    = errors.New("the event assignee is missing data promised by the GitHub API")
+	ErrEventNotClose               = errors.New("the event is not a close event")
+	ErrEventNotRepoAdded           = errors.New("the event is not a repo added to installation event")
+	ErrEventNotInstallationCreated = errors.New("the event is not a installation created event")
+	ErrEventMissingFamedLabel      = errors.New("the event is missing the famed label")
 )
 
 // isIssueValid checks weather all necessary issue fields are assigned.
@@ -39,8 +40,20 @@ func isIssueValid(issue *github.Issue) (bool, error) {
 	return true, nil
 }
 
+func isEligibleIssueValid(issue *github.Issue) bool {
+	return hasIssue(issue) && hasIssueNumber(issue) && hasIssueTitle(issue)
+}
+
+func hasIssue(issue *github.Issue) bool {
+	return issue != nil
+}
+
 func hasIssueNumber(issue *github.Issue) bool {
-	return issue != nil && issue.Number != nil
+	return issue.Number != nil
+}
+
+func hasIssueTitle(issue *github.Issue) bool {
+	return issue.Title != nil
 }
 
 func hasEventAction(event *github.IssuesEvent) bool {
@@ -53,7 +66,12 @@ func hasEvent(event *github.IssuesEvent) bool {
 
 // isWebhookEventValid checks if the base webhook event fields are assigned.
 func isWebhookEventValid(event *github.IssuesEvent) bool {
-	return hasEvent(event) && hasEventAction(event) && isRepoValid(event.Repo) && isUserValid(event.Repo.Owner) && hasIssueNumber(event.Issue)
+	return hasEvent(event) &&
+		hasEventAction(event) &&
+		isRepoValid(event.Repo) &&
+		isUserValid(event.Repo.Owner) &&
+		hasIssue(event.Issue) &&
+		hasIssueNumber(event.Issue)
 }
 
 // isInstallationEventValid checks weather all necessary event fields are assigned.
@@ -62,7 +80,7 @@ func isInstallationEventValid(event *github.InstallationEvent) (bool, error) {
 		return false, ErrEventMissingData
 	}
 	if *event.Action != "created" {
-		return false, ErrEventIsNotInstallationCreated
+		return false, ErrEventNotInstallationCreated
 	}
 	if event.Installation == nil ||
 		event.Installation.Account == nil ||
@@ -80,7 +98,7 @@ func isRepoAddedEventValid(event *github.InstallationRepositoriesEvent) (bool, e
 		return false, ErrEventMissingData
 	}
 	if *event.Action != "added" {
-		return false, ErrEventIsNotRepoAdded
+		return false, ErrEventNotRepoAdded
 	}
 	if event.Installation == nil ||
 		event.Installation.Account == nil ||
@@ -98,7 +116,7 @@ func isCloseEventValid(event *github.IssuesEvent, famedLabel string) (bool, erro
 	}
 	if *event.Action != string(installation.Closed) {
 		log.Println("[isCloseEventValid] event is not a closed event")
-		return false, ErrEventIsNotClose
+		return false, ErrEventNotClose
 	}
 	if !isIssueFamedLabeled(event.Issue, famedLabel) {
 		return false, ErrIssueMissingFamedLabel

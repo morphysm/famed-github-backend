@@ -26,7 +26,7 @@ type Contributor struct {
 	TimeToDisclosure TimeToDisclosure             `json:"timeToDisclosure"`
 	Severities       map[config.IssueSeverity]int `json:"severities"`
 	MeanSeverity     float64                      `json:"meanSeverity"`
-	// For issue comment generation
+	// For issue RewardComment generation
 	TotalWorkTime time.Duration
 }
 

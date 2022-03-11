@@ -73,7 +73,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
 
-			githubHandler := famed.NewHandler(fakeInstallationClient, nil, famedConfig)
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, famedConfig)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

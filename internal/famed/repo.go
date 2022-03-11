@@ -2,7 +2,6 @@ package famed
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
@@ -13,10 +12,8 @@ import (
 type Repo interface {
 	Contributors(ctx context.Context) ([]*Contributor, error)
 
-	ContributorComment(ctx context.Context, issue *github.Issue) (string, error)
-	ContributorComments(ctx context.Context) (map[int]string, error)
-
-	IssueStateComment(ctx context.Context, issue *github.Issue) (string, error)
+	RewardComment(ctx context.Context, issue *github.Issue) (string, error)
+	RewardComments(ctx context.Context) (map[int]string, error)
 }
 
 type repo struct {
@@ -46,7 +43,7 @@ func NewRepo(config Config, installationClient installation.Client, owner string
 }
 
 func (r *repo) Contributors(ctx context.Context) ([]*Contributor, error) {
-	err := r.loadIssuesRateAndEvents(ctx)
+	err := r.loadIssuesAndEvents(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -61,20 +58,20 @@ func (r *repo) Contributors(ctx context.Context) ([]*Contributor, error) {
 	return contributors, nil
 }
 
-func (r *repo) ContributorComment(ctx context.Context, issue *github.Issue) (string, error) {
-	err := r.loadRateAndEventsForIssue(ctx, issue)
+func (r *repo) RewardComment(ctx context.Context, issue *github.Issue) (string, error) {
+	err := r.loadEventsForIssue(ctx, issue)
 	if err != nil {
 		return "", err
 	}
 
 	r.ContributorsForIssues()
-	comment := r.comment(*issue.Number)
+	comment := RewardComment(r.issues[*issue.Number], r.contributors, r.config.Currency)
 
 	return comment, nil
 }
 
-func (r *repo) ContributorComments(ctx context.Context) (map[int]string, error) {
-	err := r.loadIssuesRateAndEvents(ctx)
+func (r *repo) RewardComments(ctx context.Context) (map[int]string, error) {
+	err := r.loadIssuesAndEvents(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -87,20 +84,20 @@ func (r *repo) ContributorComments(ctx context.Context) (map[int]string, error) 
 	for issueNumber := range r.issues {
 		r.ContributorsForIssue(issueNumber)
 
-		comments[issueNumber] = r.comment(issueNumber)
+		comments[issueNumber] = RewardComment(r.issues[issueNumber], r.contributors, r.config.Currency)
 	}
 
 	return comments, nil
 }
 
-func (r *repo) loadRateAndEventsForIssue(ctx context.Context, issue *github.Issue) error {
+func (r *repo) loadEventsForIssue(ctx context.Context, issue *github.Issue) error {
 	r.issues = make(map[int]Issue, 1)
 	r.issues[*issue.Number] = Issue{Issue: issue}
 
-	return r.loadRateAndEvents(ctx)
+	return r.getEvents(ctx)
 }
 
-func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
+func (r *repo) loadIssuesAndEvents(ctx context.Context) error {
 	// Get all issues filtered by label and closed state
 	famedLabel := r.config.Labels[config.FamedLabel]
 	issuesResponse, err := r.installationClient.GetIssuesByRepo(ctx, r.owner, r.name, []string{famedLabel.Name}, installation.Closed)
@@ -118,58 +115,5 @@ func (r *repo) loadIssuesRateAndEvents(ctx context.Context) error {
 		r.issues[*issue.Number] = Issue{Issue: issue}
 	}
 
-	return r.loadRateAndEvents(ctx)
-}
-
-func (r *repo) loadRateAndEvents(ctx context.Context) error {
-	// Get all events for each issue
-	err := r.getEvents(ctx, r.owner, r.name)
-	if err != nil {
-		return echo.ErrBadGateway.SetInternal(err)
-	}
-
-	return nil
-}
-
-func (r *repo) IssueStateComment(ctx context.Context, issue *github.Issue) (string, error) {
-	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
-
-	// Check that an assignee is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
-
-	// Check that a valid severity label is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(Issue{Issue: issue}))
-
-	// Check that a PR is assigned
-	comment = fmt.Sprintf("%s\n%s", comment, prComment(issue))
-
-	// Final note
-	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)
-
-	return comment, nil
-}
-
-func assigneeComment(issue *github.Issue) string {
-	if issue.Assignee != nil {
-		return "- [x] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
-	}
-
-	return "- [ ] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
-}
-
-func severityComment(issue Issue) string {
-	_, err := issue.severity()
-	if err == nil {
-		return "- [x] Add a severity (CVSS) label to compute the score 🏷️"
-	}
-
-	return "- [ ] Add a severity (CVSS) label to compute the score 🏷️"
-}
-
-func prComment(issue *github.Issue) string {
-	if issue.PullRequestLinks != nil {
-		return "- [x] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
-	}
-
-	return "- [ ] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+	return r.getEvents(ctx)
 }

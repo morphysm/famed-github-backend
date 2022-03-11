@@ -33,7 +33,7 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 		return ErrAppNotInstalled
 	}
 
-	response, err := gH.checkAndUpdateComments(c.Request().Context(), owner, repoName)
+	response, err := gH.compareAndUpdateComments(c.Request().Context(), owner, repoName)
 	if err != nil {
 		return err
 	}
@@ -41,11 +41,11 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// checkAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
+// compareAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
+func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
 	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, owner, repoName)
 
-	comments, err := repo.ContributorComments(ctx)
+	comments, err := repo.RewardComments(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, owner strin
 	for issueNumber, comment := range comments {
 		issueCommentUpdates[i] = &IssueCommentUpdate{}
 		wg.Add(1)
-		go gH.checkAndUpdateComment(ctx, &wg, owner, repoName, issueNumber, comment, issueCommentUpdates[i])
+		go gH.compareAndUpdateComment(ctx, &wg, owner, repoName, issueNumber, comment, issueCommentUpdates[i])
 		i++
 	}
 	wg.Wait()
@@ -64,8 +64,8 @@ func (gH *githubHandler) checkAndUpdateComments(ctx context.Context, owner strin
 	return issueCommentUpdates, nil
 }
 
-// checkAndUpdateComment should be run as  a go routine to check a comment and update the comment if necessary.
-func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
+// compareAndUpdateComment should be run as  a go routine to check a rewardComment and update the rewardComment if necessary.
+func (gH *githubHandler) compareAndUpdateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
 	defer wg.Done()
 	issueCommentUpdate.IssueNumber = issueNumber
 
@@ -76,12 +76,12 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 		return
 	}
 
-	lastCommentByBot := getRewardComment(issueComments, gH.famedConfig.BotLogin)
+	lastCommentByBot := findRewardComment(issueComments, gH.famedConfig.BotLogin)
 	if lastCommentByBot == nil || (isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment) {
-		log.Printf("[UpdateComments] updating comment for issue #%d", issueNumber)
+		log.Printf("[UpdateComments] updating RewardComment for issue #%d", issueNumber)
 		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
 		if err != nil {
-			log.Printf("[UpdateComments] error while posting comment for issue #%d, error: %v", issueNumber, err)
+			log.Printf("[UpdateComments] error while posting RewardComment for issue #%d, error: %v", issueNumber, err)
 			issueCommentUpdate.Error = err.Error()
 			return
 		}
@@ -90,12 +90,12 @@ func (gH *githubHandler) checkAndUpdateComment(ctx context.Context, wg *sync.Wai
 	}
 }
 
-// getLastCommentsByUser returns the last comment made by a user in a list of comments.
-func getRewardComment(issueComments []*github.IssueComment, botLogin string) *github.IssueComment {
+// findRewardComment returns the last RewardComment made by a user in a list of comments.
+func findRewardComment(issueComments []*github.IssueComment, botLogin string) *github.IssueComment {
 	for i := len(issueComments) - 1; i >= 0; i-- {
 		comment := issueComments[i]
 
-		if comment.User != nil && *comment.User.Login == botLogin && verifyCommentType(*comment.Body, commentReward) {
+		if isUserValid(comment.User) && *comment.User.Login == botLogin && verifyCommentType(*comment.Body, commentReward) {
 			return comment
 		}
 	}

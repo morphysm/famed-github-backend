@@ -12,7 +12,7 @@ type Issues map[int64]Issues
 type Issue struct {
 	Issue  *github.Issue
 	Events []*github.IssueEvent
-	// For issue comment generation
+	// For issue RewardComment generation
 	Error error
 }
 

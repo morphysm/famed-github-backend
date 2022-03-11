@@ -26,21 +26,20 @@ func newRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	return rewardsLastYear
 }
 
-// lastCurrentOfMonth returns the last day of the current month.
-func lastCurrentOfMonth(now time.Time) time.Time {
+// lastDayOfMonth returns the last day of a month of a given time.
+func lastDayOfMonth(now time.Time) time.Time {
 	currentYear, currentMonth, _ := now.Date()
 	currentLocation := now.Location()
 
 	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
-	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
-	return lastOfMonth
+	return firstOfMonth.AddDate(0, 1, -1)
 }
 
 // isInTheLast12Months returns how many months ago the then date is and
 // true if the month of the passed date is less than the current month and 11 months ago.
 func isInTheLast12Months(now time.Time, then time.Time) (int, bool) {
-	lastOfMonth := lastCurrentOfMonth(now)
+	lastOfMonth := lastDayOfMonth(now)
 	aYearAgo := lastOfMonth.AddDate(-1, 0, 0)
 	if then.Sub(aYearAgo) > 0 {
 		// Same year

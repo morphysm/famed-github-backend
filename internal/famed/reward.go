@@ -26,7 +26,7 @@ func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time,
 		}
 		contributor := contributors[login]
 
-		// Assign total work to contributor for issue comment generation
+		// Assign total work to contributor for issue RewardComment generation
 		contributor.TotalWorkTime = contributorTotalWork
 
 		// Calculated share of reward
