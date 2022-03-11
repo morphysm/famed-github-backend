@@ -67,9 +67,14 @@ Please make sure that your system has the following programs:
 
 - GITHUB_API_KEY: Secret key of the Famed GitHub app
 - GITHUB_APP_ID: ID of the Famed GitHub app
-- GITHUB_BOT_ID: ID of the Famed GitHub app bot
+- GITHUB_BOT_NAME: NAME of the Famed GitHub app bot (GitHub App name - spaces replaced by "-" + [bot] e.g. : get-famed[bot] )
 - GITHUB_WEBHOOK_SECRET: Webhook secret key of the Famed GitHub app
 - GITHUB_FAMED_LABEL: Label used to assign issues to the Famed Process
+- ADMIN_USERNAME: Username for simple auth admin calls
+- ADMIN_PASSWORD: Password for simple auth admin calls
+- NEWRELIC_ENABLED: Enable New Relic tracing (feature still experimental / in development)
+- NEWRELIC_KEY: New Relic authentication key
+- NEWRELIC_NAME: New Relic service name
 
 # Troubleshooting
 
