@@ -148,7 +148,7 @@ func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions
 	}
 
 	// Calculate the reward
-	contributors.updateReward(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward)
+	contributors.updateRewards(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward)
 
 	return nil
 }

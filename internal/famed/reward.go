@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-// updateReward returns the base for each contributor based on
+// updateRewards updates the reward for each contributor based on
 // open (time when issue was opened)
 // close (time issue was closed)
 // k (number of times the issue was reopened)
-// contributors (array of contributors with timeOnIssue)
-func (contributors Contributors) updateReward(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64) {
+// workLogs (time each contributor worked on the issue)
+func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64) {
 	baseReward := reward(closed.Sub(open), k)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work

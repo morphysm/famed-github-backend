@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//nolint:funlen
 func TestPostInstallationEvent(t *testing.T) {
 	t.Parallel()
 
@@ -58,7 +57,7 @@ func TestPostInstallationEvent(t *testing.T) {
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.AddInstallationReturns(nil)
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, famed.Config{})
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, NewTestConfig())
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

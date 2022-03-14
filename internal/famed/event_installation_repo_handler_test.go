@@ -80,21 +80,10 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 			// THEN
 			if testCase.ExpectedErr == nil {
-				assert.Equal(t, len(famedConfig.Labels)*len(testCase.Event.RepositoriesAdded), fakeInstallationClient.PostLabelCallCount())
-
-				callCount := 0
-				for _, repoExp := range testCase.Event.RepositoriesAdded {
-					allLabels := make(map[string]installation.Label)
-					for j := 0; j < len(famedConfig.Labels); j++ {
-						_, owner, repo, label := fakeInstallationClient.PostLabelArgsForCall(callCount)
-						assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
-						assert.Equal(t, *repoExp.Name, repo)
-						allLabels[label.Name] = label
-
-						callCount++
-					}
-					assert.Equal(t, famedConfig.Labels, allLabels)
-				}
+				_, owner, repos, labels := fakeInstallationClient.PostLabelsArgsForCall(0)
+				assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
+				assert.Equal(t, testCase.Event.RepositoriesAdded, repos)
+				assert.Equal(t, famedConfig.Labels, labels)
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)
 		})

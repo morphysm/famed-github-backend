@@ -2,8 +2,11 @@ package installation
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/shurcooL/githubv4"
 )
 
 type IssueEventAction string
@@ -75,4 +78,145 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 	}
 
 	return allEvents, nil
+}
+
+// GetIssuesEvents requests all events of a set of issues from the GitHub API in a concurrent fashion.
+func (c *githubInstallationClient) GetIssuesEvents(ctx context.Context, owner string, repoName string, issues []*github.Issue) (map[int][]*github.IssueEvent, map[int]error) {
+	var (
+		allEvents = make(map[int][]*github.IssueEvent)
+		errors    = make(map[int]error)
+	)
+
+	// Create context with cancel to cancel all request if one fails
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Create wait group to wait for all requests to finish
+	wg := sync.WaitGroup{}
+
+	for _, issue := range issues {
+		wg.Add(1)
+
+		// Start go routine to get the issue's events
+		go func(ctx context.Context, repoName string, issueNumber int, issueID int64) {
+			defer wg.Done()
+
+			// Check if one of the requests returned an error otherwise run the request
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				events, err := c.GetIssueEvents(ctx, owner, repoName, issueNumber)
+				if err != nil {
+					errors[issueNumber] = err
+					return
+				}
+				allEvents[issueNumber] = events
+			}
+		}(ctx, repoName, *issue.Number, *issue.ID)
+	}
+
+	wg.Wait()
+	return allEvents, errors
+}
+
+type IssueTimelineDisconnectionItem struct {
+	DisconnectedEvent ConnectedEvent `graphql:"... on DisconnectedEvent"`
+}
+
+type IssueTimelineConnectionItem struct {
+	ConnectedEvent ConnectedEvent `graphql:"... on ConnectedEvent"`
+}
+
+type ConnectedEvent struct {
+	Subject struct {
+		PullRequest PullRequest `graphql:"... on PullRequest"`
+	}
+	CreatedAt time.Time
+}
+
+type PullRequest struct {
+	URL string
+}
+
+func (c *githubInstallationClient) GetDisconnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueTimelineDisconnectionItem, error) {
+	var (
+		client, _        = c.clients.getGql(owner)
+		allTimelineItems []IssueTimelineDisconnectionItem
+		query            struct {
+			Repository struct {
+				Issue struct {
+					TimelineItems struct {
+						Nodes    []IssueTimelineDisconnectionItem
+						PageInfo struct {
+							EndCursor   githubv4.String
+							HasNextPage bool
+						}
+					} `graphql:"timelineItems(first: 100, after: $commentsCursor)"`
+				} `graphql:"issue(number: $issueNumber)"`
+			} `graphql:"repository(owner: $owner, name: $repoName)"`
+		}
+		variables = map[string]interface{}{
+			"owner":          githubv4.String(owner),
+			"repoName":       githubv4.String(repoName),
+			"issueNumber":    githubv4.Int(issueNumber),
+			"commentsCursor": (*githubv4.String)(nil),
+		}
+	)
+
+	for {
+		err := client.Query(ctx, &query, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		allTimelineItems = append(allTimelineItems, query.Repository.Issue.TimelineItems.Nodes...)
+		if !query.Repository.Issue.TimelineItems.PageInfo.HasNextPage {
+			break
+		}
+		variables["commentsCursor"] = githubv4.NewString(query.Repository.Issue.TimelineItems.PageInfo.EndCursor)
+	}
+
+	return allTimelineItems, nil
+}
+
+func (c *githubInstallationClient) GetConnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueTimelineConnectionItem, error) {
+	var (
+		client, _        = c.clients.getGql(owner)
+		allTimelineItems []IssueTimelineConnectionItem
+		query            struct {
+			Repository struct {
+				Issue struct {
+					TimelineItems struct {
+						Nodes    []IssueTimelineConnectionItem
+						PageInfo struct {
+							EndCursor   githubv4.String
+							HasNextPage bool
+						}
+					} `graphql:"timelineItems(first: 100, after: $commentsCursor)"`
+				} `graphql:"issue(number: $issueNumber)"`
+			} `graphql:"repository(owner: $owner, name: $repoName)"`
+		}
+		variables = map[string]interface{}{
+			"owner":          githubv4.String(owner),
+			"repoName":       githubv4.String(repoName),
+			"issueNumber":    githubv4.Int(issueNumber),
+			"commentsCursor": (*githubv4.String)(nil),
+		}
+	)
+
+	for {
+		err := client.Query(ctx, &query, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		allTimelineItems = append(allTimelineItems, query.Repository.Issue.TimelineItems.Nodes...)
+		if !query.Repository.Issue.TimelineItems.PageInfo.HasNextPage {
+			break
+		}
+		variables["commentsCursor"] = githubv4.NewString(query.Repository.Issue.TimelineItems.PageInfo.EndCursor)
+	}
+
+	return allTimelineItems, nil
 }

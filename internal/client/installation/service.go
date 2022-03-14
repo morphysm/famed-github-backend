@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/app"
+	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
 
@@ -13,13 +14,17 @@ import (
 //counterfeiter:generate . Client
 type Client interface {
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
+	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
+
 	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
+	GetIssuesEvents(ctx context.Context, owner string, repoName string, issues []*github.Issue) (map[int][]*github.IssueEvent, map[int]error)
 
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
 
 	PostLabel(ctx context.Context, owner string, repo string, label Label) error
+	PostLabels(ctx context.Context, owner string, repositories []*github.Repository, labels map[string]Label) []error
 
 	AddInstallation(owner string, installationID int64) error
 	CheckInstallation(owner string) bool
@@ -28,7 +33,16 @@ type Client interface {
 // safeClientMap represents a map from owner to client.
 // The map is wrapped to avoid any capitalization errors.
 type safeClientMap struct {
-	m map[string]*github.Client
+	m   map[string]*github.Client
+	qlM map[string]*githubv4.Client
+}
+
+// NewSafeClientMap returns a new safeClientMap.
+func NewSafeClientMap() safeClientMap {
+	return safeClientMap{
+		m:   make(map[string]*github.Client),
+		qlM: make(map[string]*githubv4.Client),
+	}
 }
 
 // add adds an owner client pair to the safeClientMap.
@@ -42,6 +56,17 @@ func (s safeClientMap) get(owner string) (*github.Client, bool) {
 	return client, ok
 }
 
+// add adds an GraphQL owner client pair to the safeClientMap.
+func (s safeClientMap) addGql(owner string, client *githubv4.Client) {
+	s.qlM[strings.ToLower(owner)] = client
+}
+
+// get gets an GraphQL owner client pair from the safeClientMap.
+func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
+	client, ok := s.qlM[strings.ToLower(owner)]
+	return client, ok
+}
+
 // githubInstallationClient represents all GitHub installation clients
 type githubInstallationClient struct {
 	baseURL   string
@@ -51,25 +76,20 @@ type githubInstallationClient struct {
 
 // NewClient returns a new instance of the GitHub client
 func NewClient(baseURL string, appClient app.Client, installations map[string]int64) (Client, error) {
-	clients := safeClientMap{m: make(map[string]*github.Client)}
+	client := &githubInstallationClient{
+		baseURL:   baseURL,
+		appClient: appClient,
+		clients:   NewSafeClientMap(),
+	}
 
 	for owner, installationID := range installations {
-		ts := NewGithubTokenSource(appClient, installationID)
-		oAuthClient := oauth2.NewClient(context.Background(), ts)
-
-		client, err := github.NewEnterpriseClient(baseURL, baseURL, oAuthClient)
+		err := client.AddInstallation(owner, installationID)
 		if err != nil {
 			return nil, err
 		}
-
-		clients.add(owner, client)
 	}
 
-	return &githubInstallationClient{
-		baseURL:   baseURL,
-		appClient: appClient,
-		clients:   clients,
-	}, nil
+	return client, nil
 }
 
 // AddInstallation adds a new installation to the githubInstallationClient.
@@ -83,6 +103,11 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 	}
 
 	c.clients.add(owner, client)
+
+	// GraphQL client for pull requests workaround https://github.community/t/get-referenced-pull-request-from-issue/14027
+	gQLClient := githubv4.NewClient(oAuthClient)
+	c.clients.addGql(owner, gQLClient)
+
 	return nil
 }
 

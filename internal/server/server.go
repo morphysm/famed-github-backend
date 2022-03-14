@@ -63,12 +63,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create
-	famedConfig := famed.Config{
-		Currency: cfg.Famed.Currency,
-		Rewards:  cfg.Famed.Rewards,
-		Labels:   cfg.Famed.Labels,
-		BotLogin: cfg.Github.BotLogin,
-	}
+	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Github.BotLogin)
 	famedHandler := famed.NewHandler(appClient, installationClient, &cfg.Github.WebhookSecret, famedConfig)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests

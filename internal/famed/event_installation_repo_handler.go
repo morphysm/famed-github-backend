@@ -15,7 +15,10 @@ func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, eve
 		return err
 	}
 
-	gH.postLabels(c.Request().Context(), event.RepositoriesAdded, *event.Installation.Account.Login)
+	errors := gH.githubInstallationClient.PostLabels(c.Request().Context(), *event.Installation.Account.Login, event.RepositoriesAdded, gH.famedConfig.Labels)
+	for _, err := range errors {
+		log.Printf("[handleInstallationRepositoriesEvent] error while posting labels: %v", err)
+	}
 
 	return c.NoContent(http.StatusOK)
 }

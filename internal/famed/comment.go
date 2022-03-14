@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
@@ -54,7 +55,7 @@ func RewardCommentFromError(err error) string {
 }
 
 // IssueEligibleComment generate an issue eligible RewardComment.
-func IssueEligibleComment(issue *github.Issue) (string, error) {
+func IssueEligibleComment(issue *github.Issue, pullRequest *installation.PullRequest) (string, error) {
 	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
 
 	// Check that an assignee is assigned
@@ -64,7 +65,7 @@ func IssueEligibleComment(issue *github.Issue) (string, error) {
 	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(Issue{Issue: issue}))
 
 	// Check that a PR is assigned
-	comment = fmt.Sprintf("%s\n%s", comment, prComment(issue))
+	comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
 
 	// Final note
 	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)
@@ -88,8 +89,8 @@ func severityComment(issue Issue) string {
 	return "- [ ] Add a severity (CVSS) label to compute the score 🏷️"
 }
 
-func prComment(issue *github.Issue) string {
-	if issue.PullRequestLinks != nil {
+func prComment(pullRequest *installation.PullRequest) string {
+	if pullRequest != nil {
 		return "- [x] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 	}
 

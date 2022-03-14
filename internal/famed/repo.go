@@ -2,6 +2,7 @@ package famed
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
@@ -23,13 +24,6 @@ type repo struct {
 	name               string
 	issues             map[int]Issue
 	contributors       Contributors
-}
-
-type Config struct {
-	Currency string
-	Rewards  map[config.IssueSeverity]float64
-	Labels   map[string]installation.Label
-	BotLogin string
 }
 
 // NewRepo returns a new instance of the famed repo representation.
@@ -91,10 +85,18 @@ func (r *repo) RewardComments(ctx context.Context) (map[int]string, error) {
 }
 
 func (r *repo) loadEventsForIssue(ctx context.Context, issue *github.Issue) error {
-	r.issues = make(map[int]Issue, 1)
-	r.issues[*issue.Number] = Issue{Issue: issue}
+	events, err := r.installationClient.GetIssueEvents(ctx, r.owner, r.name, *issue.Number)
+	if err != nil {
+		return err
+	}
 
-	return r.getEvents(ctx)
+	r.issues = make(map[int]Issue, 1)
+	r.issues[*issue.Number] = Issue{
+		Issue:  issue,
+		Events: events,
+	}
+
+	return nil
 }
 
 func (r *repo) loadIssuesAndEvents(ctx context.Context) error {
@@ -110,10 +112,31 @@ func (r *repo) loadIssuesAndEvents(ctx context.Context) error {
 		return nil
 	}
 
-	r.issues = make(map[int]Issue, len(filteredIssues))
-	for _, issue := range filteredIssues {
-		r.issues[*issue.Number] = Issue{Issue: issue}
+	issuesEvents, errs := r.installationClient.GetIssuesEvents(ctx, r.owner, r.name, filteredIssues)
+	for i, err := range errs {
+		log.Printf("[loadEventsForIssue] error while requesting events for issue with number %d: %v", i, err)
 	}
 
-	return r.getEvents(ctx)
+	// Add issues to repo
+	r.issues = make(map[int]Issue, len(filteredIssues))
+	for _, issue := range filteredIssues {
+		wrappedIssue := Issue{Issue: issue}
+
+		// Add error to wrapped issue
+		err, ok := errs[*issue.Number]
+		if ok {
+			wrappedIssue.Error = err
+			r.issues[*issue.Number] = wrappedIssue
+			continue
+		}
+
+		// Add events to wrapped issue
+		events, ok := issuesEvents[*issue.Number]
+		if ok {
+			wrappedIssue.Events = events
+		}
+		r.issues[*issue.Number] = wrappedIssue
+	}
+
+	return nil
 }

@@ -43,3 +43,42 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 
 	return allIssues, nil
 }
+
+// GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.
+// This is a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
+// https://github.community/t/get-referenced-pull-request-from-issue/14027
+func (c *githubInstallationClient) GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error) {
+	allTimelineItemsConnected, err := c.GetConnectedEvents(ctx, owner, repoName, issueNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastConnectedEvent *IssueTimelineConnectionItem
+	for _, node := range allTimelineItemsConnected {
+		if node.ConnectedEvent.Subject.PullRequest.URL != "" &&
+			(lastConnectedEvent == nil || lastConnectedEvent.ConnectedEvent.CreatedAt.Before(node.ConnectedEvent.CreatedAt)) {
+			// Last pull request connected event
+			tmpN := node
+			lastConnectedEvent = &tmpN
+		}
+	}
+
+	if lastConnectedEvent == nil {
+		return nil, nil
+	}
+
+	allTimelineItemsDisconnected, err := c.GetDisconnectedEvents(ctx, owner, repoName, issueNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, node := range allTimelineItemsDisconnected {
+		if node.DisconnectedEvent.Subject.PullRequest.URL != "" &&
+			lastConnectedEvent.ConnectedEvent.CreatedAt.Before(node.DisconnectedEvent.CreatedAt) {
+			// Pull request disconnected after last connected event
+			return nil, nil
+		}
+	}
+
+	return &lastConnectedEvent.ConnectedEvent.Subject.PullRequest, nil
+}

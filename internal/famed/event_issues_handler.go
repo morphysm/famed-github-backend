@@ -53,11 +53,11 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	case string(installation.Unassigned):
 		fallthrough
 
-	case string(installation.Unlabeled):
+	case string(installation.Labeled):
 		fallthrough
 
-	case string(installation.Labeled):
-		comment, err = gH.eligibleComment(event)
+	case string(installation.Unlabeled):
+		comment, err = gH.eligibleComment(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
 			return err
@@ -97,7 +97,7 @@ func (gH *githubHandler) rewardComment(ctx context.Context, event *github.Issues
 }
 
 // rewardComment returns an eligible rewardComment if event and issue qualifies
-func (gH *githubHandler) eligibleComment(event *github.IssuesEvent) (string, error) {
+func (gH *githubHandler) eligibleComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
 		return "", ErrEventMissingFamedLabel
@@ -107,7 +107,14 @@ func (gH *githubHandler) eligibleComment(event *github.IssuesEvent) (string, err
 		return "", ErrIssueMissingData
 	}
 
-	return IssueEligibleComment(event.Issue)
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
+	if err != nil {
+		return "", err
+	}
+
+	log.Print(pullRequest)
+
+	return IssueEligibleComment(event.Issue, pullRequest)
 }
 
 // postOrUpdateComment checks if a rewardComment of a type is present,
