@@ -55,6 +55,7 @@ const (
 	IssueEventActionReviewRequested IssueEventAction = "review_requested"
 )
 
+// GetIssueEvents returns all events for a given issue.
 func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
 	var (
 		client, _   = c.clients.get(owner)
@@ -120,15 +121,15 @@ func (c *githubInstallationClient) GetIssuesEvents(ctx context.Context, owner st
 	return allEvents, errors
 }
 
-type IssueTimelineDisconnectionItem struct {
-	DisconnectedEvent ConnectedEvent `graphql:"... on DisconnectedEvent"`
+type issueTimelineDisconnectionItem struct {
+	DisconnectedEvent connectedEvent `graphql:"... on DisconnectedEvent"`
 }
 
-type IssueTimelineConnectionItem struct {
-	ConnectedEvent ConnectedEvent `graphql:"... on ConnectedEvent"`
+type issueTimelineConnectionItem struct {
+	ConnectedEvent connectedEvent `graphql:"... on connectedEvent"`
 }
 
-type ConnectedEvent struct {
+type connectedEvent struct {
 	Subject struct {
 		PullRequest PullRequest `graphql:"... on PullRequest"`
 	}
@@ -139,15 +140,17 @@ type PullRequest struct {
 	URL string
 }
 
-func (c *githubInstallationClient) GetDisconnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueTimelineDisconnectionItem, error) {
+// getDisconnectedEvents returns all IssueTimelineDisconnectionItems for a given issue.
+// This is used as a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
+func (c *githubInstallationClient) getDisconnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]issueTimelineDisconnectionItem, error) {
 	var (
 		client, _        = c.clients.getGql(owner)
-		allTimelineItems []IssueTimelineDisconnectionItem
+		allTimelineItems []issueTimelineDisconnectionItem
 		query            struct {
 			Repository struct {
 				Issue struct {
 					TimelineItems struct {
-						Nodes    []IssueTimelineDisconnectionItem
+						Nodes    []issueTimelineDisconnectionItem
 						PageInfo struct {
 							EndCursor   githubv4.String
 							HasNextPage bool
@@ -180,15 +183,17 @@ func (c *githubInstallationClient) GetDisconnectedEvents(ctx context.Context, ow
 	return allTimelineItems, nil
 }
 
-func (c *githubInstallationClient) GetConnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueTimelineConnectionItem, error) {
+// getConnectedEvents returns all issueTimelineConnectionItem for a given issue.
+// This is used as a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
+func (c *githubInstallationClient) getConnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]issueTimelineConnectionItem, error) {
 	var (
 		client, _        = c.clients.getGql(owner)
-		allTimelineItems []IssueTimelineConnectionItem
+		allTimelineItems []issueTimelineConnectionItem
 		query            struct {
 			Repository struct {
 				Issue struct {
 					TimelineItems struct {
-						Nodes    []IssueTimelineConnectionItem
+						Nodes    []issueTimelineConnectionItem
 						PageInfo struct {
 							EndCursor   githubv4.String
 							HasNextPage bool

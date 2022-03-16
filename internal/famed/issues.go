@@ -19,7 +19,7 @@ type Issue struct {
 // issuesToContributors generates a contributor list based on a list of issues
 func (r *repo) contributorsArray() []*Contributor {
 	// Generate the contributors from the issues and events
-	contributors := r.ContributorsForIssues()
+	contributors := r.ContributorsFromIssues()
 	// Transformation of contributors map to contributors array
 	contributorsArray := contributors.toSortedSlice()
 	// Sort contributors array by total rewards

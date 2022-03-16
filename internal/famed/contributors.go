@@ -49,10 +49,10 @@ type BoardOptions struct {
 // ContributorsForIssue returns a contributors map generated from the repo's internal issue with issueID
 // and its corresponding events.
 func (r *repo) ContributorsForIssue(issueNumber int) Contributors {
-	r.contributors = Contributors{}
+	contributors := Contributors{}
 	issue := r.issues[issueNumber]
 	// Map issue to contributors
-	err := r.contributors.MapIssue(issue, BoardOptions{
+	err := contributors.MapIssue(issue, BoardOptions{
 		currency: r.config.Currency,
 		rewards:  r.config.Rewards,
 	})
@@ -62,35 +62,37 @@ func (r *repo) ContributorsForIssue(issueNumber int) Contributors {
 		r.issues[issueNumber] = issue
 	}
 
-	return r.contributors
+	return contributors
 }
 
-// ContributorsForIssues returns a contributors map generated from the repo's internal issues corresponding events.
-func (r *repo) ContributorsForIssues() Contributors {
+// ContributorsFromIssues returns a contributors map generated from the repo's internal issues corresponding events.
+func (r *repo) ContributorsFromIssues() Contributors {
 	// Map issues and events to contributors
-	r.issuesAndEventsToContributors()
+	contributors := r.issuesAndEventsToContributors()
 	// Calculate mean and deviation of time to disclosure
-	r.contributors.updateMeanAndDeviationOfDisclosure()
+	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
-	r.contributors.updateAverageSeverity()
+	contributors.updateAverageSeverity()
 
-	return r.contributors
+	return contributors
 }
 
-func (r *repo) issuesAndEventsToContributors() {
-	r.contributors = Contributors{}
+func (r *repo) issuesAndEventsToContributors() Contributors {
+	contributors := Contributors{}
 	for issueID, issue := range r.issues {
 		// Map issue to contributors
-		err := r.contributors.MapIssue(issue, BoardOptions{
+		err := contributors.MapIssue(issue, BoardOptions{
 			currency: r.config.Currency,
 			rewards:  r.config.Rewards,
 		})
 		if err != nil {
-			log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
+			log.Printf("[issuesAndEventsToContributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
 			issue.Error = err
 			r.issues[issueID] = issue
 		}
 	}
+
+	return contributors
 }
 
 // MapIssue updates the contributors map based on a set of events and an issue.

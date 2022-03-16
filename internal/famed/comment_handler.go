@@ -64,7 +64,7 @@ func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner str
 	return issueCommentUpdates, nil
 }
 
-// compareAndUpdateComment should be run as  a go routine to check a rewardComment and update the rewardComment if necessary.
+// compareAndUpdateComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
 func (gH *githubHandler) compareAndUpdateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
 	defer wg.Done()
 	issueCommentUpdate.IssueNumber = issueNumber

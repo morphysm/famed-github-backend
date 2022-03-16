@@ -14,6 +14,8 @@ import (
 //counterfeiter:generate . Client
 type Client interface {
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
+	ReopenIssue(ctx context.Context, owner string, repoName string, issueNumber int) error
+
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
 
 	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
@@ -37,8 +39,8 @@ type safeClientMap struct {
 	qlM map[string]*githubv4.Client
 }
 
-// NewSafeClientMap returns a new safeClientMap.
-func NewSafeClientMap() safeClientMap {
+// newSafeClientMap returns a new safeClientMap.
+func newSafeClientMap() safeClientMap {
 	return safeClientMap{
 		m:   make(map[string]*github.Client),
 		qlM: make(map[string]*githubv4.Client),
@@ -79,7 +81,7 @@ func NewClient(baseURL string, appClient app.Client, installations map[string]in
 	client := &githubInstallationClient{
 		baseURL:   baseURL,
 		appClient: appClient,
-		clients:   NewSafeClientMap(),
+		clients:   newSafeClientMap(),
 	}
 
 	for owner, installationID := range installations {
@@ -104,7 +106,7 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 
 	c.clients.add(owner, client)
 
-	// GraphQL client for pull requests workaround https://github.community/t/get-referenced-pull-request-from-issue/14027
+	// GraphQL client for missing "pull_requests" field workaround https://github.community/t/get-referenced-pull-request-from-issue/14027
 	gQLClient := githubv4.NewClient(oAuthClient)
 	c.clients.addGql(owner, gQLClient)
 

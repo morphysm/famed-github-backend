@@ -15,6 +15,8 @@ type Repo interface {
 
 	RewardComment(ctx context.Context, issue *github.Issue) (string, error)
 	RewardComments(ctx context.Context) (map[int]string, error)
+
+	//IsIssueCloseValid(ctx context.Context, issue *github.Issue) bool
 }
 
 type repo struct {
@@ -23,7 +25,6 @@ type repo struct {
 	owner              string
 	name               string
 	issues             map[int]Issue
-	contributors       Contributors
 }
 
 // NewRepo returns a new instance of the famed repo representation.
@@ -52,14 +53,18 @@ func (r *repo) Contributors(ctx context.Context) ([]*Contributor, error) {
 	return contributors, nil
 }
 
+//func (r *repo) IsIssueCloseValid(ctx context.Context, issue *github.Issue) bool {
+//	if r.issues[*issue.Number].Error
+//}
+
 func (r *repo) RewardComment(ctx context.Context, issue *github.Issue) (string, error) {
 	err := r.loadEventsForIssue(ctx, issue)
 	if err != nil {
 		return "", err
 	}
 
-	r.ContributorsForIssues()
-	comment := RewardComment(r.issues[*issue.Number], r.contributors, r.config.Currency)
+	contributors := r.ContributorsFromIssues()
+	comment := RewardComment(r.issues[*issue.Number], contributors, r.config.Currency)
 
 	return comment, nil
 }
@@ -76,9 +81,9 @@ func (r *repo) RewardComments(ctx context.Context) (map[int]string, error) {
 
 	comments := make(map[int]string, len(r.issues))
 	for issueNumber := range r.issues {
-		r.ContributorsForIssue(issueNumber)
+		contributors := r.ContributorsForIssue(issueNumber)
 
-		comments[issueNumber] = RewardComment(r.issues[issueNumber], r.contributors, r.config.Currency)
+		comments[issueNumber] = RewardComment(r.issues[issueNumber], contributors, r.config.Currency)
 	}
 
 	return comments, nil

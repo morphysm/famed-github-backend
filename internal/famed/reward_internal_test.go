@@ -22,12 +22,12 @@ func TestUpdateReward(t *testing.T) {
 		Expected     Contributors
 	}{
 		{
-			Name:         "ContributorsForIssues nil",
+			Name:         "ContributorsFromIssues nil",
 			Contributors: nil,
 			Expected:     nil,
 		},
 		{
-			Name:         "ContributorsForIssues empty",
+			Name:         "ContributorsFromIssues empty",
 			Contributors: Contributors{},
 			Expected:     Contributors{},
 		},

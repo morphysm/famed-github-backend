@@ -22,11 +22,9 @@ const (
 
 var ErrEventNotHandled = errors.New("the event is not handled")
 
-// handleIssuesEvent handles issue events and posts a suggested payout rewardComment to the GitHub API,
+// handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	ctx := c.Request().Context()
-
 	// Check event base requirements
 	if !isWebhookEventValid(event) {
 		log.Printf("[handleIssuesEvent] err: %v", ErrEventMissingData)
@@ -37,10 +35,11 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 		commentType commentType
 		comment     string
 		err         error
+		ctx         = c.Request().Context()
 	)
 	switch *event.Action {
 	case string(installation.Closed):
-		comment, err = gH.rewardComment(ctx, event)
+		comment, err = gH.handleClosedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating reward comment for closed event: %v", err)
 			return err
@@ -79,8 +78,8 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	return c.NoContent(http.StatusOK)
 }
 
-// rewardComment returns a reward rewardComment if event and issue qualifies
-func (gH *githubHandler) rewardComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
+// handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
+func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 
 	_, err := isCloseEventValid(event, famedLabel.Name)
@@ -96,7 +95,7 @@ func (gH *githubHandler) rewardComment(ctx context.Context, event *github.Issues
 	return repo.RewardComment(ctx, event.Issue)
 }
 
-// rewardComment returns an eligible rewardComment if event and issue qualifies
+// eligibleComment returns an eligible comment if event and issue qualifies
 func (gH *githubHandler) eligibleComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
@@ -112,15 +111,13 @@ func (gH *githubHandler) eligibleComment(ctx context.Context, event *github.Issu
 		return "", err
 	}
 
-	log.Print(pullRequest)
-
 	return IssueEligibleComment(event.Issue, pullRequest)
 }
 
-// postOrUpdateComment checks if a rewardComment of a type is present,
-// if so, the rewardComment body is checked for equality against the new rewardComment,
-// if the comments are not equal the rewardComment is updated,
-// if no rewardComment was found a new rewardComment is posted.
+// postOrUpdateComment checks if a handleClosedEvent of a type is present,
+// if so, the handleClosedEvent body is checked for equality against the new handleClosedEvent,
+// if the comments are not equal the handleClosedEvent is updated,
+// if no handleClosedEvent was found a new handleClosedEvent is posted.
 func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) error {
 	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
@@ -154,7 +151,7 @@ func findComment(comments []*github.IssueComment, botLogin string, commentType c
 	return nil, false
 }
 
-// verifyCommentType checks if a RewardComment is of the commentType
+// verifyCommentType checks if a given string is of a given commentType
 func verifyCommentType(str string, commentType commentType) bool {
 	var substr string
 	switch commentType {

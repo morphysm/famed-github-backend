@@ -38,22 +38,14 @@ func TestPostIssuesEvent(t *testing.T) {
 		Name            string
 		Event           github.IssuesEvent
 		Events          []*github.IssueEvent
+		PullRequest     *installation.PullRequest
 		ExpectedComment string
 		ExpectedErr     error
 	}{
 		{
 			Name: "Closed - Empty event",
 			Event: github.IssuesEvent{
-				Action:   pointers.String("closed"),
-				Issue:    &github.Issue{},
-				Assignee: &github.User{},
-				Label:    &github.Label{},
-
-				// The following fields are only populated by Webhook events.
-				Changes:      &github.EditChange{},
-				Repo:         &github.Repository{},
-				Sender:       &github.User{},
-				Installation: &github.Installation{},
+				Action: pointers.String("closed"),
 			},
 			ExpectedComment: "",
 			ExpectedErr:     famed.ErrEventMissingData,
@@ -252,11 +244,10 @@ func TestPostIssuesEvent(t *testing.T) {
 			Event: github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
-					ID:               pointers.Int64(1),
-					Number:           pointers.Int(0),
-					Title:            pointers.String("Test"),
-					Labels:           []*github.Label{{Name: pointers.String("famed")}},
-					PullRequestLinks: &github.PullRequestLinks{},
+					ID:     pointers.Int64(1),
+					Number: pointers.Int(0),
+					Title:  pointers.String("Test"),
+					Labels: []*github.Label{{Name: pointers.String("famed")}},
 				},
 				Assignee: &github.User{Login: pointers.String("test")},
 				Repo: &github.Repository{
@@ -264,6 +255,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest: &installation.PullRequest{URL: "test"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n- [ ] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [ ] Add a severity (CVSS) label to compute the score 🏷️️" +
@@ -276,12 +268,11 @@ func TestPostIssuesEvent(t *testing.T) {
 			Event: github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
-					ID:               pointers.Int64(1),
-					Number:           pointers.Int(0),
-					Title:            pointers.String("Test"),
-					Labels:           []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Assignee:         &github.User{Login: pointers.String("test")},
-					PullRequestLinks: &github.PullRequestLinks{},
+					ID:       pointers.Int64(1),
+					Number:   pointers.Int(0),
+					Title:    pointers.String("Test"),
+					Labels:   []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
+					Assignee: &github.User{Login: pointers.String("test")},
 				},
 				Assignee: &github.User{Login: pointers.String("test")},
 				Repo: &github.Repository{
@@ -289,87 +280,12 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest: &installation.PullRequest{URL: "test"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
-				"\n" +
-				"\nHappy hacking! \U0001F9BE💙❤️️",
-		},
-		{
-			Name: "Assigned - Valid - All present",
-			Event: github.IssuesEvent{
-				Action: pointers.String("labeled"),
-				Issue: &github.Issue{
-					ID:               pointers.Int64(1),
-					Number:           pointers.Int(0),
-					Title:            pointers.String("Test"),
-					Labels:           []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Assignee:         &github.User{Login: pointers.String("test")},
-					PullRequestLinks: &github.PullRequestLinks{},
-				},
-				Assignee: &github.User{Login: pointers.String("test")},
-				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
-				},
-			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
-				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
-				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
-				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
-				"\n" +
-				"\nHappy hacking! \U0001F9BE💙❤️️",
-		},
-		{
-			Name: "Assigned - Valid - All present",
-			Event: github.IssuesEvent{
-				Action: pointers.String("unassigned"),
-				Issue: &github.Issue{
-					ID:               pointers.Int64(1),
-					Number:           pointers.Int(0),
-					Title:            pointers.String("Test"),
-					Labels:           []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Assignee:         &github.User{Login: pointers.String("test")},
-					PullRequestLinks: &github.PullRequestLinks{},
-				},
-				Assignee: &github.User{Login: pointers.String("test")},
-				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
-				},
-			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
-				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
-				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
-				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
-				"\n" +
-				"\nHappy hacking! \U0001F9BE💙❤️️",
-		},
-		{
-			Name: "Assigned - Valid - All present",
-			Event: github.IssuesEvent{
-				Action: pointers.String("unlabeled"),
-				Issue: &github.Issue{
-					ID:               pointers.Int64(1),
-					Number:           pointers.Int(0),
-					Title:            pointers.String("Test"),
-					Labels:           []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Assignee:         &github.User{Login: pointers.String("test")},
-					PullRequestLinks: &github.PullRequestLinks{},
-				},
-				Assignee: &github.User{Login: pointers.String("test")},
-				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
-				},
-			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
-				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
-				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
-				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
-				"\n" +
-				"\nHappy hacking! \U0001F9BE💙❤️️",
+				"\n\nHappy hacking! \U0001F9BE💙❤️️",
 		},
 	}
 
@@ -391,6 +307,7 @@ func TestPostIssuesEvent(t *testing.T) {
 
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
+			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, famedConfig)
 
