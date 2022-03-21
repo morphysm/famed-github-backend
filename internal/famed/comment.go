@@ -10,8 +10,8 @@ import (
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func RewardComment(issue Issue, contributors Contributors, currency string) string {
-	if err := issue.Error; err != nil {
+func RewardComment(issue WrappedIssue, contributors Contributors, currency string) string {
+	if err := issue.RewardError; err != nil {
 		return RewardCommentFromError(err)
 	}
 
@@ -56,13 +56,13 @@ func RewardCommentFromError(err error) string {
 
 // IssueEligibleComment generate an issue eligible RewardComment.
 func IssueEligibleComment(issue *github.Issue, pullRequest *installation.PullRequest) (string, error) {
-	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
+	comment := fmt.Sprintf("🤖 Assignees for WrappedIssue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
 
 	// Check that an assignee is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
 
 	// Check that a valid severity label is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(Issue{Issue: issue}))
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(WrappedIssue{Issue: issue}))
 
 	// Check that a PR is assigned
 	comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
@@ -81,7 +81,7 @@ func assigneeComment(issue *github.Issue) string {
 	return "- [ ] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
 }
 
-func severityComment(issue Issue) string {
+func severityComment(issue WrappedIssue) string {
 	if _, err := issue.severity(); err == nil {
 		return "- [x] Add a severity (CVSS) label to compute the score 🏷️"
 	}

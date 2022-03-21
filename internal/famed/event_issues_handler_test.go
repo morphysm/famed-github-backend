@@ -185,7 +185,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
 				"\n- [ ] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [ ] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [ ] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -209,7 +209,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
 				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [ ] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [ ] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -232,7 +232,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
 				"\n- [ ] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [ ] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -256,7 +256,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &installation.PullRequest{URL: "test"},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
 				"\n- [ ] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [ ] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -281,7 +281,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &installation.PullRequest{URL: "test"},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
 				"\n- [x] Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n- [x] Add a severity (CVSS) label to compute the score 🏷️️" +
 				"\n- [x] Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +

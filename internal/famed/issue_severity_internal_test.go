@@ -18,32 +18,32 @@ func TestIssueToSeverity(t *testing.T) {
 		ExpectedErr error
 	}{
 		{
-			Name:     "Issue severity label none",
+			Name:     "WrappedIssue severity label none",
 			Label:    "none",
 			Expected: config.CVSSNone,
 		},
 		{
-			Name:     "Issue severity label low",
+			Name:     "WrappedIssue severity label low",
 			Label:    "low",
 			Expected: config.CVSSLow,
 		},
 		{
-			Name:     "Issue severity label medium",
+			Name:     "WrappedIssue severity label medium",
 			Label:    "medium",
 			Expected: config.CVSSMedium,
 		},
 		{
-			Name:     "Issue severity high ",
+			Name:     "WrappedIssue severity high ",
 			Label:    "high",
 			Expected: config.CVSSHigh,
 		},
 		{
-			Name:     "Issue severity critical ",
+			Name:     "WrappedIssue severity critical ",
 			Label:    "critical",
 			Expected: config.CVSSCritical,
 		},
 		{
-			Name:        "Issue severity critical ",
+			Name:        "WrappedIssue severity critical ",
 			Label:       "",
 			Expected:    "",
 			ExpectedErr: ErrIssueMissingSeverityLabel,
@@ -55,7 +55,7 @@ func TestIssueToSeverity(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// GIVEN
-			issue := Issue{Issue: &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}}
+			issue := WrappedIssue{Issue: &github.Issue{Labels: []*github.Label{{Name: &testCase.Label}}}}
 
 			// WHEN
 			severityResult, err := issue.severity()
@@ -74,7 +74,7 @@ func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	// GIVEN
 	labelNone := string(config.CVSSNone)
 	labelLow := string(config.CVSSCritical)
-	issue := Issue{Issue: &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}}
+	issue := WrappedIssue{Issue: &github.Issue{Labels: []*github.Label{{Name: &labelNone}, {Name: &labelLow}}}}
 
 	// WHEN
 	severityResult, err := issue.severity()

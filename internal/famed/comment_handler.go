@@ -43,14 +43,26 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 
 // compareAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, owner, repoName)
-
-	comments, err := repo.RewardComments(ctx)
+	issues, err := gH.loadIssuesAndEvents(ctx, owner, repoName)
 	if err != nil {
 		return nil, err
 	}
 
-	issueCommentUpdates := make([]*IssueCommentUpdate, len(comments))
+	issueCommentUpdates := make([]*IssueCommentUpdate, len(issues))
+	if len(issues) == 0 {
+		return issueCommentUpdates, nil
+	}
+
+	comments := make(map[int]string, len(issues))
+	for issueNumber, issue := range issues {
+		issue, contributors := ContributorsFromIssue(issue, BoardOptions{
+			currency: gH.famedConfig.Currency,
+			rewards:  gH.famedConfig.Rewards,
+		})
+
+		comments[issueNumber] = RewardComment(issue, contributors, gH.famedConfig.Currency)
+	}
+
 	var wg sync.WaitGroup
 	i := 0
 	for issueNumber, comment := range comments {

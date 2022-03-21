@@ -1,31 +1,69 @@
 package famed
 
 import (
+	"context"
 	"log"
-	"sort"
+	"sync"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
-type Issues map[int64]Issues
-
-type Issue struct {
+type WrappedIssue struct {
 	Issue  *github.Issue
 	Events []*github.IssueEvent
 	// For issue RewardComment generation
-	Error error
+	RewardError error
 }
 
-// issuesToContributors generates a contributor list based on a list of issues
-func (r *repo) contributorsArray() []*Contributor {
-	// Generate the contributors from the issues and events
-	contributors := r.ContributorsFromIssues()
-	// Transformation of contributors map to contributors array
-	contributorsArray := contributors.toSortedSlice()
-	// Sort contributors array by total rewards
-	sortContributors(contributorsArray)
+func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
+	// Get all issues filtered by label and closed state
+	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, installation.Closed)
+	if err != nil {
+		return nil, echo.ErrBadGateway.SetInternal(err)
+	}
 
-	return contributorsArray
+	filteredIssues := filterIssues(issuesResponse)
+	if len(filteredIssues) == 0 {
+		return nil, nil
+	}
+
+	wg := sync.WaitGroup{}
+	issues := make(map[int]WrappedIssue, len(filteredIssues))
+	for _, issue := range filteredIssues {
+		wg.Add(1)
+
+		go func(ctx context.Context, issue *github.Issue) {
+			defer wg.Done()
+
+			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
+			if err != nil {
+				log.Printf("[loadIssuesAndEvents] error while requesting events for issue with number %d: %v", issue.Number, err)
+			}
+
+			issues[*issue.Number] = wrappedIssue
+		}(ctx, issue)
+	}
+
+	wg.Wait()
+	return issues, nil
+}
+
+func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue *github.Issue) (WrappedIssue, error) {
+	var wrappedIssue WrappedIssue
+
+	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, *issue.Number)
+	if err != nil {
+		return wrappedIssue, err
+	}
+
+	wrappedIssue.Issue = issue
+	wrappedIssue.Events = events
+
+	return wrappedIssue, nil
 }
 
 // filterIssues filters for valid issues.
@@ -40,27 +78,4 @@ func filterIssues(issues []*github.Issue) []*github.Issue {
 	}
 
 	return filteredIssues
-}
-
-func (contributors Contributors) toSortedSlice() []*Contributor {
-	contributorsSlice := contributors.toSlice()
-	sortContributors(contributorsSlice)
-	return contributorsSlice
-}
-
-// mapToSlice transforms the contributors map to a contributors slice.
-func (contributors Contributors) toSlice() []*Contributor {
-	contributorsSlice := make([]*Contributor, 0)
-	for _, contributor := range contributors {
-		contributorsSlice = append(contributorsSlice, contributor)
-	}
-
-	return contributorsSlice
-}
-
-// sortContributors sorts the contributors by descending reward sum.
-func sortContributors(contributors []*Contributor) {
-	sort.SliceStable(contributors, func(i, j int) bool {
-		return contributors[i].RewardSum > contributors[j].RewardSum
-	})
 }

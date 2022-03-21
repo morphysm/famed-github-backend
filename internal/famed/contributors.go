@@ -1,9 +1,9 @@
 package famed
 
 import (
-	"fmt"
 	"log"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/google/go-github/v41/github"
@@ -46,29 +46,36 @@ type BoardOptions struct {
 	rewards  map[config.IssueSeverity]float64
 }
 
-// ContributorsForIssue returns a contributors map generated from the repo's internal issue with issueID
+// contributorsArray generates a contributor list based on a list of issues
+func contributorsArray(issues map[int]WrappedIssue, options BoardOptions) []*Contributor {
+	// Generate the contributors from the issues and events
+	contributors := ContributorsFromIssues(issues, options)
+	// Transformation of contributors map to contributors array
+	contributorsArray := contributors.toSortedSlice()
+	// Sort contributors array by total rewards
+	sortContributors(contributorsArray)
+
+	return contributorsArray
+}
+
+// ContributorsFromIssue returns a contributors map generated from the repo's internal issue with issueID
 // and its corresponding events.
-func (r *repo) ContributorsForIssue(issueNumber int) Contributors {
+func ContributorsFromIssue(issue WrappedIssue, options BoardOptions) (WrappedIssue, Contributors) {
 	contributors := Contributors{}
-	issue := r.issues[issueNumber]
 	// Map issue to contributors
-	err := contributors.MapIssue(issue, BoardOptions{
-		currency: r.config.Currency,
-		rewards:  r.config.Rewards,
-	})
+	err := contributors.MapIssue(issue, options)
 	if err != nil {
 		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
-		issue.Error = err
-		r.issues[issueNumber] = issue
+		issue.RewardError = err
 	}
 
-	return contributors
+	return issue, contributors
 }
 
 // ContributorsFromIssues returns a contributors map generated from the repo's internal issues corresponding events.
-func (r *repo) ContributorsFromIssues() Contributors {
+func ContributorsFromIssues(issues map[int]WrappedIssue, options BoardOptions) Contributors {
 	// Map issues and events to contributors
-	contributors := r.issuesAndEventsToContributors()
+	contributors := issuesAndEventsToContributors(issues, options)
 	// Calculate mean and deviation of time to disclosure
 	contributors.updateMeanAndDeviationOfDisclosure()
 	// Calculate average severity of fixed issues
@@ -77,18 +84,15 @@ func (r *repo) ContributorsFromIssues() Contributors {
 	return contributors
 }
 
-func (r *repo) issuesAndEventsToContributors() Contributors {
+func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOptions) Contributors {
 	contributors := Contributors{}
-	for issueID, issue := range r.issues {
+	for issueID, issue := range issues {
 		// Map issue to contributors
-		err := contributors.MapIssue(issue, BoardOptions{
-			currency: r.config.Currency,
-			rewards:  r.config.Rewards,
-		})
+		err := contributors.MapIssue(issue, options)
 		if err != nil {
-			log.Printf("[issuesAndEventsToContributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
-			issue.Error = err
-			r.issues[issueID] = issue
+			log.Printf("[issuesAndEventsToContributors] error while mapping issue with ID: %d, error: %v", issueID, err)
+			issue.RewardError = err
+			issues[issueID] = issue
 		}
 	}
 
@@ -97,7 +101,7 @@ func (r *repo) issuesAndEventsToContributors() Contributors {
 
 // MapIssue updates the contributors map based on a set of events and an issue.
 // TODO investigate if different data handling for rewards works
-func (contributors Contributors) MapIssue(issue Issue, boardOptions BoardOptions) error {
+func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
 	var (
 		// areIncremented tracks contributors that have had their fix counters incremented
 		areIncremented   = make(map[string]bool)
@@ -192,10 +196,6 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, cur
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
 func (contributors Contributors) incrementFixCounters(assignee *github.User, timeToDisclosure float64, severity config.IssueSeverity) {
 	contributor, _ := contributors[*assignee.Login]
-	if contributor == nil {
-		fmt.Println(*assignee.Login)
-		fmt.Println(contributor)
-	}
 
 	// Increment fix count
 	contributor.FixCount++
@@ -242,4 +242,27 @@ func (contributors Contributors) updateAverageSeverity() {
 			9*float64(contributor.Severities[config.CVSSHigh]) +
 			9.5*float64(contributor.Severities[config.CVSSCritical])) / float64(contributor.FixCount)
 	}
+}
+
+func (contributors Contributors) toSortedSlice() []*Contributor {
+	contributorsSlice := contributors.toSlice()
+	sortContributors(contributorsSlice)
+	return contributorsSlice
+}
+
+// mapToSlice transforms the contributors map to a contributors slice.
+func (contributors Contributors) toSlice() []*Contributor {
+	contributorsSlice := make([]*Contributor, 0)
+	for _, contributor := range contributors {
+		contributorsSlice = append(contributorsSlice, contributor)
+	}
+
+	return contributorsSlice
+}
+
+// sortContributors sorts the contributors by descending reward sum.
+func sortContributors(contributors []*Contributor) {
+	sort.SliceStable(contributors, func(i, j int) bool {
+		return contributors[i].RewardSum > contributors[j].RewardSum
+	})
 }

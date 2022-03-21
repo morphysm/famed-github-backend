@@ -14,9 +14,9 @@ var (
 // severity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns the IssueMissingLabelErr
 // if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
-func (i Issue) severity() (config.IssueSeverity, error) {
+func (WI WrappedIssue) severity() (config.IssueSeverity, error) {
 	var severity config.IssueSeverity
-	for _, label := range i.Issue.Labels {
+	for _, label := range WI.Issue.Labels {
 		if !isLabelValid(label) {
 			continue
 		}

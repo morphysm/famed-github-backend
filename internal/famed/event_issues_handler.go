@@ -56,7 +56,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 		fallthrough
 
 	case string(installation.Unlabeled):
-		comment, err = gH.eligibleComment(ctx, event)
+		comment, err = gH.handleUpdatedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
 			return err
@@ -91,12 +91,22 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.Is
 		return "", err
 	}
 
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, *event.Repo.Owner.Login, *event.Repo.Name)
-	return repo.RewardComment(ctx, event.Issue)
+	issue, err := gH.loadIssueEvents(ctx, *event.Repo.Owner.Login, *event.Repo.Name, event.Issue)
+	if err != nil {
+		return "", err
+	}
+
+	_, contributors := ContributorsFromIssue(issue, BoardOptions{
+		currency: gH.famedConfig.Currency,
+		rewards:  gH.famedConfig.Rewards,
+	})
+	comment := RewardComment(issue, contributors, gH.famedConfig.Currency)
+
+	return comment, nil
 }
 
-// eligibleComment returns an eligible comment if event and issue qualifies
-func (gH *githubHandler) eligibleComment(ctx context.Context, event *github.IssuesEvent) (string, error) {
+// handleUpdatedEvent returns an eligible comment if event and issue qualifies
+func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event *github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
 		return "", ErrEventMissingFamedLabel

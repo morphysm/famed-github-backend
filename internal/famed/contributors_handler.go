@@ -32,16 +32,20 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 		return ErrAppNotInstalled
 	}
 
-	repo := NewRepo(gH.famedConfig, gH.githubInstallationClient, owner, repoName)
-
-	contributors, err := repo.Contributors(c.Request().Context())
+	issues, err := gH.loadIssuesAndEvents(c.Request().Context(), owner, repoName)
 	if err != nil {
-		if errors.Is(err, echo.ErrBadGateway) {
-			return err
-		}
-
-		return echo.ErrInternalServerError.SetInternal(err)
+		return err
 	}
+
+	if len(issues) == 0 {
+		c.JSON(http.StatusOK, []*Contributor{})
+	}
+
+	// Use issues with events to generate contributor list
+	contributors := contributorsArray(issues, BoardOptions{
+		currency: gH.famedConfig.Currency,
+		rewards:  gH.famedConfig.Rewards,
+	})
 
 	return c.JSON(http.StatusOK, contributors)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/pkg/pointers"
 )
 
 type IssueState string
@@ -43,23 +42,6 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	}
 
 	return allIssues, nil
-}
-
-// ReopenIssue reopens a given issue.
-func (c *githubInstallationClient) ReopenIssue(ctx context.Context, owner string, repoName string, issueNumber int) error {
-	var (
-		client, _ = c.clients.get(owner)
-		issue     = &github.IssueRequest{
-			State: pointers.String(string(Reopened)),
-		}
-	)
-
-	_, _, err := client.Issues.Edit(ctx, owner, repoName, issueNumber, issue)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.

@@ -14,7 +14,6 @@ import (
 //counterfeiter:generate . Client
 type Client interface {
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error)
-	ReopenIssue(ctx context.Context, owner string, repoName string, issueNumber int) error
 
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
 
