@@ -21,6 +21,7 @@ const (
 )
 
 var ErrEventNotHandled = errors.New("the event is not handled")
+var ErrIssueMissingPullRequest = errors.New("the issue is missing a pull request")
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
@@ -89,6 +90,15 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.Is
 		}
 
 		return "", err
+	}
+
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
+	if err != nil {
+		return "", err
+	}
+
+	if pullRequest == nil {
+		return RewardCommentFromError(ErrIssueMissingPullRequest), nil
 	}
 
 	issue, err := gH.loadIssueEvents(ctx, *event.Repo.Owner.Login, *event.Repo.Name, event.Issue)

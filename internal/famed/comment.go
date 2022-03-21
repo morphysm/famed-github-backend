@@ -31,23 +31,25 @@ func RewardCommentFromError(err error) string {
 	comment := "### Famed could not generate a reward suggestion. \n" +
 		"Reason: "
 
-	if errors.Is(err, ErrIssueMissingAssignee) {
+	switch err {
+	case ErrIssueMissingPullRequest:
+		return fmt.Sprintf("%sThe issue is missing a pull request.", comment)
+
+	case ErrIssueMissingAssignee:
 		return fmt.Sprintf("%sThe issue is missing an assignee.", comment)
-	}
 
-	if errors.Is(err, ErrIssueMissingSeverityLabel) {
+	case ErrIssueMissingSeverityLabel:
 		return fmt.Sprintf("%sThe issue is missing a severity label.", comment)
-	}
 
-	if errors.Is(err, ErrIssueMultipleSeverityLabels) {
+	case ErrIssueMultipleSeverityLabels:
 		return fmt.Sprintf("%sThe issue has more than one severity label.", comment)
-	}
 
-	if errors.Is(err, ErrNoContributors) {
+	case ErrNoContributors:
 		return fmt.Sprintf("%sThe data provided by GitHub is not sufficient to generate a reward suggestion.", comment)
-	}
 
-	return fmt.Sprintf("%s Unknown.", comment)
+	default:
+		return fmt.Sprintf("%s Unknown.", comment)
+	}
 }
 
 // IssueEligibleComment generate an issue eligible RewardComment.

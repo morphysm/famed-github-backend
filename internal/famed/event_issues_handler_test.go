@@ -67,6 +67,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest:     &installation.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
 		},
 		{
@@ -88,6 +89,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest:     &installation.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
 		},
 		{
@@ -108,6 +110,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest:     &installation.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
 		},
 		{
@@ -128,7 +131,28 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest:     &installation.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
+		},
+		{
+			Name: "Closed - No pull request",
+			Event: github.IssuesEvent{
+				Action: pointers.String("closed"),
+				Issue: &github.Issue{
+					ID:        pointers.Int64(1),
+					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
+					Number:    pointers.Int(0),
+					Assignee:  &github.User{Login: pointers.String("test")},
+					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+				},
+				Assignee: &github.User{Login: pointers.String("test")},
+				Repo: &github.Repository{
+					Name:  pointers.String("test"),
+					Owner: &github.User{Login: pointers.String("test")},
+				},
+			},
+			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a pull request.",
 		},
 		{
 			Name: "Closed - Valid",
@@ -148,6 +172,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointers.String("test")},
 				},
 			},
+			PullRequest: &installation.PullRequest{URL: "test"},
 			Events: []*github.IssueEvent{
 				{
 					Event:     pointers.String("assigned"),
