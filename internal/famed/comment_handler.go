@@ -55,12 +55,16 @@ func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner str
 
 	comments := make(map[int]string, len(issues))
 	for issueNumber, issue := range issues {
-		issue, contributors := ContributorsFromIssue(issue, BoardOptions{
+		contributors, err := ContributorsFromIssue(issue, BoardOptions{
 			currency: gH.famedConfig.Currency,
 			rewards:  gH.famedConfig.Rewards,
 		})
+		if err != nil {
+			comments[issueNumber] = RewardCommentFromError(err)
+			continue
+		}
 
-		comments[issueNumber] = RewardComment(issue, contributors, gH.famedConfig.Currency)
+		comments[issueNumber] = RewardComment(contributors, gH.famedConfig.Currency)
 	}
 
 	var wg sync.WaitGroup

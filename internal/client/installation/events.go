@@ -2,7 +2,6 @@ package installation
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/google/go-github/v41/github"
@@ -79,46 +78,6 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 	}
 
 	return allEvents, nil
-}
-
-// GetIssuesEvents requests all events of a set of issues from the GitHub API in a concurrent fashion.
-func (c *githubInstallationClient) GetIssuesEvents(ctx context.Context, owner string, repoName string, issues []*github.Issue) (map[int][]*github.IssueEvent, map[int]error) {
-	var (
-		allEvents = make(map[int][]*github.IssueEvent)
-		errors    = make(map[int]error)
-	)
-
-	// Create context with cancel to cancel all request if one fails
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	// Create wait group to wait for all requests to finish
-	wg := sync.WaitGroup{}
-
-	for _, issue := range issues {
-		wg.Add(1)
-
-		// Start go routine to get the issue's events
-		go func(ctx context.Context, repoName string, issueNumber int, issueID int64) {
-			defer wg.Done()
-
-			// Check if one of the requests returned an error otherwise run the request
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				events, err := c.GetIssueEvents(ctx, owner, repoName, issueNumber)
-				if err != nil {
-					errors[issueNumber] = err
-					return
-				}
-				allEvents[issueNumber] = events
-			}
-		}(ctx, repoName, *issue.Number, *issue.ID)
-	}
-
-	wg.Wait()
-	return allEvents, errors
 }
 
 type issueTimelineDisconnectionItem struct {

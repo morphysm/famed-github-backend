@@ -14,8 +14,6 @@ import (
 type WrappedIssue struct {
 	Issue  *github.Issue
 	Events []*github.IssueEvent
-	// For issue RewardComment generation
-	RewardError error
 }
 
 func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {

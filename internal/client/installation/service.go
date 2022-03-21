@@ -18,7 +18,6 @@ type Client interface {
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
 
 	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
-	GetIssuesEvents(ctx context.Context, owner string, repoName string, issues []*github.Issue) (map[int][]*github.IssueEvent, map[int]error)
 
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error

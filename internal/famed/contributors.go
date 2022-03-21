@@ -60,16 +60,16 @@ func contributorsArray(issues map[int]WrappedIssue, options BoardOptions) []*Con
 
 // ContributorsFromIssue returns a contributors map generated from the repo's internal issue with issueID
 // and its corresponding events.
-func ContributorsFromIssue(issue WrappedIssue, options BoardOptions) (WrappedIssue, Contributors) {
+func ContributorsFromIssue(issue WrappedIssue, options BoardOptions) (Contributors, error) {
 	contributors := Contributors{}
 	// Map issue to contributors
 	err := contributors.MapIssue(issue, options)
 	if err != nil {
 		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.Issue.ID, err)
-		issue.RewardError = err
+		return contributors, err
 	}
 
-	return issue, contributors
+	return contributors, nil
 }
 
 // ContributorsFromIssues returns a contributors map generated from the repo's internal issues corresponding events.
@@ -91,7 +91,6 @@ func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOpt
 		err := contributors.MapIssue(issue, options)
 		if err != nil {
 			log.Printf("[issuesAndEventsToContributors] error while mapping issue with ID: %d, error: %v", issueID, err)
-			issue.RewardError = err
 			issues[issueID] = issue
 		}
 	}
@@ -100,7 +99,6 @@ func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOpt
 }
 
 // MapIssue updates the contributors map based on a set of events and an issue.
-// TODO investigate if different data handling for rewards works
 func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
 	var (
 		// areIncremented tracks contributors that have had their fix counters incremented

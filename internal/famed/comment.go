@@ -10,11 +10,7 @@ import (
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func RewardComment(issue WrappedIssue, contributors Contributors, currency string) string {
-	if err := issue.RewardError; err != nil {
-		return RewardCommentFromError(err)
-	}
-
+func RewardComment(contributors Contributors, currency string) string {
 	if len(contributors) == 0 {
 		return RewardCommentFromError(ErrNoContributors)
 	}

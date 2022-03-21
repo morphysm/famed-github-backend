@@ -96,13 +96,15 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.Is
 		return "", err
 	}
 
-	_, contributors := ContributorsFromIssue(issue, BoardOptions{
+	contributors, err := ContributorsFromIssue(issue, BoardOptions{
 		currency: gH.famedConfig.Currency,
 		rewards:  gH.famedConfig.Rewards,
 	})
-	comment := RewardComment(issue, contributors, gH.famedConfig.Currency)
+	if err != nil {
+		return RewardCommentFromError(err), nil
+	}
 
-	return comment, nil
+	return RewardComment(contributors, gH.famedConfig.Currency), nil
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
