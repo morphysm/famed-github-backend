@@ -85,7 +85,7 @@ type issueTimelineDisconnectionItem struct {
 }
 
 type issueTimelineConnectionItem struct {
-	ConnectedEvent connectedEvent `graphql:"... on connectedEvent"`
+	ConnectedEvent connectedEvent `graphql:"... on ConnectedEvent"`
 }
 
 type connectedEvent struct {
