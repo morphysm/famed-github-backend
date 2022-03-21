@@ -71,24 +71,24 @@ func IssueEligibleComment(issue *github.Issue, pullRequest *installation.PullReq
 
 func assigneeComment(issue *github.Issue) string {
 	if issue.Assignee != nil {
-		return "- [x] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+		return "- ✅ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
 	}
 
-	return "- [ ] Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+	return "- ❌ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
 }
 
 func severityComment(issue WrappedIssue) string {
 	if _, err := issue.severity(); err == nil {
-		return "- [x] Add a severity (CVSS) label to compute the score 🏷️"
+		return "- ✅ Add a severity (CVSS) label to compute the score 🏷️"
 	}
 
-	return "- [ ] Add a severity (CVSS) label to compute the score 🏷️"
+	return "- ❌ Add a severity (CVSS) label to compute the score 🏷️"
 }
 
 func prComment(pullRequest *installation.PullRequest) string {
 	if pullRequest != nil {
-		return "- [x] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+		return "- ✅ Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 	}
 
-	return "- [ ] Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+	return "- ❌ Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 }
