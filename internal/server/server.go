@@ -57,14 +57,14 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create new installation client to fetch repo data
-	installationClient, err := installation.NewClient(cfg.Github.Host, appClient, transformedInstallations)
+	installationClient, err := installation.NewClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create
 	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Github.BotLogin)
-	famedHandler := famed.NewHandler(appClient, installationClient, &cfg.Github.WebhookSecret, famedConfig)
+	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests
 	famedGroup := e.Group("/famed")

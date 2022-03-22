@@ -2,6 +2,9 @@ package installation
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"time"
 
 	"github.com/google/go-github/v41/github"
 )
@@ -52,12 +55,20 @@ const (
 	IssueEventActionReviewRequested IssueEventAction = "review_requested"
 )
 
+type IssueEvent struct {
+	ID        int64
+	Event     string
+	Assignee  *User
+	CreatedAt time.Time
+}
+
 // GetIssueEvents returns all events for a given issue.
-func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error) {
+func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueEvent, error) {
 	var (
-		client, _   = c.clients.get(owner)
-		allEvents   []*github.IssueEvent
-		listOptions = &github.ListOptions{
+		client, _           = c.clients.get(owner)
+		allEvents           []*github.IssueEvent
+		allCompressedEvents []IssueEvent
+		listOptions         = &github.ListOptions{
 			Page:    1,
 			PerPage: 100,
 		}
@@ -66,7 +77,7 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 	for {
 		events, resp, err := client.Issues.ListIssueEvents(ctx, owner, repoName, issueNumber, listOptions)
 		if err != nil {
-			return allEvents, err
+			return allCompressedEvents, err
 		}
 		allEvents = append(allEvents, events...)
 		if resp.NextPage == 0 {
@@ -75,7 +86,73 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 		listOptions.Page = resp.NextPage
 	}
 
-	return allEvents, nil
+	for _, event := range allEvents {
+		compressedEvent, err := validateIssueEvent(event)
+		if err != nil {
+			continue
+		}
+		allCompressedEvents = append(allCompressedEvents, compressedEvent)
+	}
+
+	return allCompressedEvents, nil
+}
+
+func validateIssueEvent(event *github.IssueEvent) (IssueEvent, error) {
+	var compressedEvent IssueEvent
+	if event == nil ||
+		event.ID == nil ||
+		event.Event == nil ||
+		event.CreatedAt == nil {
+		return compressedEvent, ErrEventMissingData
+	}
+
+	compressedEvent = IssueEvent{
+		ID:        *event.ID,
+		Event:     *event.Event,
+		CreatedAt: *event.CreatedAt,
+		Assignee:  validateUser(event.Assignee),
+	}
+
+	return compressedEvent, nil
+}
+
+func (c *githubInstallationClient) ValidateWebHookEvent(request *http.Request) (interface{}, error) {
+	var event interface{}
+	webhookSecret := []byte(c.webhookSecret)
+
+	payload, err := github.ValidatePayload(request, webhookSecret)
+	if err != nil {
+		return event, err
+	}
+
+	event, err = github.ParseWebHook(github.WebHookType(request), payload)
+	if err != nil {
+		return nil, err
+	}
+
+	switch event := event.(type) {
+	case *github.IssuesEvent:
+		issuesEvent, err := validateIssuesEvent(event)
+		if err != nil {
+			return event, err
+		}
+		return issuesEvent, err
+	case *github.InstallationRepositoriesEvent:
+		installationRepositoriesEvent, err := validateInstallationRepositoriesEvent(event)
+		if err != nil {
+			return event, err
+		}
+		return installationRepositoriesEvent, err
+	case *github.InstallationEvent:
+		installationEvent, err := validateInstallationEvent(event)
+		if err != nil {
+			return event, err
+		}
+		return installationEvent, err
+	default:
+		log.Println("[ValidateWebHookEvent] unhandled event")
+		return event, ErrUnhandledEventType
+	}
 }
 
 type IssuesEvent struct {
@@ -89,7 +166,7 @@ type Repo struct {
 	Owner User
 }
 
-func ValidateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
+func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	var issuesEvent IssuesEvent
 	if event.Action == nil ||
 		event.Repo == nil ||
@@ -132,4 +209,79 @@ func ValidateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	default:
 		return issuesEvent, ErrUnhandledEventType
 	}
+}
+
+type InstallationRepositoriesEvent struct {
+	Action            string
+	Installation      RepositoriesInstallation
+	RepositoriesAdded []Repository
+}
+
+type RepositoriesInstallation struct {
+	Account User
+}
+
+func validateInstallationRepositoriesEvent(event *github.InstallationRepositoriesEvent) (InstallationRepositoriesEvent, error) {
+	var compressedEvent InstallationRepositoriesEvent
+	if event == nil || event.Action == nil {
+		return compressedEvent, ErrEventMissingData
+	}
+	if event.Installation == nil ||
+		event.Installation.Account == nil ||
+		event.Installation.Account.Login == nil {
+		return compressedEvent, ErrEventMissingData
+	}
+	compressedEvent = InstallationRepositoriesEvent{
+		Action: *event.Action,
+		Installation: RepositoriesInstallation{
+			Account: User{
+				Login: *event.Installation.Account.Login,
+			},
+		},
+	}
+
+	for _, repository := range event.RepositoriesAdded {
+		compressedEvent.RepositoriesAdded = append(compressedEvent.RepositoriesAdded, Repository{Name: *repository.Name})
+	}
+
+	return compressedEvent, nil
+}
+
+type InstallationEvent struct {
+	Action       string
+	Repositories []Repository
+	Installation
+}
+
+type Installation struct {
+	ID      int64
+	Account User
+}
+
+func validateInstallationEvent(event *github.InstallationEvent) (InstallationEvent, error) {
+	var compressedEvent InstallationEvent
+	if event == nil ||
+		event.Action == nil ||
+		event.Installation == nil ||
+		event.Installation.Account == nil ||
+		event.Installation.Account.Login == nil ||
+		event.Installation.ID == nil {
+		return compressedEvent, ErrEventMissingData
+	}
+
+	compressedEvent = InstallationEvent{
+		Action: *event.Action,
+		Installation: Installation{
+			ID: *event.Installation.ID,
+			Account: User{
+				Login: *event.Installation.Account.Login,
+			},
+		},
+	}
+
+	for _, repository := range event.Repositories {
+		compressedEvent.Repositories = append(compressedEvent.Repositories, Repository{Name: *repository.Name})
+	}
+
+	return compressedEvent, nil
 }

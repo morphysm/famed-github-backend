@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointers"
@@ -56,20 +57,22 @@ func TestPostInstallationEvent(t *testing.T) {
 
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.AddInstallationReturns(nil)
+			cl, _ := installation.NewClient("", nil, nil, "")
+			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, NewTestConfig())
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig())
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)
 
 			// THEN
 			if testCase.ExpectedErr == nil {
-				callCount := fakeInstallationClient.AddInstallationCallCount()
-				assert.Equal(t, 1, callCount)
-
-				owner, installationID := fakeInstallationClient.AddInstallationArgsForCall(0)
-				assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
-				assert.Equal(t, *testCase.Event.Installation.ID, installationID)
+				assert.Equal(t, 1, fakeInstallationClient.AddInstallationCallCount())
+				if fakeInstallationClient.AddInstallationCallCount() == 1 {
+					owner, installationID := fakeInstallationClient.AddInstallationArgsForCall(0)
+					assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
+					assert.Equal(t, *testCase.Event.Installation.ID, installationID)
+				}
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)
 		})

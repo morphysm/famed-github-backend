@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
@@ -127,10 +126,10 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 
 	// Iterate through issue events and map events if event type is of interest
 	for _, event := range issue.Events {
-		switch *event.Event {
+		switch event.Event {
 		case string(installation.IssueEventActionAssigned):
-			if eventValid, err := isIssueUnAssignedEventDataValid(event); !eventValid {
-				log.Printf("[MapIssue] event assigned data is invalid for event with ID: %d, err: %v", event.ID, err)
+			if event.Assignee == nil {
+				log.Printf("[MapIssue] event assigned is missing for event with ID: %d", event.ID)
 				continue
 			}
 			if event.CreatedAt.After(issueClosedAt) {
@@ -140,16 +139,11 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency)
 
 			// Increment fix count if not yet done
-			if isIncremented := areIncremented[*event.Assignee.Login]; !isIncremented {
-				contributors.incrementFixCounters(event.Assignee, timeToDisclosure, severity)
-				areIncremented[*event.Assignee.Login] = true
+			if isIncremented := areIncremented[event.Assignee.Login]; !isIncremented {
+				contributors.incrementFixCounters(*event.Assignee, timeToDisclosure, severity)
+				areIncremented[event.Assignee.Login] = true
 			}
 		case string(installation.IssueEventActionUnassigned):
-			if eventValid, err := isIssueUnAssignedEventDataValid(event); !eventValid {
-				log.Printf("[MapIssue] event unassigened data is invalid for event with ID: %d, err: %v", event.ID, err)
-				continue
-			}
-
 			mapEventUnassigned(event, workLogs)
 		case string(installation.IssueEventActionReopened):
 			reopenCount++
@@ -163,27 +157,27 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event *github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
-	contributors.mapAssigneeIfMissing(event.Assignee, currency)
+func (contributors Contributors) mapEventAssigned(event installation.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
+	contributors.mapAssigneeIfMissing(*event.Assignee, currency)
 
 	// Append work log
-	workLogs.Add(*event.Assignee.Login, WorkLog{*event.CreatedAt, issueClosedAt})
+	workLogs.Add(event.Assignee.Login, WorkLog{event.CreatedAt, issueClosedAt})
 }
 
 // mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
-func mapEventUnassigned(event *github.IssueEvent, workLogs WorkLogs) {
-	err := workLogs.UpdateEnd(*event.Assignee.Login, *event.CreatedAt)
+func mapEventUnassigned(event installation.IssueEvent, workLogs WorkLogs) {
+	err := workLogs.UpdateEnd(event.Assignee.Login, event.CreatedAt)
 	if err != nil {
 		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
 	}
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, currency string) {
-	_, ok := contributors[*assignee.Login]
+func (contributors Contributors) mapAssigneeIfMissing(assignee installation.User, currency string) {
+	_, ok := contributors[assignee.Login]
 	if !ok {
-		contributors[*assignee.Login] = &Contributor{
-			Login:            *assignee.Login,
+		contributors[assignee.Login] = &Contributor{
+			Login:            assignee.Login,
 			AvatarURL:        assignee.AvatarURL,
 			HTMLURL:          assignee.HTMLURL,
 			GravatarID:       assignee.GravatarID,
@@ -197,8 +191,8 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee *github.User, cur
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) incrementFixCounters(assignee *github.User, timeToDisclosure float64, severity config.IssueSeverity) {
-	contributor, _ := contributors[*assignee.Login]
+func (contributors Contributors) incrementFixCounters(assignee installation.User, timeToDisclosure float64, severity config.IssueSeverity) {
+	contributor, _ := contributors[assignee.Login]
 
 	// Increment fix count
 	contributor.FixCount++

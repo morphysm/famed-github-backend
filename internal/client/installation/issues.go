@@ -31,8 +31,57 @@ type Issue struct {
 	Labels    []Label
 }
 
+func validateIssue(issue *github.Issue) (Issue, error) {
+	var compressedIssue Issue
+	if issue == nil ||
+		issue.ID == nil ||
+		issue.Number == nil ||
+		issue.Title == nil ||
+		issue.CreatedAt == nil {
+		return compressedIssue, ErrIssueMissingData
+	}
+
+	compressedIssue = Issue{
+		ID:        *issue.ID,
+		Number:    *issue.Number,
+		Title:     *issue.Title,
+		CreatedAt: *issue.CreatedAt,
+		ClosedAt:  issue.ClosedAt,
+		Assignee:  validateUser(issue.Assignee),
+	}
+
+	if issue.Labels != nil {
+		for _, label := range issue.Labels {
+			if label.Name == nil {
+				continue
+			}
+			compressedLabel := Label{Name: *label.Name}
+			compressedIssue.Labels = append(compressedIssue.Labels, compressedLabel)
+		}
+	}
+
+	return compressedIssue, nil
+}
+
 type User struct {
-	Login string
+	Login      string
+	AvatarURL  *string
+	HTMLURL    *string
+	GravatarID *string
+}
+
+func validateUser(user *github.User) *User {
+	if user != nil &&
+		user.Login != nil {
+		return &User{
+			Login:      *user.Login,
+			AvatarURL:  user.AvatarURL,
+			HTMLURL:    user.HTMLURL,
+			GravatarID: user.GravatarID,
+		}
+	}
+
+	return nil
 }
 
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]Issue, error) {
@@ -68,43 +117,6 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	}
 
 	return allCompressedIssues, nil
-}
-
-func validateIssue(issue *github.Issue) (Issue, error) {
-	var compressedIssue Issue
-	if issue == nil ||
-		issue.ID == nil ||
-		issue.Number == nil ||
-		issue.Title == nil ||
-		issue.CreatedAt == nil ||
-		issue.ClosedAt == nil {
-		return compressedIssue, ErrIssueMissingData
-	}
-
-	compressedIssue = Issue{
-		ID:        *issue.ID,
-		Number:    *issue.Number,
-		Title:     *issue.Title,
-		CreatedAt: *issue.CreatedAt,
-		ClosedAt:  issue.ClosedAt,
-	}
-
-	if issue.Assignee != nil ||
-		issue.Assignee.Login != nil {
-		compressedIssue.Assignee = &User{Login: *issue.Assignee.Login}
-	}
-
-	if issue.Labels != nil {
-		for _, label := range issue.Labels {
-			if label.Name == nil {
-				continue
-			}
-			compressedLabel := Label{Name: *label.Name}
-			compressedIssue.Labels = append(compressedIssue.Labels, compressedLabel)
-		}
-	}
-
-	return compressedIssue, nil
 }
 
 // GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.

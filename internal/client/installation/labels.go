@@ -23,12 +23,16 @@ func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, 
 	return err
 }
 
-func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repositories []*github.Repository, labels map[string]Label) []error {
+type Repository struct {
+	Name string
+}
+
+func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repositories []Repository, labels map[string]Label) []error {
 	var errors []error
 
 	for _, repository := range repositories {
 		for _, label := range labels {
-			err := c.PostLabel(ctx, owner, *repository.Name, label)
+			err := c.PostLabel(ctx, owner, repository.Name, label)
 			if err != nil {
 				errors = append(errors, err)
 			}

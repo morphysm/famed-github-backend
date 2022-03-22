@@ -3,6 +3,7 @@ package installationfakes
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	"github.com/google/go-github/v41/github"
@@ -49,7 +50,7 @@ type FakeClient struct {
 		result1 []*github.IssueComment
 		result2 error
 	}
-	GetIssueEventsStub        func(context.Context, string, string, int) ([]*github.IssueEvent, error)
+	GetIssueEventsStub        func(context.Context, string, string, int) ([]installation.IssueEvent, error)
 	getIssueEventsMutex       sync.RWMutex
 	getIssueEventsArgsForCall []struct {
 		arg1 context.Context
@@ -58,11 +59,11 @@ type FakeClient struct {
 		arg4 int
 	}
 	getIssueEventsReturns struct {
-		result1 []*github.IssueEvent
+		result1 []installation.IssueEvent
 		result2 error
 	}
 	getIssueEventsReturnsOnCall map[int]struct {
-		result1 []*github.IssueEvent
+		result1 []installation.IssueEvent
 		result2 error
 	}
 	GetIssuePullRequestStub        func(context.Context, string, string, int) (*installation.PullRequest, error)
@@ -127,12 +128,12 @@ type FakeClient struct {
 	postLabelReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostLabelsStub        func(context.Context, string, []*github.Repository, map[string]installation.Label) []error
+	PostLabelsStub        func(context.Context, string, []installation.Repository, map[string]installation.Label) []error
 	postLabelsMutex       sync.RWMutex
 	postLabelsArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []*github.Repository
+		arg3 []installation.Repository
 		arg4 map[string]installation.Label
 	}
 	postLabelsReturns struct {
@@ -155,6 +156,19 @@ type FakeClient struct {
 	}
 	updateCommentReturnsOnCall map[int]struct {
 		result1 error
+	}
+	ValidateWebHookEventStub        func(*http.Request) (interface{}, error)
+	validateWebHookEventMutex       sync.RWMutex
+	validateWebHookEventArgsForCall []struct {
+		arg1 *http.Request
+	}
+	validateWebHookEventReturns struct {
+		result1 interface{}
+		result2 error
+	}
+	validateWebHookEventReturnsOnCall map[int]struct {
+		result1 interface{}
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -350,7 +364,7 @@ func (fake *FakeClient) GetCommentsReturnsOnCall(i int, result1 []*github.IssueC
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]*github.IssueEvent, error) {
+func (fake *FakeClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]installation.IssueEvent, error) {
 	fake.getIssueEventsMutex.Lock()
 	ret, specificReturn := fake.getIssueEventsReturnsOnCall[len(fake.getIssueEventsArgsForCall)]
 	fake.getIssueEventsArgsForCall = append(fake.getIssueEventsArgsForCall, struct {
@@ -378,7 +392,7 @@ func (fake *FakeClient) GetIssueEventsCallCount() int {
 	return len(fake.getIssueEventsArgsForCall)
 }
 
-func (fake *FakeClient) GetIssueEventsCalls(stub func(context.Context, string, string, int) ([]*github.IssueEvent, error)) {
+func (fake *FakeClient) GetIssueEventsCalls(stub func(context.Context, string, string, int) ([]installation.IssueEvent, error)) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = stub
@@ -391,28 +405,28 @@ func (fake *FakeClient) GetIssueEventsArgsForCall(i int) (context.Context, strin
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeClient) GetIssueEventsReturns(result1 []*github.IssueEvent, result2 error) {
+func (fake *FakeClient) GetIssueEventsReturns(result1 []installation.IssueEvent, result2 error) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = nil
 	fake.getIssueEventsReturns = struct {
-		result1 []*github.IssueEvent
+		result1 []installation.IssueEvent
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetIssueEventsReturnsOnCall(i int, result1 []*github.IssueEvent, result2 error) {
+func (fake *FakeClient) GetIssueEventsReturnsOnCall(i int, result1 []installation.IssueEvent, result2 error) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = nil
 	if fake.getIssueEventsReturnsOnCall == nil {
 		fake.getIssueEventsReturnsOnCall = make(map[int]struct {
-			result1 []*github.IssueEvent
+			result1 []installation.IssueEvent
 			result2 error
 		})
 	}
 	fake.getIssueEventsReturnsOnCall[i] = struct {
-		result1 []*github.IssueEvent
+		result1 []installation.IssueEvent
 		result2 error
 	}{result1, result2}
 }
@@ -686,10 +700,10 @@ func (fake *FakeClient) PostLabelReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []*github.Repository, arg4 map[string]installation.Label) []error {
-	var arg3Copy []*github.Repository
+func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []installation.Repository, arg4 map[string]installation.Label) []error {
+	var arg3Copy []installation.Repository
 	if arg3 != nil {
-		arg3Copy = make([]*github.Repository, len(arg3))
+		arg3Copy = make([]installation.Repository, len(arg3))
 		copy(arg3Copy, arg3)
 	}
 	fake.postLabelsMutex.Lock()
@@ -697,7 +711,7 @@ func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []*gi
 	fake.postLabelsArgsForCall = append(fake.postLabelsArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []*github.Repository
+		arg3 []installation.Repository
 		arg4 map[string]installation.Label
 	}{arg1, arg2, arg3Copy, arg4})
 	stub := fake.PostLabelsStub
@@ -719,13 +733,13 @@ func (fake *FakeClient) PostLabelsCallCount() int {
 	return len(fake.postLabelsArgsForCall)
 }
 
-func (fake *FakeClient) PostLabelsCalls(stub func(context.Context, string, []*github.Repository, map[string]installation.Label) []error) {
+func (fake *FakeClient) PostLabelsCalls(stub func(context.Context, string, []installation.Repository, map[string]installation.Label) []error) {
 	fake.postLabelsMutex.Lock()
 	defer fake.postLabelsMutex.Unlock()
 	fake.PostLabelsStub = stub
 }
 
-func (fake *FakeClient) PostLabelsArgsForCall(i int) (context.Context, string, []*github.Repository, map[string]installation.Label) {
+func (fake *FakeClient) PostLabelsArgsForCall(i int) (context.Context, string, []installation.Repository, map[string]installation.Label) {
 	fake.postLabelsMutex.RLock()
 	defer fake.postLabelsMutex.RUnlock()
 	argsForCall := fake.postLabelsArgsForCall[i]
@@ -820,6 +834,70 @@ func (fake *FakeClient) UpdateCommentReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeClient) ValidateWebHookEvent(arg1 *http.Request) (interface{}, error) {
+	fake.validateWebHookEventMutex.Lock()
+	ret, specificReturn := fake.validateWebHookEventReturnsOnCall[len(fake.validateWebHookEventArgsForCall)]
+	fake.validateWebHookEventArgsForCall = append(fake.validateWebHookEventArgsForCall, struct {
+		arg1 *http.Request
+	}{arg1})
+	stub := fake.ValidateWebHookEventStub
+	fakeReturns := fake.validateWebHookEventReturns
+	fake.recordInvocation("ValidateWebHookEvent", []interface{}{arg1})
+	fake.validateWebHookEventMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClient) ValidateWebHookEventCallCount() int {
+	fake.validateWebHookEventMutex.RLock()
+	defer fake.validateWebHookEventMutex.RUnlock()
+	return len(fake.validateWebHookEventArgsForCall)
+}
+
+func (fake *FakeClient) ValidateWebHookEventCalls(stub func(*http.Request) (interface{}, error)) {
+	fake.validateWebHookEventMutex.Lock()
+	defer fake.validateWebHookEventMutex.Unlock()
+	fake.ValidateWebHookEventStub = stub
+}
+
+func (fake *FakeClient) ValidateWebHookEventArgsForCall(i int) *http.Request {
+	fake.validateWebHookEventMutex.RLock()
+	defer fake.validateWebHookEventMutex.RUnlock()
+	argsForCall := fake.validateWebHookEventArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClient) ValidateWebHookEventReturns(result1 interface{}, result2 error) {
+	fake.validateWebHookEventMutex.Lock()
+	defer fake.validateWebHookEventMutex.Unlock()
+	fake.ValidateWebHookEventStub = nil
+	fake.validateWebHookEventReturns = struct {
+		result1 interface{}
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) ValidateWebHookEventReturnsOnCall(i int, result1 interface{}, result2 error) {
+	fake.validateWebHookEventMutex.Lock()
+	defer fake.validateWebHookEventMutex.Unlock()
+	fake.ValidateWebHookEventStub = nil
+	if fake.validateWebHookEventReturnsOnCall == nil {
+		fake.validateWebHookEventReturnsOnCall = make(map[int]struct {
+			result1 interface{}
+			result2 error
+		})
+	}
+	fake.validateWebHookEventReturnsOnCall[i] = struct {
+		result1 interface{}
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -843,6 +921,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.postLabelsMutex.RUnlock()
 	fake.updateCommentMutex.RLock()
 	defer fake.updateCommentMutex.RUnlock()
+	fake.validateWebHookEventMutex.RLock()
+	defer fake.validateWebHookEventMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

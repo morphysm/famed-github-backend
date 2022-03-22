@@ -5,7 +5,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
@@ -13,7 +12,7 @@ import (
 
 type WrappedIssue struct {
 	Issue  installation.Issue
-	Events []*github.IssueEvent
+	Events []installation.IssueEvent
 }
 
 func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {

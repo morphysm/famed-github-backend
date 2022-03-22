@@ -19,16 +19,15 @@ type HTTPHandler interface {
 type githubHandler struct {
 	githubAppClient          app.Client
 	githubInstallationClient installation.Client
-	webhookSecret            *string
-	famedConfig              Config
+
+	famedConfig Config
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubAppClient app.Client, githubInstallationClient installation.Client, webhookSecret *string, famedConfig Config) HTTPHandler {
+func NewHandler(githubAppClient app.Client, githubInstallationClient installation.Client, famedConfig Config) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
-		webhookSecret:            webhookSecret,
 		famedConfig:              famedConfig,
 	}
 }

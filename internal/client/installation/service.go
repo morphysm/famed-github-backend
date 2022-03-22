@@ -2,6 +2,7 @@ package installation
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v41/github"
@@ -17,14 +18,15 @@ type Client interface {
 
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
 
-	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueEvent, error)
+	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueEvent, error)
+	ValidateWebHookEvent(request *http.Request) (interface{}, error)
 
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
 
 	PostLabel(ctx context.Context, owner string, repo string, label Label) error
-	PostLabels(ctx context.Context, owner string, repositories []*github.Repository, labels map[string]Label) []error
+	PostLabels(ctx context.Context, owner string, repositories []Repository, labels map[string]Label) []error
 
 	AddInstallation(owner string, installationID int64) error
 	CheckInstallation(owner string) bool
@@ -69,17 +71,19 @@ func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
 
 // githubInstallationClient represents all GitHub installation clients
 type githubInstallationClient struct {
-	baseURL   string
-	appClient app.Client
-	clients   safeClientMap
+	baseURL       string
+	webhookSecret string
+	appClient     app.Client
+	clients       safeClientMap
 }
 
 // NewClient returns a new instance of the GitHub client
-func NewClient(baseURL string, appClient app.Client, installations map[string]int64) (Client, error) {
+func NewClient(baseURL string, appClient app.Client, installations map[string]int64, webhookSecret string) (Client, error) {
 	client := &githubInstallationClient{
-		baseURL:   baseURL,
-		appClient: appClient,
-		clients:   newSafeClientMap(),
+		baseURL:       baseURL,
+		webhookSecret: webhookSecret,
+		appClient:     appClient,
+		clients:       newSafeClientMap(),
 	}
 
 	for owner, installationID := range installations {

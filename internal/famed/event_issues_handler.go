@@ -83,8 +83,8 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 		return "", ErrEventMissingFamedLabel
 	}
 
-	if event.Assignee == nil {
-		RewardCommentFromError(ErrIssueMissingAssignee)
+	if event.Issue.Assignee == nil {
+		return RewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)

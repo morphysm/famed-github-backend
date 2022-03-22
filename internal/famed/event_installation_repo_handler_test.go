@@ -34,9 +34,10 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 	}
 
 	testCases := []struct {
-		Name        string
-		Event       *github.InstallationRepositoriesEvent
-		ExpectedErr error
+		Name          string
+		Event         *github.InstallationRepositoriesEvent
+		ExpectedRepos []installation.Repository
+		ExpectedErr   error
 	}{
 		{
 			Name:        "Empty installation event",
@@ -50,7 +51,8 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 				RepositoriesAdded: []*github.Repository{{Name: pointers.String("TestRepo1")}},
 				Installation:      &github.Installation{Account: &github.User{Login: pointers.String("TestUser")}},
 			},
-			ExpectedErr: nil,
+			ExpectedRepos: []installation.Repository{{Name: "TestRepo1"}},
+			ExpectedErr:   nil,
 		},
 	}
 
@@ -72,18 +74,23 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 			fakeInstallationClient := &installationfakes.FakeClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
+			cl, _ := installation.NewClient("", nil, nil, "")
+			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, nil, famedConfig)
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)
 
 			// THEN
 			if testCase.ExpectedErr == nil {
-				_, owner, repos, labels := fakeInstallationClient.PostLabelsArgsForCall(0)
-				assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
-				assert.Equal(t, testCase.Event.RepositoriesAdded, repos)
-				assert.Equal(t, famedConfig.Labels, labels)
+				assert.Equal(t, 1, fakeInstallationClient.PostLabelsCallCount())
+				if fakeInstallationClient.PostLabelsCallCount() == 1 {
+					_, owner, repos, labels := fakeInstallationClient.PostLabelsArgsForCall(0)
+					assert.Equal(t, *testCase.Event.Installation.Account.Login, owner)
+					assert.Equal(t, testCase.ExpectedRepos, repos)
+					assert.Equal(t, famedConfig.Labels, labels)
+				}
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)
 		})
