@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
@@ -53,8 +52,8 @@ func RewardCommentFromError(err error) string {
 }
 
 // IssueEligibleComment generate an issue eligible RewardComment.
-func IssueEligibleComment(issue *github.Issue, pullRequest *installation.PullRequest) (string, error) {
-	comment := fmt.Sprintf("🤖 Assignees for WrappedIssue **%s #%d** are now eligible to Get Famed.", *issue.Title, *issue.Number)
+func IssueEligibleComment(issue installation.Issue, pullRequest *installation.PullRequest) (string, error) {
+	comment := fmt.Sprintf("🤖 Assignees for WrappedIssue **%s #%d** are now eligible to Get Famed.", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
@@ -71,7 +70,7 @@ func IssueEligibleComment(issue *github.Issue, pullRequest *installation.PullReq
 	return comment, nil
 }
 
-func assigneeComment(issue *github.Issue) string {
+func assigneeComment(issue installation.Issue) string {
 	if issue.Assignee != nil {
 		return "- ✅ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
 	}

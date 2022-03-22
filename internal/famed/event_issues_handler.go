@@ -25,20 +25,15 @@ var ErrIssueMissingPullRequest = errors.New("the issue is missing a pull request
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
-func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesEvent) error {
-	// Check event base requirements
-	if !isWebhookEventValid(event) {
-		log.Printf("[handleIssuesEvent] err: %v", ErrEventMissingData)
-		return ErrEventMissingData
-	}
-
+func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.IssuesEvent) error {
 	var (
 		commentType commentType
 		comment     string
 		err         error
 		ctx         = c.Request().Context()
 	)
-	switch *event.Action {
+
+	switch event.Action {
 	case string(installation.Closed):
 		comment, err = gH.handleClosedEvent(ctx, event)
 		if err != nil {
@@ -70,7 +65,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 	}
 
 	// Post comment to GitHub
-	err = gH.postOrUpdateComment(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number, comment, commentType)
+	err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, commentType)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting RewardComment: %v", err)
 		return err
@@ -80,19 +75,19 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event *github.IssuesE
 }
 
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
-func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installation.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 
-	_, err := isCloseEventValid(event, famedLabel.Name)
-	if err != nil {
-		if errors.Is(err, ErrIssueMissingAssignee) {
-			return RewardCommentFromError(err), nil
-		}
-
-		return "", err
+	famedLabeled := isIssueFamedLabeled(event.Issue, famedLabel.Name)
+	if !famedLabeled {
+		return "", ErrEventMissingFamedLabel
 	}
 
-	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
+	if event.Assignee == nil {
+		RewardCommentFromError(ErrIssueMissingAssignee)
+	}
+
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +96,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.Is
 		return RewardCommentFromError(ErrIssueMissingPullRequest), nil
 	}
 
-	issue, err := gH.loadIssueEvents(ctx, *event.Repo.Owner.Login, *event.Repo.Name, event.Issue)
+	issue, err := gH.loadIssueEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
 	if err != nil {
 		return "", err
 	}
@@ -118,17 +113,13 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event *github.Is
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
-func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event *github.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event installation.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
 		return "", ErrEventMissingFamedLabel
 	}
 
-	if !isEligibleIssueValid(event.Issue) {
-		return "", ErrIssueMissingData
-	}
-
-	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if err != nil {
 		return "", err
 	}

@@ -2,6 +2,8 @@ package installation
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"github.com/google/go-github/v41/github"
 )
@@ -19,11 +21,26 @@ const (
 	Unlabeled  IssueState = "unlabeled"
 )
 
-func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]*github.Issue, error) {
+type Issue struct {
+	ID        int64
+	Number    int
+	Title     string
+	CreatedAt time.Time
+	ClosedAt  *time.Time
+	Assignee  *User
+	Labels    []Label
+}
+
+type User struct {
+	Login string
+}
+
+func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]Issue, error) {
 	var (
-		client, _   = c.clients.get(owner)
-		allIssues   []*github.Issue
-		listOptions = &github.ListOptions{
+		client, _           = c.clients.get(owner)
+		allIssues           []*github.Issue
+		allCompressedIssues []Issue
+		listOptions         = &github.ListOptions{
 			Page:    1,
 			PerPage: 100,
 		}
@@ -32,7 +49,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	for {
 		issues, resp, err := client.Issues.ListByRepo(ctx, owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
 		if err != nil {
-			return allIssues, err
+			return allCompressedIssues, err
 		}
 		allIssues = append(allIssues, issues...)
 		if resp.NextPage == 0 {
@@ -41,7 +58,53 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 		listOptions.Page = resp.NextPage
 	}
 
-	return allIssues, nil
+	for _, issue := range allIssues {
+		compressedIssue, err := validateIssue(issue)
+		if err != nil {
+			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
+		}
+
+		allCompressedIssues = append(allCompressedIssues, compressedIssue)
+	}
+
+	return allCompressedIssues, nil
+}
+
+func validateIssue(issue *github.Issue) (Issue, error) {
+	var compressedIssue Issue
+	if issue == nil ||
+		issue.ID == nil ||
+		issue.Number == nil ||
+		issue.Title == nil ||
+		issue.CreatedAt == nil ||
+		issue.ClosedAt == nil {
+		return compressedIssue, ErrIssueMissingData
+	}
+
+	compressedIssue = Issue{
+		ID:        *issue.ID,
+		Number:    *issue.Number,
+		Title:     *issue.Title,
+		CreatedAt: *issue.CreatedAt,
+		ClosedAt:  issue.ClosedAt,
+	}
+
+	if issue.Assignee != nil ||
+		issue.Assignee.Login != nil {
+		compressedIssue.Assignee = &User{Login: *issue.Assignee.Login}
+	}
+
+	if issue.Labels != nil {
+		for _, label := range issue.Labels {
+			if label.Name == nil {
+				continue
+			}
+			compressedLabel := Label{Name: *label.Name}
+			compressedIssue.Labels = append(compressedIssue.Labels, compressedLabel)
+		}
+	}
+
+	return compressedIssue, nil
 }
 
 // GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.

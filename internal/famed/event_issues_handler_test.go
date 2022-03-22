@@ -36,7 +36,7 @@ func TestPostIssuesEvent(t *testing.T) {
 
 	testCases := []struct {
 		Name            string
-		Event           github.IssuesEvent
+		Event           *github.IssuesEvent
 		Events          []*github.IssueEvent
 		PullRequest     *installation.PullRequest
 		ExpectedComment string
@@ -44,7 +44,7 @@ func TestPostIssuesEvent(t *testing.T) {
 	}{
 		{
 			Name: "Closed - Empty event",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 			},
 			ExpectedComment: "",
@@ -52,7 +52,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - No Assignee",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -72,7 +72,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - No Label",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -94,7 +94,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - Multiple Labels",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -115,7 +115,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - No events",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -136,7 +136,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - No pull request",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -156,7 +156,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Closed - Valid",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointers.Int64(1),
@@ -185,7 +185,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		// Eligible comment
 		{
 			Name: "Assigned - Missing data",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					Labels: []*github.Label{{Name: pointers.String("famed")}},
@@ -196,7 +196,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Assigned - Valid - Non present",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					ID:     pointers.Int64(1),
@@ -219,7 +219,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Assigned - Valid - Assignee present",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					ID:       pointers.Int64(1),
@@ -243,7 +243,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Assigned - Valid - Label present",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					ID:     pointers.Int64(1),
@@ -266,7 +266,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Assigned - Valid - PR present",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					ID:     pointers.Int64(1),
@@ -290,7 +290,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		},
 		{
 			Name: "Assigned - Valid - All present",
-			Event: github.IssuesEvent{
+			Event: &github.IssuesEvent{
 				Action: pointers.String("assigned"),
 				Issue: &github.Issue{
 					ID:       pointers.Int64(1),

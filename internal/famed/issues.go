@@ -12,7 +12,7 @@ import (
 )
 
 type WrappedIssue struct {
-	Issue  *github.Issue
+	Issue  installation.Issue
 	Events []*github.IssueEvent
 }
 
@@ -24,17 +24,12 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 		return nil, echo.ErrBadGateway.SetInternal(err)
 	}
 
-	filteredIssues := filterIssues(issuesResponse)
-	if len(filteredIssues) == 0 {
-		return nil, nil
-	}
-
 	wg := sync.WaitGroup{}
-	issues := make(map[int]WrappedIssue, len(filteredIssues))
-	for _, issue := range filteredIssues {
+	issues := make(map[int]WrappedIssue, len(issuesResponse))
+	for _, issue := range issuesResponse {
 		wg.Add(1)
 
-		go func(ctx context.Context, issue *github.Issue) {
+		go func(ctx context.Context, issue installation.Issue) {
 			defer wg.Done()
 
 			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
@@ -42,7 +37,7 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 				log.Printf("[loadIssuesAndEvents] error while requesting events for issue with number %d: %v", issue.Number, err)
 			}
 
-			issues[*issue.Number] = wrappedIssue
+			issues[issue.Number] = wrappedIssue
 		}(ctx, issue)
 	}
 
@@ -50,10 +45,10 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 	return issues, nil
 }
 
-func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue *github.Issue) (WrappedIssue, error) {
+func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue installation.Issue) (WrappedIssue, error) {
 	var wrappedIssue WrappedIssue
 
-	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, *issue.Number)
+	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		return wrappedIssue, err
 	}
@@ -62,18 +57,4 @@ func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repo
 	wrappedIssue.Events = events
 
 	return wrappedIssue, nil
-}
-
-// filterIssues filters for valid issues.
-func filterIssues(issues []*github.Issue) []*github.Issue {
-	filteredIssues := make([]*github.Issue, 0)
-	for _, issue := range issues {
-		if _, err := isIssueValid(issue); err != nil {
-			log.Printf("[issuesToContributors] issue invalid with ID: %d, error: %v \n", issue.ID, err)
-			continue
-		}
-		filteredIssues = append(filteredIssues, issue)
-	}
-
-	return filteredIssues
 }

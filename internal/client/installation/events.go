@@ -2,10 +2,8 @@ package installation
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/shurcooL/githubv4"
 )
 
 type IssueEventAction string
@@ -80,107 +78,58 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 	return allEvents, nil
 }
 
-type issueTimelineDisconnectionItem struct {
-	DisconnectedEvent connectedEvent `graphql:"... on DisconnectedEvent"`
+type IssuesEvent struct {
+	Action string
+	Repo
+	Issue
 }
 
-type issueTimelineConnectionItem struct {
-	ConnectedEvent connectedEvent `graphql:"... on ConnectedEvent"`
+type Repo struct {
+	Name  string
+	Owner User
 }
 
-type connectedEvent struct {
-	Subject struct {
-		PullRequest PullRequest `graphql:"... on PullRequest"`
+func ValidateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
+	var issuesEvent IssuesEvent
+	if event.Action == nil ||
+		event.Repo == nil ||
+		event.Repo.Name == nil ||
+		event.Repo.Owner == nil ||
+		event.Repo.Owner.Login == nil {
+		return issuesEvent, ErrEventMissingData
 	}
-	CreatedAt time.Time
-}
 
-type PullRequest struct {
-	URL string
-}
+	switch *event.Action {
+	case string(Closed):
+		fallthrough
 
-// getDisconnectedEvents returns all IssueTimelineDisconnectionItems for a given issue.
-// This is used as a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
-func (c *githubInstallationClient) getDisconnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]issueTimelineDisconnectionItem, error) {
-	var (
-		client, _        = c.clients.getGql(owner)
-		allTimelineItems []issueTimelineDisconnectionItem
-		query            struct {
-			Repository struct {
-				Issue struct {
-					TimelineItems struct {
-						Nodes    []issueTimelineDisconnectionItem
-						PageInfo struct {
-							EndCursor   githubv4.String
-							HasNextPage bool
-						}
-					} `graphql:"timelineItems(first: 100, after: $commentsCursor)"`
-				} `graphql:"issue(number: $issueNumber)"`
-			} `graphql:"repository(owner: $owner, name: $repoName)"`
-		}
-		variables = map[string]interface{}{
-			"owner":          githubv4.String(owner),
-			"repoName":       githubv4.String(repoName),
-			"issueNumber":    githubv4.Int(issueNumber),
-			"commentsCursor": (*githubv4.String)(nil),
-		}
-	)
+	case string(Assigned):
+		fallthrough
 
-	for {
-		err := client.Query(ctx, &query, variables)
+	case string(Unassigned):
+		fallthrough
+
+	case string(Labeled):
+		fallthrough
+
+	case string(Unlabeled):
+		issue, err := validateIssue(event.Issue)
 		if err != nil {
-			return nil, err
+			return issuesEvent, err
 		}
 
-		allTimelineItems = append(allTimelineItems, query.Repository.Issue.TimelineItems.Nodes...)
-		if !query.Repository.Issue.TimelineItems.PageInfo.HasNextPage {
-			break
-		}
-		variables["commentsCursor"] = githubv4.NewString(query.Repository.Issue.TimelineItems.PageInfo.EndCursor)
+		return IssuesEvent{
+			Action: *event.Action,
+			Repo: Repo{
+				Name: *event.Repo.Name,
+				Owner: User{
+					Login: *event.Repo.Owner.Login,
+				},
+			},
+			Issue: issue,
+		}, nil
+
+	default:
+		return issuesEvent, ErrUnhandledEventType
 	}
-
-	return allTimelineItems, nil
-}
-
-// getConnectedEvents returns all issueTimelineConnectionItem for a given issue.
-// This is used as a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
-func (c *githubInstallationClient) getConnectedEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]issueTimelineConnectionItem, error) {
-	var (
-		client, _        = c.clients.getGql(owner)
-		allTimelineItems []issueTimelineConnectionItem
-		query            struct {
-			Repository struct {
-				Issue struct {
-					TimelineItems struct {
-						Nodes    []issueTimelineConnectionItem
-						PageInfo struct {
-							EndCursor   githubv4.String
-							HasNextPage bool
-						}
-					} `graphql:"timelineItems(first: 100, after: $commentsCursor)"`
-				} `graphql:"issue(number: $issueNumber)"`
-			} `graphql:"repository(owner: $owner, name: $repoName)"`
-		}
-		variables = map[string]interface{}{
-			"owner":          githubv4.String(owner),
-			"repoName":       githubv4.String(repoName),
-			"issueNumber":    githubv4.Int(issueNumber),
-			"commentsCursor": (*githubv4.String)(nil),
-		}
-	)
-
-	for {
-		err := client.Query(ctx, &query, variables)
-		if err != nil {
-			return nil, err
-		}
-
-		allTimelineItems = append(allTimelineItems, query.Repository.Issue.TimelineItems.Nodes...)
-		if !query.Repository.Issue.TimelineItems.PageInfo.HasNextPage {
-			break
-		}
-		variables["commentsCursor"] = githubv4.NewString(query.Repository.Issue.TimelineItems.PageInfo.EndCursor)
-	}
-
-	return allTimelineItems, nil
 }

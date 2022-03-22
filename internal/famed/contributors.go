@@ -102,13 +102,18 @@ func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOpt
 func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
 	var (
 		// areIncremented tracks contributors that have had their fix counters incremented
-		areIncremented   = make(map[string]bool)
-		workLogs         = WorkLogs{}
-		reopenCount      = 0
-		issueCreatedAt   = *issue.Issue.CreatedAt
-		issueClosedAt    = *issue.Issue.ClosedAt
-		timeToDisclosure = issueClosedAt.Sub(issueCreatedAt).Minutes()
+		areIncremented = make(map[string]bool)
+		workLogs       = WorkLogs{}
+		reopenCount    = 0
+		issueCreatedAt = issue.Issue.CreatedAt
 	)
+
+	// Check if issue has closed at timestamp
+	if issue.Issue.ClosedAt == nil {
+		return ErrIssueClosedAt
+	}
+	issueClosedAt := *issue.Issue.ClosedAt
+	timeToDisclosure := issueClosedAt.Sub(issueCreatedAt).Minutes()
 
 	// Read severity from issue
 	severity, err := issue.severity()

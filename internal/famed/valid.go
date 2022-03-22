@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrIssueMissingAssignee   = errors.New("the issue is missing an assignee")
+	ErrIssueClosedAt          = errors.New("the issue is missing the closed at timestamp")
 	ErrIssueMissingData       = errors.New("the issue is missing data promised by the GitHub API")
 	ErrIssueMissingFamedLabel = errors.New("the issue is missing the famed label")
 
@@ -20,59 +21,6 @@ var (
 	ErrEventNotInstallationCreated = errors.New("the event is not a installation created event")
 	ErrEventMissingFamedLabel      = errors.New("the event is missing the famed label")
 )
-
-// isIssueValid checks weather all necessary issue fields are assigned.
-func isIssueValid(issue *github.Issue) (bool, error) {
-	if issue == nil ||
-		issue.ID == nil ||
-		issue.Number == nil ||
-		issue.CreatedAt == nil ||
-		issue.ClosedAt == nil {
-		log.Printf("[isIssueValid] missing values in issue with ID: %d", issue.ID)
-		return false, ErrIssueMissingData
-	}
-	if issue.Assignee == nil ||
-		issue.Assignee.Login == nil {
-		log.Printf("[isIssueValid] missing assignee in issue with ID: %d", issue.ID)
-		return false, ErrIssueMissingAssignee
-	}
-
-	return true, nil
-}
-
-func isEligibleIssueValid(issue *github.Issue) bool {
-	return hasIssue(issue) && hasIssueNumber(issue) && hasIssueTitle(issue)
-}
-
-func hasIssue(issue *github.Issue) bool {
-	return issue != nil
-}
-
-func hasIssueNumber(issue *github.Issue) bool {
-	return issue.Number != nil
-}
-
-func hasIssueTitle(issue *github.Issue) bool {
-	return issue.Title != nil
-}
-
-func hasEventAction(event *github.IssuesEvent) bool {
-	return event.Action != nil
-}
-
-func hasEvent(event *github.IssuesEvent) bool {
-	return event != nil
-}
-
-// isWebhookEventValid checks if the base webhook event fields are assigned.
-func isWebhookEventValid(event *github.IssuesEvent) bool {
-	return hasEvent(event) &&
-		hasEventAction(event) &&
-		isRepoValid(event.Repo) &&
-		isUserValid(event.Repo.Owner) &&
-		hasIssue(event.Issue) &&
-		hasIssueNumber(event.Issue)
-}
 
 // isInstallationEventValid checks weather all necessary event fields are assigned.
 func isInstallationEventValid(event *github.InstallationEvent) (bool, error) {
@@ -109,40 +57,6 @@ func isRepoAddedEventValid(event *github.InstallationRepositoriesEvent) (bool, e
 	return true, nil
 }
 
-// isCloseEventValid checks weather all necessary event fields are assigned.
-func isCloseEventValid(event *github.IssuesEvent, famedLabel string) (bool, error) {
-	if _, err := isIssuesEventDataValid(event); err != nil {
-		return false, err
-	}
-	if *event.Action != string(installation.Closed) {
-		log.Println("[isCloseEventValid] event is not a closed event")
-		return false, ErrEventNotClose
-	}
-	if !isIssueFamedLabeled(event.Issue, famedLabel) {
-		return false, ErrIssueMissingFamedLabel
-	}
-	if _, err := isIssueValid(event.Issue); err != nil {
-		log.Println("[isCloseEventValid] event issue is missing data")
-		return false, err
-	}
-
-	return true, nil
-}
-
-func isIssuesEventDataValid(event *github.IssuesEvent) (bool, error) {
-	if event == nil ||
-		event.Action == nil ||
-		event.Repo == nil ||
-		event.Repo.Name == nil ||
-		event.Repo.Owner == nil ||
-		event.Repo.Owner.Login == nil {
-		log.Println("[isIssuesEventValid] event is not a valid issuesEvent")
-		return false, ErrEventMissingData
-	}
-
-	return true, nil
-}
-
 // isIssueUnAssignedEventDataValid checks weather the assigner or unassigned event has all necessary data
 func isIssueUnAssignedEventDataValid(event *github.IssueEvent) (bool, error) {
 	if event == nil || event.CreatedAt == nil {
@@ -161,24 +75,15 @@ func isAssigneeDataValid(assignee *github.User) (bool, error) {
 }
 
 // isIssueFamedLabeled checks weather the issue labels contain expected famed label.
-func isIssueFamedLabeled(issue *github.Issue, famedLabel string) bool {
+func isIssueFamedLabeled(issue installation.Issue, famedLabel string) bool {
 	for _, label := range issue.Labels {
-		if isLabelValid(label) && *label.Name == famedLabel {
+		if label.Name == famedLabel {
 			return true
 		}
 	}
 
-	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, *issue.ID)
+	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, issue.ID)
 	return false
-}
-
-func isLabelValid(label *github.Label) bool {
-	if label != nil && label.Name == nil {
-		log.Printf("[isLabelValid] missing label name in label with ID: %d", label.ID)
-		return false
-	}
-
-	return true
 }
 
 func isCommentValid(comment *github.IssueComment) bool {
@@ -187,8 +92,4 @@ func isCommentValid(comment *github.IssueComment) bool {
 
 func isUserValid(user *github.User) bool {
 	return user != nil && user.Login != nil
-}
-
-func isRepoValid(repo *github.Repository) bool {
-	return repo != nil && repo.Name != nil
 }

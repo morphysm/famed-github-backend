@@ -17,21 +17,17 @@ var (
 func (wI WrappedIssue) severity() (config.IssueSeverity, error) {
 	var severity config.IssueSeverity
 	for _, label := range wI.Issue.Labels {
-		if !isLabelValid(label) {
-			continue
-		}
-
 		// Check if label is equal to one of the predefined severity labels.
-		if *label.Name == string(config.CVSSNone) ||
-			*label.Name == string(config.CVSSLow) ||
-			*label.Name == string(config.CVSSMedium) ||
-			*label.Name == string(config.CVSSHigh) ||
-			*label.Name == string(config.CVSSCritical) {
+		if label.Name == string(config.CVSSNone) ||
+			label.Name == string(config.CVSSLow) ||
+			label.Name == string(config.CVSSMedium) ||
+			label.Name == string(config.CVSSHigh) ||
+			label.Name == string(config.CVSSCritical) {
 			// If
 			if severity != "" {
 				return "", ErrIssueMultipleSeverityLabels
 			}
-			severity = config.IssueSeverity(*label.Name)
+			severity = config.IssueSeverity(label.Name)
 		}
 	}
 
