@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +32,7 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 		return ErrAppNotInstalled
 	}
 
-	response, err := gH.compareAndUpdateComments(c.Request().Context(), owner, repoName)
+	response, err := gH.updateComments(c.Request().Context(), owner, repoName)
 	if err != nil {
 		return err
 	}
@@ -41,8 +40,8 @@ func (gH *githubHandler) UpdateComments(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// compareAndUpdateComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
+// updateComments checks all comments and updates comments where necessary in a concurrent fashion.
+func (gH *githubHandler) updateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
 	issues, err := gH.loadIssuesAndEvents(ctx, owner, repoName)
 	if err != nil {
 		return nil, err
@@ -60,11 +59,11 @@ func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner str
 			rewards:  gH.famedConfig.Rewards,
 		})
 		if err != nil {
-			comments[issueNumber] = RewardCommentFromError(err)
+			comments[issueNumber] = rewardCommentFromError(err)
 			continue
 		}
 
-		comments[issueNumber] = RewardComment(contributors, gH.famedConfig.Currency)
+		comments[issueNumber] = rewardComment(contributors, gH.famedConfig.Currency)
 	}
 
 	var wg sync.WaitGroup
@@ -72,7 +71,7 @@ func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner str
 	for issueNumber, comment := range comments {
 		issueCommentUpdates[i] = &IssueCommentUpdate{}
 		wg.Add(1)
-		go gH.compareAndUpdateComment(ctx, &wg, owner, repoName, issueNumber, comment, issueCommentUpdates[i])
+		go gH.updateComment(ctx, &wg, owner, repoName, issueNumber, comment, issueCommentUpdates[i])
 		i++
 	}
 	wg.Wait()
@@ -80,8 +79,8 @@ func (gH *githubHandler) compareAndUpdateComments(ctx context.Context, owner str
 	return issueCommentUpdates, nil
 }
 
-// compareAndUpdateComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) compareAndUpdateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
+// updateComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
+func (gH *githubHandler) updateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
 	defer wg.Done()
 	issueCommentUpdate.IssueNumber = issueNumber
 
@@ -92,29 +91,16 @@ func (gH *githubHandler) compareAndUpdateComment(ctx context.Context, wg *sync.W
 		return
 	}
 
-	lastCommentByBot := findRewardComment(issueComments, gH.famedConfig.BotLogin)
-	if lastCommentByBot == nil || (isCommentValid(lastCommentByBot) && *lastCommentByBot.Body != comment) {
-		log.Printf("[UpdateComments] updating RewardComment for issue #%d", issueNumber)
+	lastCommentByBot, found := findComment(issueComments, gH.famedConfig.BotLogin, commentReward)
+	if !found || lastCommentByBot.Body != comment {
+		log.Printf("[UpdateComments] updating rewardComment for issue #%d", issueNumber)
 		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
 		if err != nil {
-			log.Printf("[UpdateComments] error while posting RewardComment for issue #%d, error: %v", issueNumber, err)
+			log.Printf("[UpdateComments] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
 			issueCommentUpdate.Error = err.Error()
 			return
 		}
 
 		issueCommentUpdate.Updated = true
 	}
-}
-
-// findRewardComment returns the last RewardComment made by a user in a list of comments.
-func findRewardComment(issueComments []*github.IssueComment, botLogin string) *github.IssueComment {
-	for i := len(issueComments) - 1; i >= 0; i-- {
-		comment := issueComments[i]
-
-		if isUserValid(comment.User) && *comment.User.Login == botLogin && verifyCommentType(*comment.Body, commentReward) {
-			return comment
-		}
-	}
-
-	return nil
 }

@@ -157,11 +157,11 @@ func (c *githubInstallationClient) ValidateWebHookEvent(request *http.Request) (
 
 type IssuesEvent struct {
 	Action string
-	Repo
+	Repo   Repository
 	Issue
 }
 
-type Repo struct {
+type Repository struct {
 	Name  string
 	Owner User
 }
@@ -197,7 +197,7 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 
 		return IssuesEvent{
 			Action: *event.Action,
-			Repo: Repo{
+			Repo: Repository{
 				Name: *event.Repo.Name,
 				Owner: User{
 					Login: *event.Repo.Owner.Login,

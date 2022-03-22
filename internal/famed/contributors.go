@@ -25,7 +25,7 @@ type Contributor struct {
 	TimeToDisclosure TimeToDisclosure             `json:"timeToDisclosure"`
 	Severities       map[config.IssueSeverity]int `json:"severities"`
 	MeanSeverity     float64                      `json:"meanSeverity"`
-	// For issue RewardComment generation
+	// For issue rewardComment generation
 	TotalWorkTime time.Duration
 }
 
@@ -115,7 +115,7 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	timeToDisclosure := issueClosedAt.Sub(issueCreatedAt).Minutes()
 
 	// Read severity from issue
-	severity, err := issue.severity()
+	severity, err := severity(issue.Issue)
 	if err != nil {
 		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.Issue.ID, err)
 		return err

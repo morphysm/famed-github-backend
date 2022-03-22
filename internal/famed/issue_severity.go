@@ -2,7 +2,9 @@ package famed
 
 import (
 	"errors"
+	"log"
 
+	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
@@ -14,9 +16,9 @@ var (
 // severity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns the IssueMissingLabelErr
 // if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
-func (wI WrappedIssue) severity() (config.IssueSeverity, error) {
+func severity(issue installation.Issue) (config.IssueSeverity, error) {
 	var severity config.IssueSeverity
-	for _, label := range wI.Issue.Labels {
+	for _, label := range issue.Labels {
 		// Check if label is equal to one of the predefined severity labels.
 		if label.Name == string(config.CVSSNone) ||
 			label.Name == string(config.CVSSLow) ||
@@ -36,4 +38,16 @@ func (wI WrappedIssue) severity() (config.IssueSeverity, error) {
 	}
 
 	return severity, nil
+}
+
+// isIssueFamedLabeled checks weather the issue labels contain expected famed label.
+func isIssueFamedLabeled(issue installation.Issue, famedLabel string) bool {
+	for _, label := range issue.Labels {
+		if label.Name == famedLabel {
+			return true
+		}
+	}
+
+	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, issue.ID)
+	return false
 }

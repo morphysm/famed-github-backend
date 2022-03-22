@@ -55,10 +55,10 @@ func TestIssueToSeverity(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// GIVEN
-			issue := WrappedIssue{Issue: installation.Issue{Labels: []installation.Label{{Name: testCase.Label}}}}
+			issue := installation.Issue{Labels: []installation.Label{{Name: testCase.Label}}}
 
 			// WHEN
-			severityResult, err := issue.severity()
+			severityResult, err := severity(issue)
 
 			// THEN
 			assert.Equal(t, testCase.Expected, severityResult)
@@ -74,10 +74,10 @@ func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	// GIVEN
 	labelNone := string(config.CVSSNone)
 	labelLow := string(config.CVSSCritical)
-	issue := WrappedIssue{Issue: installation.Issue{Labels: []installation.Label{{Name: labelNone}, {Name: labelLow}}}}
+	issue := installation.Issue{Labels: []installation.Label{{Name: labelNone}, {Name: labelLow}}}
 
 	// WHEN
-	severityResult, err := issue.severity()
+	severityResult, err := severity(issue)
 
 	// THEN
 	assert.Equal(t, config.IssueSeverity(""), severityResult)

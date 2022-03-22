@@ -9,9 +9,10 @@ import (
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
-func RewardComment(contributors Contributors, currency string) string {
+// rewardComment generates a reward comment.
+func rewardComment(contributors Contributors, currency string) string {
 	if len(contributors) == 0 {
-		return RewardCommentFromError(ErrNoContributors)
+		return rewardCommentFromError(ErrNoContributors)
 	}
 
 	sortedContributors := contributors.toSortedSlice()
@@ -26,7 +27,8 @@ func RewardComment(contributors Contributors, currency string) string {
 	return comment
 }
 
-func RewardCommentFromError(err error) string {
+// rewardComment generates a reward from an error.
+func rewardCommentFromError(err error) string {
 	comment := "### Famed could not generate a reward suggestion. \n" +
 		"Reason: "
 
@@ -51,15 +53,15 @@ func RewardCommentFromError(err error) string {
 	}
 }
 
-// IssueEligibleComment generate an issue eligible RewardComment.
-func IssueEligibleComment(issue installation.Issue, pullRequest *installation.PullRequest) (string, error) {
+// issueEligibleComment generate an issue eligible comment.
+func issueEligibleComment(issue installation.Issue, pullRequest *installation.PullRequest) (string, error) {
 	comment := fmt.Sprintf("🤖 Assignees for WrappedIssue **%s #%d** are now eligible to Get Famed.", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
 
 	// Check that a valid severity label is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(WrappedIssue{Issue: issue}))
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue))
 
 	// Check that a PR is assigned
 	comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
@@ -78,8 +80,8 @@ func assigneeComment(issue installation.Issue) string {
 	return "- ❌ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
 }
 
-func severityComment(issue WrappedIssue) string {
-	if _, err := issue.severity(); err == nil {
+func severityComment(issue installation.Issue) string {
+	if _, err := severity(issue); err == nil {
 		return "- ✅ Add a severity (CVSS) label to compute the score 🏷️"
 	}
 

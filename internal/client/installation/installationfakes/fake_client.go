@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
 
@@ -34,7 +33,7 @@ type FakeClient struct {
 	checkInstallationReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	GetCommentsStub        func(context.Context, string, string, int) ([]*github.IssueComment, error)
+	GetCommentsStub        func(context.Context, string, string, int) ([]installation.IssueComment, error)
 	getCommentsMutex       sync.RWMutex
 	getCommentsArgsForCall []struct {
 		arg1 context.Context
@@ -43,11 +42,11 @@ type FakeClient struct {
 		arg4 int
 	}
 	getCommentsReturns struct {
-		result1 []*github.IssueComment
+		result1 []installation.IssueComment
 		result2 error
 	}
 	getCommentsReturnsOnCall map[int]struct {
-		result1 []*github.IssueComment
+		result1 []installation.IssueComment
 		result2 error
 	}
 	GetIssueEventsStub        func(context.Context, string, string, int) ([]installation.IssueEvent, error)
@@ -128,12 +127,12 @@ type FakeClient struct {
 	postLabelReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostLabelsStub        func(context.Context, string, []installation.Repository, map[string]installation.Label) []error
+	PostLabelsStub        func(context.Context, string, []string, map[string]installation.Label) []error
 	postLabelsMutex       sync.RWMutex
 	postLabelsArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []installation.Repository
+		arg3 []string
 		arg4 map[string]installation.Label
 	}
 	postLabelsReturns struct {
@@ -297,7 +296,7 @@ func (fake *FakeClient) CheckInstallationReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]*github.IssueComment, error) {
+func (fake *FakeClient) GetComments(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]installation.IssueComment, error) {
 	fake.getCommentsMutex.Lock()
 	ret, specificReturn := fake.getCommentsReturnsOnCall[len(fake.getCommentsArgsForCall)]
 	fake.getCommentsArgsForCall = append(fake.getCommentsArgsForCall, struct {
@@ -325,7 +324,7 @@ func (fake *FakeClient) GetCommentsCallCount() int {
 	return len(fake.getCommentsArgsForCall)
 }
 
-func (fake *FakeClient) GetCommentsCalls(stub func(context.Context, string, string, int) ([]*github.IssueComment, error)) {
+func (fake *FakeClient) GetCommentsCalls(stub func(context.Context, string, string, int) ([]installation.IssueComment, error)) {
 	fake.getCommentsMutex.Lock()
 	defer fake.getCommentsMutex.Unlock()
 	fake.GetCommentsStub = stub
@@ -338,28 +337,28 @@ func (fake *FakeClient) GetCommentsArgsForCall(i int) (context.Context, string, 
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeClient) GetCommentsReturns(result1 []*github.IssueComment, result2 error) {
+func (fake *FakeClient) GetCommentsReturns(result1 []installation.IssueComment, result2 error) {
 	fake.getCommentsMutex.Lock()
 	defer fake.getCommentsMutex.Unlock()
 	fake.GetCommentsStub = nil
 	fake.getCommentsReturns = struct {
-		result1 []*github.IssueComment
+		result1 []installation.IssueComment
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClient) GetCommentsReturnsOnCall(i int, result1 []*github.IssueComment, result2 error) {
+func (fake *FakeClient) GetCommentsReturnsOnCall(i int, result1 []installation.IssueComment, result2 error) {
 	fake.getCommentsMutex.Lock()
 	defer fake.getCommentsMutex.Unlock()
 	fake.GetCommentsStub = nil
 	if fake.getCommentsReturnsOnCall == nil {
 		fake.getCommentsReturnsOnCall = make(map[int]struct {
-			result1 []*github.IssueComment
+			result1 []installation.IssueComment
 			result2 error
 		})
 	}
 	fake.getCommentsReturnsOnCall[i] = struct {
-		result1 []*github.IssueComment
+		result1 []installation.IssueComment
 		result2 error
 	}{result1, result2}
 }
@@ -700,10 +699,10 @@ func (fake *FakeClient) PostLabelReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []installation.Repository, arg4 map[string]installation.Label) []error {
-	var arg3Copy []installation.Repository
+func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []string, arg4 map[string]installation.Label) []error {
+	var arg3Copy []string
 	if arg3 != nil {
-		arg3Copy = make([]installation.Repository, len(arg3))
+		arg3Copy = make([]string, len(arg3))
 		copy(arg3Copy, arg3)
 	}
 	fake.postLabelsMutex.Lock()
@@ -711,7 +710,7 @@ func (fake *FakeClient) PostLabels(arg1 context.Context, arg2 string, arg3 []ins
 	fake.postLabelsArgsForCall = append(fake.postLabelsArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []installation.Repository
+		arg3 []string
 		arg4 map[string]installation.Label
 	}{arg1, arg2, arg3Copy, arg4})
 	stub := fake.PostLabelsStub
@@ -733,13 +732,13 @@ func (fake *FakeClient) PostLabelsCallCount() int {
 	return len(fake.postLabelsArgsForCall)
 }
 
-func (fake *FakeClient) PostLabelsCalls(stub func(context.Context, string, []installation.Repository, map[string]installation.Label) []error) {
+func (fake *FakeClient) PostLabelsCalls(stub func(context.Context, string, []string, map[string]installation.Label) []error) {
 	fake.postLabelsMutex.Lock()
 	defer fake.postLabelsMutex.Unlock()
 	fake.PostLabelsStub = stub
 }
 
-func (fake *FakeClient) PostLabelsArgsForCall(i int) (context.Context, string, []installation.Repository, map[string]installation.Label) {
+func (fake *FakeClient) PostLabelsArgsForCall(i int) (context.Context, string, []string, map[string]installation.Label) {
 	fake.postLabelsMutex.RLock()
 	defer fake.postLabelsMutex.RUnlock()
 	argsForCall := fake.postLabelsArgsForCall[i]

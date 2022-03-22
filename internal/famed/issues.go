@@ -45,15 +45,13 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 }
 
 func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue installation.Issue) (WrappedIssue, error) {
-	var wrappedIssue WrappedIssue
-
 	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, issue.Number)
 	if err != nil {
-		return wrappedIssue, err
+		return WrappedIssue{}, err
 	}
 
-	wrappedIssue.Issue = issue
-	wrappedIssue.Events = events
-
-	return wrappedIssue, nil
+	return WrappedIssue{
+		Issue:  issue,
+		Events: events,
+	}, nil
 }

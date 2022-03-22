@@ -12,10 +12,10 @@ type Label struct {
 	Description string
 }
 
-func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, repo string, label Label) error {
+func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, repoName string, label Label) error {
 	client, _ := c.clients.get(owner)
 
-	_, _, err := client.Issues.CreateLabel(ctx, owner, repo, &github.Label{
+	_, _, err := client.Issues.CreateLabel(ctx, owner, repoName, &github.Label{
 		Name:        &label.Name,
 		Color:       &label.Color,
 		Description: &label.Description,
@@ -23,16 +23,12 @@ func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, 
 	return err
 }
 
-type Repository struct {
-	Name string
-}
-
-func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repositories []Repository, labels map[string]Label) []error {
+func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]Label) []error {
 	var errors []error
 
-	for _, repository := range repositories {
+	for _, repo := range repoNames {
 		for _, label := range labels {
-			err := c.PostLabel(ctx, owner, repository.Name, label)
+			err := c.PostLabel(ctx, owner, repo, label)
 			if err != nil {
 				errors = append(errors, err)
 			}

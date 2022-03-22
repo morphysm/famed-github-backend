@@ -21,12 +21,12 @@ type Client interface {
 	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueEvent, error)
 	ValidateWebHookEvent(request *http.Request) (interface{}, error)
 
-	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]*github.IssueComment, error)
+	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
 
-	PostLabel(ctx context.Context, owner string, repo string, label Label) error
-	PostLabels(ctx context.Context, owner string, repositories []Repository, labels map[string]Label) []error
+	PostLabel(ctx context.Context, owner string, repoName string, label Label) error
+	PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]Label) []error
 
 	AddInstallation(owner string, installationID int64) error
 	CheckInstallation(owner string) bool

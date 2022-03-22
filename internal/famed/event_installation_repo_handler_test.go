@@ -36,7 +36,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 	testCases := []struct {
 		Name          string
 		Event         *github.InstallationRepositoriesEvent
-		ExpectedRepos []installation.Repository
+		ExpectedRepos []string
 		ExpectedErr   error
 	}{
 		{
@@ -51,7 +51,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 				RepositoriesAdded: []*github.Repository{{Name: pointers.String("TestRepo1")}},
 				Installation:      &github.Installation{Account: &github.User{Login: pointers.String("TestUser")}},
 			},
-			ExpectedRepos: []installation.Repository{{Name: "TestRepo1"}},
+			ExpectedRepos: []string{"TestRepo1"},
 			ExpectedErr:   nil,
 		},
 	}

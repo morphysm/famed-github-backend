@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
@@ -20,8 +19,10 @@ const (
 	commentReward
 )
 
-var ErrEventNotHandled = errors.New("the event is not handled")
-var ErrIssueMissingPullRequest = errors.New("the issue is missing a pull request")
+var (
+	ErrEventNotHandled         = errors.New("the event is not handled")
+	ErrIssueMissingPullRequest = errors.New("the issue is missing a pull request")
+)
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
@@ -67,7 +68,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.Is
 	// Post comment to GitHub
 	err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, commentType)
 	if err != nil {
-		log.Printf("[handleIssueEvent] error while posting RewardComment: %v", err)
+		log.Printf("[handleIssueEvent] error while posting rewardComment: %v", err)
 		return err
 	}
 
@@ -84,7 +85,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 	}
 
 	if event.Issue.Assignee == nil {
-		return RewardCommentFromError(ErrIssueMissingAssignee), nil
+		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
@@ -93,7 +94,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 	}
 
 	if pullRequest == nil {
-		return RewardCommentFromError(ErrIssueMissingPullRequest), nil
+		return rewardCommentFromError(ErrIssueMissingPullRequest), nil
 	}
 
 	issue, err := gH.loadIssueEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
@@ -106,10 +107,10 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 		rewards:  gH.famedConfig.Rewards,
 	})
 	if err != nil {
-		return RewardCommentFromError(err), nil
+		return rewardCommentFromError(err), nil
 	}
 
-	return RewardComment(contributors, gH.famedConfig.Currency), nil
+	return rewardComment(contributors, gH.famedConfig.Currency), nil
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
@@ -124,7 +125,7 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event installat
 		return "", err
 	}
 
-	return IssueEligibleComment(event.Issue, pullRequest)
+	return issueEligibleComment(event.Issue, pullRequest)
 }
 
 // postOrUpdateComment checks if a handleClosedEvent of a type is present,
@@ -140,28 +141,25 @@ func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, 
 	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, commentType)
 	if !found {
 		return gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
-
 	}
 
-	if *foundComment.Body != comment {
-		return gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, *foundComment.ID, comment)
+	if foundComment.Body != comment {
+		return gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, foundComment.ID, comment)
 	}
 
 	return nil
 }
 
 // findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
-func findComment(comments []*github.IssueComment, botLogin string, commentType commentType) (*github.IssueComment, bool) {
+func findComment(comments []installation.IssueComment, botLogin string, commentType commentType) (installation.IssueComment, bool) {
 	for _, comment := range comments {
-		if isCommentValid(comment) &&
-			isUserValid(comment.User) &&
-			*comment.User.Login == botLogin &&
-			verifyCommentType(*comment.Body, commentType) {
+		if comment.User.Login == botLogin &&
+			verifyCommentType(comment.Body, commentType) {
 			return comment, true
 		}
 	}
 
-	return nil, false
+	return installation.IssueComment{}, false
 }
 
 // verifyCommentType checks if a given string is of a given commentType
