@@ -91,7 +91,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 		allCompressedIssues []Issue
 		listOptions         = &github.ListOptions{
 			Page:    1,
-			PerPage: 100,
+			PerPage: 30,
 		}
 	)
 
@@ -101,19 +101,28 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 			return allCompressedIssues, err
 		}
 		allIssues = append(allIssues, issues...)
-		if resp.NextPage == 0 {
+		// TODO see if we can remove this workaround for the paging bug
+		if resp.NextPage == 0 || listOptions.Page == resp.NextPage {
 			break
 		}
 		listOptions.Page = resp.NextPage
 	}
 
+	// TODO remove workaround for issues bug
+	issueMap := make(map[int]Issue)
 	for _, issue := range allIssues {
 		compressedIssue, err := validateIssue(issue)
 		if err != nil {
 			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
 		}
 
-		allCompressedIssues = append(allCompressedIssues, compressedIssue)
+		// TODO remove workaround for issues bug
+		issueMap[*issue.Number] = compressedIssue
+	}
+
+	// TODO remove workaround for issues bug
+	for _, issue := range issueMap {
+		allCompressedIssues = append(allCompressedIssues, issue)
 	}
 
 	return allCompressedIssues, nil
