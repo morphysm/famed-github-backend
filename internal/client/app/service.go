@@ -14,7 +14,6 @@ import (
 type Client interface {
 	GetInstallations(ctx context.Context) ([]*github.Installation, error)
 	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
-	GetRateLimits(ctx context.Context) (*github.RateLimits, error)
 }
 
 type githubAppClient struct {
