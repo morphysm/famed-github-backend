@@ -14,7 +14,7 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	"github.com/morphysm/famed-github-backend/pkg/pointers"
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +45,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - Empty event",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 			},
 			ExpectedComment: "",
 			ExpectedErr:     famed.ErrEventMissingData,
@@ -53,19 +53,19 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - No Assignee",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}},
-					Number:    pointers.Int(0),
-					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}},
+					Number:    pointer.Int(0),
+					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Label: &github.Label{Name: pointers.String("famed")},
+				Label: &github.Label{Name: pointer.String("famed")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest:     &installation.PullRequest{URL: "test"},
@@ -74,21 +74,21 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - No Label",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}},
-					Number:    pointers.Int(0),
-					Assignee:  &github.User{Login: pointers.String("test")},
-					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}},
+					Number:    pointer.Int(0),
+					Assignee:  &github.User{Login: pointer.String("test")},
+					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
-				Label:    &github.Label{Name: pointers.String("famed")},
+				Assignee: &github.User{Login: pointer.String("test")},
+				Label:    &github.Label{Name: pointer.String("famed")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest:     &installation.PullRequest{URL: "test"},
@@ -97,20 +97,20 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - Multiple Labels",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}, {Name: pointers.String("low")}},
-					Number:    pointers.Int(0),
-					Assignee:  &github.User{Login: pointers.String("test")},
-					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}, {Name: pointer.String("low")}},
+					Number:    pointer.Int(0),
+					Assignee:  &github.User{Login: pointer.String("test")},
+					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest:     &installation.PullRequest{URL: "test"},
@@ -119,20 +119,20 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - No events",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Number:    pointers.Int(0),
-					Assignee:  &github.User{Login: pointers.String("test")},
-					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Number:    pointer.Int(0),
+					Assignee:  &github.User{Login: pointer.String("test")},
+					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest:     &installation.PullRequest{URL: "test"},
@@ -141,20 +141,20 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - No pull request",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Number:    pointers.Int(0),
-					Assignee:  &github.User{Login: pointers.String("test")},
-					CreatedAt: pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Number:    pointer.Int(0),
+					Assignee:  &github.User{Login: pointer.String("test")},
+					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a pull request.",
@@ -162,20 +162,20 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Closed - Valid",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("closed"),
+				Action: pointer.String("closed"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Title:     pointers.String("test"),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Number:    pointers.Int(0),
-					Assignee:  &github.User{Login: pointers.String("test")},
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointers.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Number:    pointer.Int(0),
+					Assignee:  &github.User{Login: pointer.String("test")},
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest: &installation.PullRequest{URL: "test"},
@@ -192,29 +192,29 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Assigned - Missing data",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					Labels: []*github.Label{{Name: pointers.String("famed")}},
+					Labels: []*github.Label{{Name: pointer.String("famed")}},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 			},
 			ExpectedErr: famed.ErrEventMissingData,
 		},
 		{
 			Name: "Assigned - Valid - Non present",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Number:    pointers.Int(0),
-					Title:     pointers.String("Test"),
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}},
+					ID:        pointer.Int64(0),
+					Number:    pointer.Int(0),
+					Title:     pointer.String("Test"),
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
@@ -227,19 +227,19 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Assigned - Valid - Assignee present",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Number:    pointers.Int(0),
-					Title:     pointers.String("Test"),
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}},
-					Assignee:  &github.User{Login: pointers.String("test")},
+					ID:        pointer.Int64(0),
+					Number:    pointer.Int(0),
+					Title:     pointer.String("Test"),
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}},
+					Assignee:  &github.User{Login: pointer.String("test")},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
@@ -252,18 +252,18 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Assigned - Valid - Label present",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Number:    pointers.Int(0),
-					Title:     pointers.String("Test"),
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
+					ID:        pointer.Int64(0),
+					Number:    pointer.Int(0),
+					Title:     pointer.String("Test"),
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for WrappedIssue **Test #0** are now eligible to Get Famed." +
@@ -276,18 +276,18 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Assigned - Valid - PR present",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Number:    pointers.Int(0),
-					Title:     pointers.String("Test"),
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}},
+					ID:        pointer.Int64(0),
+					Number:    pointer.Int(0),
+					Title:     pointer.String("Test"),
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest: &installation.PullRequest{URL: "test"},
@@ -301,19 +301,19 @@ func TestPostIssuesEvent(t *testing.T) {
 		{
 			Name: "Assigned - Valid - All present",
 			Event: &github.IssuesEvent{
-				Action: pointers.String("assigned"),
+				Action: pointer.String("assigned"),
 				Issue: &github.Issue{
-					ID:        pointers.Int64(0),
-					Number:    pointers.Int(0),
-					Title:     pointers.String("Test"),
-					CreatedAt: pointers.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
-					Labels:    []*github.Label{{Name: pointers.String("famed")}, {Name: pointers.String("high")}},
-					Assignee:  &github.User{Login: pointers.String("test")},
+					ID:        pointer.Int64(0),
+					Number:    pointer.Int(0),
+					Title:     pointer.String("Test"),
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Assignee:  &github.User{Login: pointer.String("test")},
 				},
-				Assignee: &github.User{Login: pointers.String("test")},
+				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
-					Name:  pointers.String("test"),
-					Owner: &github.User{Login: pointers.String("test")},
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
 			PullRequest: &installation.PullRequest{URL: "test"},

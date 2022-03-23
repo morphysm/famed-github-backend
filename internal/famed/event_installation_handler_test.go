@@ -12,7 +12,7 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	"github.com/morphysm/famed-github-backend/pkg/pointers"
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,8 +32,8 @@ func TestPostInstallationEvent(t *testing.T) {
 		{
 			Name: "Valid",
 			Event: &github.InstallationEvent{
-				Action:       pointers.String("created"),
-				Installation: &github.Installation{ID: pointers.Int64(0), Account: &github.User{Login: pointers.String("TestUser")}},
+				Action:       pointer.String("created"),
+				Installation: &github.Installation{ID: pointer.Int64(0), Account: &github.User{Login: pointer.String("TestUser")}},
 			},
 			ExpectedErr: nil,
 		},

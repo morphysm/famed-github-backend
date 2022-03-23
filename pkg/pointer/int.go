@@ -1,4 +1,4 @@
-package pointers
+package pointer
 
 func Int(i int) *int {
 	return &i
