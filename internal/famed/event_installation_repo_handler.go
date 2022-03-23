@@ -15,9 +15,9 @@ func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, eve
 		return ErrEventNotRepoAdded
 	}
 
-	var repoNames []string
-	for _, repository := range event.RepositoriesAdded {
-		repoNames = append(repoNames, repository.Name)
+	repoNames := make([]string, len(event.RepositoriesAdded))
+	for i, repository := range event.RepositoriesAdded {
+		repoNames[i] = repository.Name
 	}
 	errors := gH.githubInstallationClient.PostLabels(c.Request().Context(), event.Installation.Account.Login, repoNames, gH.famedConfig.Labels)
 	for _, err := range errors {

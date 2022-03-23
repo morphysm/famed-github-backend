@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/client/app"
+	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -100,8 +101,9 @@ func NewClient(baseURL string, appClient app.Client, installations map[string]in
 func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
 	ts := NewGithubTokenSource(c.appClient, installationID)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)
+	loggingClient := libHttp.AddLogging(oAuthClient)
 
-	client, err := github.NewEnterpriseClient(c.baseURL, c.baseURL, oAuthClient)
+	client, err := github.NewEnterpriseClient(c.baseURL, c.baseURL, loggingClient)
 	if err != nil {
 		return err
 	}

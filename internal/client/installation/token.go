@@ -11,7 +11,6 @@ import (
 type gitHubTokenSource struct {
 	client         app.Client
 	installationID int64
-	repoIDs        []int64
 }
 
 func NewGithubTokenSource(client app.Client, installationID int64) oauth2.TokenSource {

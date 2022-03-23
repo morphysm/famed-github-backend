@@ -20,9 +20,9 @@ func (gH *githubHandler) handleInstallationEvent(c echo.Context, event installat
 		return err
 	}
 
-	var repoNames []string
-	for _, repository := range event.Repositories {
-		repoNames = append(repoNames, repository.Name)
+	repoNames := make([]string, len(event.Repositories))
+	for i, repository := range event.Repositories {
+		repoNames[i] = repository.Name
 	}
 	errors := gH.githubInstallationClient.PostLabels(c.Request().Context(), event.Installation.Account.Login, repoNames, gH.famedConfig.Labels)
 	for _, err := range errors {

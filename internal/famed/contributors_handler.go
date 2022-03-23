@@ -38,7 +38,7 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	}
 
 	if len(issues) == 0 {
-		c.JSON(http.StatusOK, []*Contributor{})
+		return c.JSON(http.StatusOK, []*Contributor{})
 	}
 
 	// Use issues with events to generate contributor list

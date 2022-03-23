@@ -120,12 +120,12 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event installat
 		return "", ErrEventMissingFamedLabel
 	}
 
-	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
-	if err != nil {
-		return "", err
-	}
+	//pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
+	//if err != nil {
+	//	return "", err
+	//}
 
-	return issueEligibleComment(event.Issue, pullRequest)
+	return issueEligibleComment(event.Issue, nil)
 }
 
 // postOrUpdateComment checks if a handleClosedEvent of a type is present,

@@ -192,7 +192,7 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee installation.User
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
 func (contributors Contributors) incrementFixCounters(assignee installation.User, timeToDisclosure float64, severity config.IssueSeverity) {
-	contributor, _ := contributors[assignee.Login]
+	contributor := contributors[assignee.Login]
 
 	// Increment fix count
 	contributor.FixCount++
