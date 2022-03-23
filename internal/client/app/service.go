@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v41/github"
+	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -14,6 +14,7 @@ import (
 type Client interface {
 	GetInstallations(ctx context.Context) ([]*github.Installation, error)
 	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
+	GetRateLimits(ctx context.Context) (*github.RateLimits, error)
 }
 
 type githubAppClient struct {
@@ -29,15 +30,15 @@ func NewClient(baseURL string, apiKey string, appID int64) (Client, error) {
 	}
 
 	itr.BaseURL = baseURL
+	loggingClient := libHttp.AddLogging(&http.Client{
+		Transport: itr,
+	})
 
 	// Create git client with app transport
 	client, err := github.NewEnterpriseClient(
 		baseURL,
 		baseURL,
-		&http.Client{
-			Transport: itr,
-			Timeout:   time.Second * 30,
-		})
+		loggingClient)
 	if err != nil {
 		return nil, err
 	}
