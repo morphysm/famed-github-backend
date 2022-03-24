@@ -12,7 +12,7 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 
 	g.POST("/webhooks/event", handler.PostEvent)
 
-	g.POST("/repos/:owner/:repo_name/update", handler.UpdateComments)
+	g.POST("/repos/:owner/:repo_name/update", handler.GetUpdateComments)
 }
 
 func FamedAdminRoutes(g *echo.Group, handler famed.HTTPHandler) {

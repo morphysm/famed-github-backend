@@ -25,6 +25,7 @@
       "high" : 10000,
       "critical": 25000
     },
-    "currency": "POINTS"
+    "currency": "POINTS",
+    "updateFrequency": 120
   }
 }

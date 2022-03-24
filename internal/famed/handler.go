@@ -12,7 +12,9 @@ type HTTPHandler interface {
 
 	PostEvent(c echo.Context) error
 
-	UpdateComments(c echo.Context) error
+	GetUpdateComments(c echo.Context) error
+
+	CleanState()
 }
 
 // githubHandler represents the handler for the GitHub endpoints.

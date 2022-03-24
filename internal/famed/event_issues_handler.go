@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -148,33 +147,4 @@ func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, 
 	}
 
 	return nil
-}
-
-// findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
-func findComment(comments []installation.IssueComment, botLogin string, commentType commentType) (installation.IssueComment, bool) {
-	for _, comment := range comments {
-		if comment.User.Login == botLogin &&
-			verifyCommentType(comment.Body, commentType) {
-			return comment, true
-		}
-	}
-
-	return installation.IssueComment{}, false
-}
-
-// verifyCommentType checks if a given string is of a given commentType
-func verifyCommentType(str string, commentType commentType) bool {
-	var substr string
-	switch commentType {
-	case commentEligible:
-		substr = "are now eligible to Get Famed."
-	case commentReward:
-		substr = "Famed could not generate a reward suggestion."
-		if strings.Contains(str, substr) {
-			return true
-		}
-		substr = "Famed suggests:"
-	}
-
-	return strings.Contains(str, substr)
 }

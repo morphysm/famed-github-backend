@@ -3,6 +3,7 @@ package famed
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/morphysm/famed-github-backend/internal/client/installation"
 )
@@ -102,4 +103,33 @@ func prComment(pullRequest *installation.PullRequest) string {
 	}
 
 	return "❌" + msg
+}
+
+// findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
+func findComment(comments []installation.IssueComment, botLogin string, commentType commentType) (installation.IssueComment, bool) {
+	for _, comment := range comments {
+		if comment.User.Login == botLogin &&
+			verifyCommentType(comment.Body, commentType) {
+			return comment, true
+		}
+	}
+
+	return installation.IssueComment{}, false
+}
+
+// verifyCommentType checks if a given string is of a given commentType
+func verifyCommentType(str string, commentType commentType) bool {
+	var substr string
+	switch commentType {
+	case commentEligible:
+		substr = "are now eligible to Get Famed."
+	case commentReward:
+		substr = "| Contributor | Time | Reward |"
+		if strings.Contains(str, substr) {
+			return true
+		}
+		substr = "Famed suggests:"
+	}
+
+	return strings.Contains(str, substr)
 }

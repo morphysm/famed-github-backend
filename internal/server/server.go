@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -11,6 +12,7 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/health"
+	"github.com/morphysm/famed-github-backend/pkg/ticker"
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
@@ -56,15 +58,18 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 		transformedInstallations[*installation.Account.Login] = *installation.ID
 	}
 
-	// Create new installation client to fetch repo data
+	// Create a new installation client to fetch repo data
 	installationClient, err := installation.NewClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create
+	// Create the famed handler handling most of the business logic
 	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Github.BotLogin)
 	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig)
+
+	// Start comment update interval
+	ticker.NewTicker(time.Duration(cfg.Famed.UpdateFrequency)*time.Second, famedHandler.CleanState)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests
 	famedGroup := e.Group("/famed")

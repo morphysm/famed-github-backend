@@ -31,9 +31,10 @@ type Config struct {
 	}
 
 	Famed struct {
-		Labels   map[string]installation.Label
-		Rewards  map[IssueSeverity]float64
-		Currency string
+		Labels          map[string]installation.Label
+		Rewards         map[IssueSeverity]float64
+		Currency        string
+		UpdateFrequency int
 	}
 
 	Admin struct {
@@ -167,6 +168,9 @@ func verifyConfig(cfg Config) error {
 	}
 	if cfg.Github.Host == "" {
 		return errors.New("config.json github.host must be set")
+	}
+	if cfg.Famed.UpdateFrequency == 0 {
+		return errors.New("config.json famed.updateFrequency must be set")
 	}
 
 	if err := verifyLabel(cfg, FamedLabel); err != nil {

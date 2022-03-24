@@ -15,6 +15,8 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
 type Client interface {
+	GetRepos(ctx context.Context, owner string) ([]Repo, error)
+
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]Issue, error)
 
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)

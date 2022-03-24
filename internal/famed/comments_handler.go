@@ -15,8 +15,8 @@ type IssueCommentUpdate struct {
 	Error       string `json:"error"`
 }
 
-// UpdateComments updates the comments in a GitHub repo.
-func (gH *githubHandler) UpdateComments(c echo.Context) error {
+// GetUpdateComments updates the comments in a GitHub repo.
+func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
 		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
@@ -86,21 +86,32 @@ func (gH *githubHandler) updateComment(ctx context.Context, wg *sync.WaitGroup, 
 
 	issueComments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
-		log.Printf("[UpdateComments] error while getting comments for issue #%d, error: %v", issueNumber, err)
+		log.Printf("[CleanState] error while getting comments for issue #%d, error: %v", issueNumber, err)
 		issueCommentUpdate.Error = err.Error()
 		return
 	}
 
 	lastCommentByBot, found := findComment(issueComments, gH.famedConfig.BotLogin, commentReward)
-	if !found || lastCommentByBot.Body != comment {
-		log.Printf("[UpdateComments] updating rewardComment for issue #%d", issueNumber)
+	if !found {
+		log.Printf("[CleanState] did not find expected comment for issue #%d", issueNumber)
+		log.Printf("[CleanState] posting comment for issue #%d", issueNumber)
 		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
 		if err != nil {
-			log.Printf("[UpdateComments] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
+			log.Printf("[CleanState] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
 			issueCommentUpdate.Error = err.Error()
 			return
 		}
-
-		issueCommentUpdate.Updated = true
 	}
+
+	if found && lastCommentByBot.Body != comment {
+		log.Printf("[CleanState] updating comment for issue #%d", issueNumber)
+		err := gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, lastCommentByBot.ID, comment)
+		if err != nil {
+			log.Printf("[CleanState] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
+			issueCommentUpdate.Error = err.Error()
+			return
+		}
+	}
+
+	issueCommentUpdate.Updated = true
 }
