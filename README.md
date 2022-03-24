@@ -12,6 +12,9 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 
  <img src="https://img.shields.io/badge/version-1.1-orange" alt="version badge">
  <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
+ <a href="https://codecov.io/gh/morphysm/famed-github-backend">
+  <img src="https://codecov.io/gh/morphysm/famed-github-backend/branch/master/graph/badge.svg?token=P5ZUKZF9XN"/>
+</a>   
 </h1>
 
 
