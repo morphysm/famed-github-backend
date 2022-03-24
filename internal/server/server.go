@@ -75,20 +75,19 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// FamedAdminRoutes endpoints exposed for Famed admin requests
-	famedAdminGroup := e.Group("/admin")
+	famedAdminGroup := e.Group("/admin", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		// Use of constant time comparison to prevent timing attacks
+		if subtle.ConstantTimeCompare([]byte(username), []byte(cfg.Admin.Username)) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Admin.Password)) == 1 {
+			return true, nil
+		}
+		return false, nil
+	}))
 	{
 		FamedAdminRoutes(
 			famedAdminGroup, famedHandler,
 		)
 	}
-	famedAdminGroup.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		// Use of constant time comparison to prevent timing attacks
-		if subtle.ConstantTimeCompare([]byte(username), []byte("joe")) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte("secret")) == 1 {
-			return true, nil
-		}
-		return false, nil
-	}))
 
 	// Health endpoints exposed for heartbeat
 	healthGroup := e.Group("/health")
