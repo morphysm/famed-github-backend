@@ -24,7 +24,7 @@ func rewardComment(contributors Contributors, currency string, owner string, rep
 	comment = fmt.Sprintf("%s- you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/boards/%s/%s", comment, owner, repoName)
 	comment = fmt.Sprintf("%s\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |", comment)
 	for _, contributor := range sortedContributors {
-		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, currency)
+		comment = fmt.Sprintf("%s\n|%s|%s|%d %s|", comment, contributor.Login, contributor.TotalWorkTime, int(contributor.RewardSum), currency)
 	}
 
 	return comment
