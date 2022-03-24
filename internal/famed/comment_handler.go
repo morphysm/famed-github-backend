@@ -63,7 +63,7 @@ func (gH *githubHandler) updateComments(ctx context.Context, owner string, repoN
 			continue
 		}
 
-		comments[issueNumber] = rewardComment(contributors, gH.famedConfig.Currency)
+		comments[issueNumber] = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
 	var wg sync.WaitGroup

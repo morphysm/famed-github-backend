@@ -110,7 +110,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 		return rewardCommentFromError(err), nil
 	}
 
-	return rewardComment(contributors, gH.famedConfig.Currency), nil
+	return rewardComment(contributors, gH.famedConfig.Currency, event.Repo.Owner.Login, event.Repo.Name), nil
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies

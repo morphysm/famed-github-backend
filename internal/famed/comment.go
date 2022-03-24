@@ -10,16 +10,19 @@ import (
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
 // rewardComment generates a reward comment.
-func rewardComment(contributors Contributors, currency string) string {
+func rewardComment(contributors Contributors, currency string, owner string, repoName string) string {
 	if len(contributors) == 0 {
 		return rewardCommentFromError(ErrNoContributors)
 	}
 
 	sortedContributors := contributors.toSortedSlice()
 
-	comment := "### Famed suggests:\n" +
-		"| Contributor | Time | Reward |\n" +
-		"| ----------- | ----------- | ----------- |"
+	comment := ""
+	for _, contributor := range sortedContributors {
+		comment = fmt.Sprintf("%s@%s ", comment, contributor.Login)
+	}
+	comment = fmt.Sprintf("%s- you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/boards/%s/%s", comment, owner, repoName)
+	comment = fmt.Sprintf("%s\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |", comment)
 	for _, contributor := range sortedContributors {
 		comment = fmt.Sprintf("%s\n|%s|%s|%f %s|", comment, contributor.Login, contributor.TotalWorkTime, contributor.RewardSum, currency)
 	}
@@ -55,7 +58,7 @@ func rewardCommentFromError(err error) string {
 
 // issueEligibleComment generate an issue eligible comment.
 func issueEligibleComment(issue installation.Issue, pullRequest *installation.PullRequest) (string, error) {
-	comment := fmt.Sprintf("🤖 Assignees for WrappedIssue **%s #%d** are now eligible to Get Famed.", issue.Title, issue.Number)
+	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.\n", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
@@ -73,25 +76,28 @@ func issueEligibleComment(issue installation.Issue, pullRequest *installation.Pu
 }
 
 func assigneeComment(issue installation.Issue) string {
+	const msg = "Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
 	if issue.Assignee != nil {
-		return "- ✅ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+		return "✅" + msg
 	}
 
-	return "- ❌ Add assignees to track contribution times of the issue \U0001F9B8‍♀️\U0001F9B9"
+	return fmt.Sprintf("❌ %s", msg)
 }
 
 func severityComment(issue installation.Issue) string {
+	const msg = " Add a single severity (CVSS) label to compute the score 🏷️"
 	if _, err := severity(issue); err == nil {
-		return "- ✅ Add a severity (CVSS) label to compute the score 🏷️"
+		return "✅" + msg
 	}
 
-	return "- ❌ Add a severity (CVSS) label to compute the score 🏷️"
+	return "❌" + msg
 }
 
 func prComment(pullRequest *installation.PullRequest) string {
+	const msg = " Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 	if pullRequest != nil {
-		return "- ✅ Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+		return "✅" + msg
 	}
 
-	return "- ❌ Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+	return "❌" + msg
 }
