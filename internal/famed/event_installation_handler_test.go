@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
-	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
+	gitLib "github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ func TestPostInstallationEvent(t *testing.T) {
 		ExpectedErr error
 	}{
 		{
-			Name:        "Empty installation repository event",
+			Name:        "Empty github repository event",
 			Event:       &github.InstallationEvent{},
 			ExpectedErr: famed.ErrEventMissingData,
 		},
@@ -55,9 +55,9 @@ func TestPostInstallationEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &installationfakes.FakeClient{}
+			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.AddInstallationReturns(nil)
-			cl, _ := installation.NewClient("", nil, nil, "")
+			cl, _ := gitLib.NewInstallationClient("", nil, nil, "")
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig())

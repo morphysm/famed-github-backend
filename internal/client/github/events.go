@@ -1,4 +1,4 @@
-package installation
+package github
 
 import (
 	"context"
@@ -98,19 +98,22 @@ func (c *githubInstallationClient) GetIssueEvents(ctx context.Context, owner str
 }
 
 func validateIssueEvent(event *github.IssueEvent) (IssueEvent, error) {
-	var compressedEvent IssueEvent
 	if event == nil ||
 		event.ID == nil ||
 		event.Event == nil ||
 		event.CreatedAt == nil {
-		return compressedEvent, ErrEventMissingData
+		return IssueEvent{}, ErrEventMissingData
 	}
 
-	compressedEvent = IssueEvent{
+	compressedEvent := IssueEvent{
 		ID:        *event.ID,
 		Event:     *event.Event,
 		CreatedAt: *event.CreatedAt,
-		Assignee:  validateUser(event.Assignee),
+	}
+
+	assignee, err := validateUser(event.Assignee)
+	if err == nil {
+		compressedEvent.Assignee = &assignee
 	}
 
 	return compressedEvent, nil
@@ -167,13 +170,10 @@ type Repository struct {
 }
 
 func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
-	var issuesEvent IssuesEvent
 	if event.Action == nil ||
 		event.Repo == nil ||
-		event.Repo.Name == nil ||
-		event.Repo.Owner == nil ||
-		event.Repo.Owner.Login == nil {
-		return issuesEvent, ErrEventMissingData
+		event.Repo.Name == nil {
+		return IssuesEvent{}, ErrEventMissingData
 	}
 
 	switch *event.Action {
@@ -192,22 +192,25 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	case string(Unlabeled):
 		issue, err := validateIssue(event.Issue)
 		if err != nil {
-			return issuesEvent, err
+			return IssuesEvent{}, err
+		}
+
+		owner, err := validateUser(event.Repo.Owner)
+		if err != nil {
+			return IssuesEvent{}, err
 		}
 
 		return IssuesEvent{
 			Action: *event.Action,
 			Repo: Repository{
-				Name: *event.Repo.Name,
-				Owner: User{
-					Login: *event.Repo.Owner.Login,
-				},
+				Name:  *event.Repo.Name,
+				Owner: owner,
 			},
 			Issue: issue,
 		}, nil
 
 	default:
-		return issuesEvent, ErrUnhandledEventType
+		return IssuesEvent{}, ErrUnhandledEventType
 	}
 }
 
@@ -222,21 +225,23 @@ type RepositoriesInstallation struct {
 }
 
 func validateInstallationRepositoriesEvent(event *github.InstallationRepositoriesEvent) (InstallationRepositoriesEvent, error) {
-	var compressedEvent InstallationRepositoriesEvent
-	if event == nil || event.Action == nil {
-		return compressedEvent, ErrEventMissingData
-	}
-	if event.Installation == nil ||
+	if event == nil ||
+		event.Action == nil ||
+		event.Installation == nil ||
 		event.Installation.Account == nil ||
 		event.Installation.Account.Login == nil {
-		return compressedEvent, ErrEventMissingData
+		return InstallationRepositoriesEvent{}, ErrEventMissingData
 	}
-	compressedEvent = InstallationRepositoriesEvent{
+
+	account, err := validateUser(event.Installation.Account)
+	if err != nil {
+		return InstallationRepositoriesEvent{}, err
+	}
+
+	compressedEvent := InstallationRepositoriesEvent{
 		Action: *event.Action,
 		Installation: RepositoriesInstallation{
-			Account: User{
-				Login: *event.Installation.Account.Login,
-			},
+			Account: account,
 		},
 	}
 
@@ -253,29 +258,26 @@ type InstallationEvent struct {
 	Installation
 }
 
-type Installation struct {
-	ID      int64
-	Account User
-}
-
 func validateInstallationEvent(event *github.InstallationEvent) (InstallationEvent, error) {
-	var compressedEvent InstallationEvent
 	if event == nil ||
 		event.Action == nil ||
 		event.Installation == nil ||
 		event.Installation.Account == nil ||
 		event.Installation.Account.Login == nil ||
 		event.Installation.ID == nil {
-		return compressedEvent, ErrEventMissingData
+		return InstallationEvent{}, ErrEventMissingData
 	}
 
-	compressedEvent = InstallationEvent{
+	account, err := validateUser(event.Installation.Account)
+	if err != nil {
+		return InstallationEvent{}, err
+	}
+
+	compressedEvent := InstallationEvent{
 		Action: *event.Action,
 		Installation: Installation{
-			ID: *event.Installation.ID,
-			Account: User{
-				Login: *event.Installation.Account.Login,
-			},
+			ID:      *event.Installation.ID,
+			Account: account,
 		},
 	}
 

@@ -7,8 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/morphysm/famed-github-backend/internal/client/app"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/health"
@@ -40,8 +39,8 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 		middleware.Logger(),
 	)
 
-	// Create new app client to fetch installations and installation tokens.
-	appClient, err := app.NewClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
+	// Create new app client to fetch installations and github tokens.
+	appClient, err := github.NewAppClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +54,11 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	// Transform all installations to owner installationID map
 	transformedInstallations := make(map[string]int64)
 	for _, installation := range installations {
-		transformedInstallations[*installation.Account.Login] = *installation.ID
+		transformedInstallations[installation.Account.Login] = installation.ID
 	}
 
-	// Create a new installation client to fetch repo data
-	installationClient, err := installation.NewClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret)
+	// Create a new github client to fetch repo data
+	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret)
 	if err != nil {
 		return nil, err
 	}

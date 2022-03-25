@@ -35,13 +35,13 @@ func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time
 		// Updated reward sum
 		contributor.RewardSum += reward
 
-		// Update rewards list
+		// Add rewards list
 		contributor.Rewards = append(contributor.Rewards, Reward{
 			Date:   closed,
 			Reward: reward,
 		})
 
-		// Update reward by month
+		// Add reward by month
 		if month, ok := isInTheLast12Months(time.Now(), closed); ok {
 			contributor.RewardsLastYear[month].Reward += reward
 		}

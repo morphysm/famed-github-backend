@@ -1,4 +1,4 @@
-package installation
+package github
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 type IssueState string
 
 const (
+	All        IssueState = "all"
 	Opened     IssueState = "opened"
 	Closed     IssueState = "closed"
 	Reopened   IssueState = "reopened"
@@ -31,6 +32,59 @@ type Issue struct {
 	Labels    []Label
 }
 
+type User struct {
+	Login      string
+	AvatarURL  *string
+	HTMLURL    *string
+	GravatarID *string
+}
+
+func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error) {
+	var (
+		client, _           = c.clients.get(owner)
+		allIssues           []*github.Issue
+		allCompressedIssues []Issue
+		listOptions         = &github.IssueListByRepoOptions{
+			Labels: labels,
+			ListOptions: github.ListOptions{
+				Page:    1,
+				PerPage: 30,
+			},
+		}
+	)
+
+	if state != nil {
+		listOptions.State = string(*state)
+	}
+
+	if state == nil {
+		listOptions.State = string(All)
+	}
+
+	for {
+		issues, resp, err := client.Issues.ListByRepo(ctx, owner, repoName, listOptions)
+		if err != nil {
+			return allCompressedIssues, err
+		}
+		allIssues = append(allIssues, issues...)
+		if resp.NextPage == 0 {
+			break
+		}
+		listOptions.Page = resp.NextPage
+	}
+
+	for _, issue := range allIssues {
+		compressedIssue, err := validateIssue(issue)
+		if err != nil {
+			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
+		}
+
+		allCompressedIssues = append(allCompressedIssues, compressedIssue)
+	}
+
+	return allCompressedIssues, nil
+}
+
 func validateIssue(issue *github.Issue) (Issue, error) {
 	var compressedIssue Issue
 	if issue == nil ||
@@ -47,7 +101,11 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 		Title:     *issue.Title,
 		CreatedAt: *issue.CreatedAt,
 		ClosedAt:  issue.ClosedAt,
-		Assignee:  validateUser(issue.Assignee),
+	}
+
+	assignee, err := validateUser(issue.Assignee)
+	if err == nil {
+		compressedIssue.Assignee = &assignee
 	}
 
 	if issue.Labels != nil {
@@ -63,69 +121,19 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 	return compressedIssue, nil
 }
 
-type User struct {
-	Login      string
-	AvatarURL  *string
-	HTMLURL    *string
-	GravatarID *string
-}
+func validateUser(user *github.User) (User, error) {
+	if user == nil ||
+		user.Login == nil {
+		return User{}, ErrUserMissingData
 
-func validateUser(user *github.User) *User {
-	if user != nil &&
-		user.Login != nil {
-		return &User{
-			Login:      *user.Login,
-			AvatarURL:  user.AvatarURL,
-			HTMLURL:    user.HTMLURL,
-			GravatarID: user.GravatarID,
-		}
 	}
 
-	return nil
-}
-
-func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]Issue, error) {
-	var (
-		client, _           = c.clients.get(owner)
-		allIssues           []*github.Issue
-		allCompressedIssues []Issue
-		listOptions         = &github.ListOptions{
-			Page:    1,
-			PerPage: 30,
-		}
-	)
-
-	for {
-		issues, resp, err := client.Issues.ListByRepo(ctx, owner, repoName, &github.IssueListByRepoOptions{State: string(state), Labels: labels})
-		if err != nil {
-			return allCompressedIssues, err
-		}
-		allIssues = append(allIssues, issues...)
-		// TODO see if we can remove this workaround for the paging bug
-		if resp.NextPage == 0 || listOptions.Page == resp.NextPage {
-			break
-		}
-		listOptions.Page = resp.NextPage
-	}
-
-	// TODO remove workaround for issues bug
-	issueMap := make(map[int]Issue)
-	for _, issue := range allIssues {
-		compressedIssue, err := validateIssue(issue)
-		if err != nil {
-			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
-		}
-
-		// TODO remove workaround for issues bug
-		issueMap[*issue.Number] = compressedIssue
-	}
-
-	// TODO remove workaround for issues bug
-	for _, issue := range issueMap {
-		allCompressedIssues = append(allCompressedIssues, issue)
-	}
-
-	return allCompressedIssues, nil
+	return User{
+		Login:      *user.Login,
+		AvatarURL:  user.AvatarURL,
+		HTMLURL:    user.HTMLURL,
+		GravatarID: user.GravatarID,
+	}, nil
 }
 
 // GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.

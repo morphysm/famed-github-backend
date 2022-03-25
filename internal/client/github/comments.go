@@ -1,4 +1,4 @@
-package installation
+package github
 
 import (
 	"context"
@@ -64,20 +64,19 @@ func (c *githubInstallationClient) GetComments(ctx context.Context, owner string
 }
 
 func validateComment(comment *github.IssueComment) (IssueComment, error) {
-	var compressedComment IssueComment
 	if comment == nil ||
 		comment.Body == nil {
-		return compressedComment, ErrIssueCommentMissingData
+		return IssueComment{}, ErrIssueCommentMissingData
 	}
 
-	user := validateUser(comment.User)
-	if user == nil {
-		return compressedComment, ErrIssueCommentMissingData
+	user, err := validateUser(comment.User)
+	if err != nil {
+		return IssueComment{}, err
 	}
-	
+
 	return IssueComment{
 		ID:   *comment.ID,
-		User: *user,
+		User: user,
 		Body: *comment.Body,
 	}, nil
 }

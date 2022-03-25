@@ -7,12 +7,44 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
-type IssueCommentUpdate struct {
-	IssueNumber int    `json:"issueNumber"`
-	Updated     bool   `json:"updated"`
-	Error       string `json:"error"`
+type safeIssueCommentsUpdates struct {
+	m    map[int]issueCommentUpdate
+	lock sync.RWMutex
+}
+
+type issueCommentUpdate struct {
+	EligibleComment commentUpdate `json:"eligibleComment"`
+	RewardComment   commentUpdate `json:"rewardComment"`
+}
+
+type commentUpdate struct {
+	Updated bool   `json:"updated"`
+	Error   string `json:"error"`
+}
+
+func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate commentUpdate, commentType commentType) {
+	sICU.lock.Lock()
+	defer sICU.lock.Unlock()
+
+	elmt := sICU.m[issueNumber]
+	if commentType != commentEligible {
+		elmt.EligibleComment = commentUpdate
+	}
+	if commentType != commentReward {
+		elmt.RewardComment = commentUpdate
+	}
+	sICU.m[issueNumber] = elmt
+}
+
+type updateCommentsResponse struct {
+	RewardCommentsError   *string                    `json:"rewardCommentError,omitempty"`
+	EligibleCommentsError *string                    `json:"eligibleCommentError,omitempty"`
+	Updates               map[int]issueCommentUpdate `json:"updates"`
 }
 
 // GetUpdateComments updates the comments in a GitHub repo.
@@ -28,90 +60,123 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	}
 
 	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
-		log.Printf("[Contributors] error on request for contributors: %v", ErrAppNotInstalled)
+		log.Printf("[GetUpdateComments] error on request for contributors: %v", ErrAppNotInstalled)
 		return ErrAppNotInstalled
 	}
 
-	response, err := gH.updateComments(c.Request().Context(), owner, repoName)
+	updates := safeIssueCommentsUpdates{}
+	response := updateCommentsResponse{}
+	go func() {
+		err := gH.updateRewardComments(c.Request().Context(), owner, repoName, &updates)
+		if err != nil {
+			response.RewardCommentsError = pointer.String(err.Error())
+		}
+	}()
+	go func() {
+		err := gH.updateEligibleComments(c.Request().Context(), owner, repoName, &updates)
+		if err != nil {
+			response.EligibleCommentsError = pointer.String(err.Error())
+		}
+	}()
+
+	response.Updates = updates.m
+	return c.JSON(http.StatusOK, updates)
+}
+
+// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
+func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
+	wrappedIssues, err := gH.loadIssuesAndEvents(ctx, owner, repoName)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, response)
-}
-
-// updateComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) updateComments(ctx context.Context, owner string, repoName string) ([]*IssueCommentUpdate, error) {
-	issues, err := gH.loadIssuesAndEvents(ctx, owner, repoName)
-	if err != nil {
-		return nil, err
-	}
-
-	issueCommentUpdates := make([]*IssueCommentUpdate, len(issues))
-	if len(issues) == 0 {
-		return issueCommentUpdates, nil
-	}
-
-	comments := make(map[int]string, len(issues))
-	for issueNumber, issue := range issues {
-		contributors, err := ContributorsFromIssue(issue, BoardOptions{
-			currency: gH.famedConfig.Currency,
-			rewards:  gH.famedConfig.Rewards,
-		})
-		if err != nil {
-			comments[issueNumber] = rewardCommentFromError(err)
-			continue
-		}
-
-		comments[issueNumber] = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
-	}
-
 	var wg sync.WaitGroup
 	i := 0
-	for issueNumber, comment := range comments {
-		issueCommentUpdates[i] = &IssueCommentUpdate{}
+	for issueNumber, issue := range wrappedIssues {
 		wg.Add(1)
-		go gH.updateComment(ctx, &wg, owner, repoName, issueNumber, comment, issueCommentUpdates[i])
+		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue WrappedIssue) {
+			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
+			if updates != nil {
+				updates.Add(issueNumber, update, commentReward)
+			}
+		}(ctx, &wg, owner, repoName, issue)
 		i++
 	}
 	wg.Wait()
 
-	return issueCommentUpdates, nil
+	return nil
 }
 
-// updateComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issueNumber int, comment string, issueCommentUpdate *IssueCommentUpdate) {
+// updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
+func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue WrappedIssue) commentUpdate {
 	defer wg.Done()
-	issueCommentUpdate.IssueNumber = issueNumber
 
-	issueComments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
+	update := commentUpdate{}
+	comment := ""
+	contributors, err := ContributorsFromIssue(issue, BoardOptions{
+		currency: gH.famedConfig.Currency,
+		rewards:  gH.famedConfig.Rewards,
+	})
 	if err != nil {
-		log.Printf("[CleanState] error while getting comments for issue #%d, error: %v", issueNumber, err)
-		issueCommentUpdate.Error = err.Error()
-		return
+		comment = rewardCommentFromError(err)
+	}
+	if err == nil {
+		comment = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	lastCommentByBot, found := findComment(issueComments, gH.famedConfig.BotLogin, commentReward)
-	if !found {
-		log.Printf("[CleanState] did not find expected comment for issue #%d", issueNumber)
-		log.Printf("[CleanState] posting comment for issue #%d", issueNumber)
-		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
-		if err != nil {
-			log.Printf("[CleanState] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
-			issueCommentUpdate.Error = err.Error()
-			return
-		}
+	err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Issue.Number, comment, commentReward)
+	if err != nil {
+		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
+		update.Error = err.Error()
+		return update
 	}
 
-	if found && lastCommentByBot.Body != comment {
-		log.Printf("[CleanState] updating comment for issue #%d", issueNumber)
-		err := gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, lastCommentByBot.ID, comment)
-		if err != nil {
-			log.Printf("[CleanState] error while posting rewardComment for issue #%d, error: %v", issueNumber, err)
-			issueCommentUpdate.Error = err.Error()
-			return
-		}
+	update.Updated = true
+	return update
+}
+
+func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
+	// TODO duplicate GetIssues call
+	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, nil)
+	if err != nil {
+		return err
 	}
 
-	issueCommentUpdate.Updated = true
+	var wg sync.WaitGroup
+	for _, issue := range issues {
+		wg.Add(1)
+		go func(issue github.Issue) {
+			update := gH.updateEligibleComment(ctx, &wg, owner, repoName, issue)
+			if updates != nil {
+				updates.Add(issue.Number, update, commentEligible)
+			}
+		}(issue)
+	}
+
+	return nil
+}
+
+func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue github.Issue) commentUpdate {
+	defer wg.Done()
+
+	update := commentUpdate{}
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
+	if err != nil {
+		log.Printf("[updateEligibleComment] error while fetching pull request: %v", err)
+		update.Error = err.Error()
+		return update
+	}
+
+	comment := issueEligibleComment(issue, pullRequest)
+
+	err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentEligible)
+	if err != nil {
+		log.Printf("[updateEligibleComment] error while posting eligable comment: %v", err)
+		update.Error = err.Error()
+		return update
+	}
+
+	update.Updated = true
+	return update
 }

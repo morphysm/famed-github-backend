@@ -7,7 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
@@ -25,7 +25,7 @@ var (
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
-func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.IssuesEvent) error {
+func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEvent) error {
 	var (
 		commentType commentType
 		comment     string
@@ -34,7 +34,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.Is
 	)
 
 	switch event.Action {
-	case string(installation.Closed):
+	case string(github.Closed):
 		comment, err = gH.handleClosedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating reward comment for closed event: %v", err)
@@ -42,16 +42,16 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.Is
 		}
 		commentType = commentReward
 
-	case string(installation.Assigned):
+	case string(github.Assigned):
 		fallthrough
 
-	case string(installation.Unassigned):
+	case string(github.Unassigned):
 		fallthrough
 
-	case string(installation.Labeled):
+	case string(github.Labeled):
 		fallthrough
 
-	case string(installation.Unlabeled):
+	case string(github.Unlabeled):
 		comment, err = gH.handleUpdatedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
@@ -75,7 +75,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event installation.Is
 }
 
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
-func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installation.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 
 	famedLabeled := isIssueFamedLabeled(event.Issue, famedLabel.Name)
@@ -113,7 +113,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event installati
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
-func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event installation.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
 		return "", ErrEventMissingFamedLabel
@@ -124,7 +124,7 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event installat
 		return "", err
 	}
 
-	return issueEligibleComment(event.Issue, pullRequest)
+	return issueEligibleComment(event.Issue, pullRequest), nil
 }
 
 // postOrUpdateComment checks if a handleClosedEvent of a type is present,

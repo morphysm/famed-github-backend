@@ -15,24 +15,25 @@ func (gH *githubHandler) CleanState() {
 	}
 
 	for _, installation := range installations {
-		// Check and if necessary add installation clients
+		// Check and if necessary add github clients
 		//TODO add check for null pointer
-		if !gH.githubInstallationClient.CheckInstallation(*installation.Account.Login) {
-			err := gH.githubInstallationClient.AddInstallation(*installation.Account.Login, *installation.ID)
+		if !gH.githubInstallationClient.CheckInstallation(installation.Account.Login) {
+			err := gH.githubInstallationClient.AddInstallation(installation.Account.Login, installation.ID)
 			if err != nil {
-				log.Printf("[CleanState] error while adding installation: %v", err)
+				log.Printf("[CleanState] error while adding github: %v", err)
 				continue
 			}
 		}
 
-		repos, err := gH.githubInstallationClient.GetRepos(ctx, *installation.Account.Login)
+		repos, err := gH.githubInstallationClient.GetRepos(ctx, installation.Account.Login)
 		if err != nil {
 			log.Printf("[CleanState] error while getting repos: %v", err)
 			continue
 		}
 
 		for _, repo := range repos {
-			gH.updateComments(ctx, *installation.Account.Login, repo.Name)
+			go gH.updateRewardComments(ctx, installation.Account.Login, repo.Name, nil)
+			go gH.updateEligibleComments(ctx, installation.Account.Login, repo.Name, nil)
 		}
 	}
 }

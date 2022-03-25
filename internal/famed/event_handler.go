@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 // PostEvent receives the events send to the webhook set in the GitHub App.
@@ -18,11 +18,11 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 	}
 
 	switch event := event.(type) {
-	case installation.IssuesEvent:
+	case github.IssuesEvent:
 		return gH.handleIssuesEvent(c, event)
-	case installation.InstallationRepositoriesEvent:
+	case github.InstallationRepositoriesEvent:
 		return gH.handleInstallationRepositoriesEvent(c, event)
-	case installation.InstallationEvent:
+	case github.InstallationEvent:
 		return gH.handleInstallationEvent(c, event)
 	default:
 		log.Printf("received unhandled event: %v\n", event)

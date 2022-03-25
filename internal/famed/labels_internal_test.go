@@ -3,7 +3,7 @@ package famed
 import (
 	"testing"
 
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/stretchr/testify/assert"
 )
@@ -55,7 +55,7 @@ func TestIssueToSeverity(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// GIVEN
-			issue := installation.Issue{Labels: []installation.Label{{Name: testCase.Label}}}
+			issue := github.Issue{Labels: []github.Label{{Name: testCase.Label}}}
 
 			// WHEN
 			severityResult, err := severity(issue)
@@ -74,7 +74,7 @@ func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	// GIVEN
 	labelNone := string(config.CVSSNone)
 	labelLow := string(config.CVSSCritical)
-	issue := installation.Issue{Labels: []installation.Label{{Name: labelNone}, {Name: labelLow}}}
+	issue := github.Issue{Labels: []github.Label{{Name: labelNone}, {Name: labelLow}}}
 
 	// WHEN
 	severityResult, err := severity(issue)

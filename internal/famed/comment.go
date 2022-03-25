@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
@@ -60,7 +60,7 @@ func rewardCommentFromError(err error) string {
 }
 
 // issueEligibleComment generate an issue eligible comment.
-func issueEligibleComment(issue installation.Issue, pullRequest *installation.PullRequest) (string, error) {
+func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) string {
 	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.\n", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
@@ -75,19 +75,19 @@ func issueEligibleComment(issue installation.Issue, pullRequest *installation.Pu
 	// Final note
 	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)
 
-	return comment, nil
+	return comment
 }
 
-func assigneeComment(issue installation.Issue) string {
-	const msg = "Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
+func assigneeComment(issue github.Issue) string {
+	const msg = " Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
 	if issue.Assignee != nil {
 		return "✅" + msg
 	}
 
-	return fmt.Sprintf("❌ %s", msg)
+	return "❌" + msg
 }
 
-func severityComment(issue installation.Issue) string {
+func severityComment(issue github.Issue) string {
 	const msg = " Add a single severity (CVSS) label to compute the score 🏷️"
 	if _, err := severity(issue); err == nil {
 		return "✅" + msg
@@ -96,7 +96,7 @@ func severityComment(issue installation.Issue) string {
 	return "❌" + msg
 }
 
-func prComment(pullRequest *installation.PullRequest) string {
+func prComment(pullRequest *github.PullRequest) string {
 	const msg = " Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
 	if pullRequest != nil {
 		return "✅" + msg
@@ -106,7 +106,7 @@ func prComment(pullRequest *installation.PullRequest) string {
 }
 
 // findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
-func findComment(comments []installation.IssueComment, botLogin string, commentType commentType) (installation.IssueComment, bool) {
+func findComment(comments []github.IssueComment, botLogin string, commentType commentType) (github.IssueComment, bool) {
 	for _, comment := range comments {
 		if comment.User.Login == botLogin &&
 			verifyCommentType(comment.Body, commentType) {
@@ -114,7 +114,7 @@ func findComment(comments []installation.IssueComment, botLogin string, commentT
 		}
 	}
 
-	return installation.IssueComment{}, false
+	return github.IssueComment{}, false
 }
 
 // verifyCommentType checks if a given string is of a given commentType
@@ -128,7 +128,7 @@ func verifyCommentType(str string, commentType commentType) bool {
 		if strings.Contains(str, substr) {
 			return true
 		}
-		substr = "Famed suggests:"
+		substr = "Famed could not generate a reward suggestion."
 	}
 
 	return strings.Contains(str, substr)

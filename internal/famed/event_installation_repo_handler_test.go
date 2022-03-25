@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
-	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
+	gitLib "github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
@@ -21,7 +21,7 @@ import (
 func TestPostInstallationRepositoriesEvent(t *testing.T) {
 	t.Parallel()
 
-	labels := map[string]installation.Label{
+	labels := map[string]gitLib.Label{
 		config.FamedLabel:           {Name: config.FamedLabel, Color: "TestColor", Description: "TestDescription"},
 		string(config.CVSSNone):     {Name: string(config.CVSSNone), Color: "TestColor", Description: "TestDescription"},
 		string(config.CVSSLow):      {Name: string(config.CVSSLow), Color: "TestColor", Description: "TestDescription"},
@@ -40,7 +40,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 		ExpectedErr   error
 	}{
 		{
-			Name:        "Empty installation event",
+			Name:        "Empty github event",
 			Event:       &github.InstallationRepositoriesEvent{},
 			ExpectedErr: famed.ErrEventMissingData,
 		},
@@ -72,9 +72,9 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &installationfakes.FakeClient{}
+			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
-			cl, _ := installation.NewClient("", nil, nil, "")
+			cl, _ := gitLib.NewInstallationClient("", nil, nil, "")
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)

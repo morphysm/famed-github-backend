@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 // handleInstallationRepositoriesEvent adds the labels needed for Famed to the added repository
-func (gH *githubHandler) handleInstallationEvent(c echo.Context, event installation.InstallationEvent) error {
+func (gH *githubHandler) handleInstallationEvent(c echo.Context, event github.InstallationEvent) error {
 	if event.Action != "created" {
 		log.Printf("[handleInstallationEvent] error is not valid insatllation created event")
 		return ErrEventNotInstallationCreated

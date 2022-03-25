@@ -2,8 +2,7 @@ package famed
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/app"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 type HTTPHandler interface {
@@ -19,14 +18,14 @@ type HTTPHandler interface {
 
 // githubHandler represents the handler for the GitHub endpoints.
 type githubHandler struct {
-	githubAppClient          app.Client
-	githubInstallationClient installation.Client
+	githubAppClient          github.AppClient
+	githubInstallationClient github.InstallationClient
 
 	famedConfig Config
 }
 
 // NewHandler returns a pointer to the GitHub handler.
-func NewHandler(githubAppClient app.Client, githubInstallationClient installation.Client, famedConfig Config) HTTPHandler {
+func NewHandler(githubAppClient github.AppClient, githubInstallationClient github.InstallationClient, famedConfig Config) HTTPHandler {
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,

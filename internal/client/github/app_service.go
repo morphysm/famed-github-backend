@@ -1,4 +1,4 @@
-package app
+package github
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate . Client
-type Client interface {
-	GetInstallations(ctx context.Context) ([]*github.Installation, error)
+//counterfeiter:generate . AppClient
+type AppClient interface {
+	GetInstallations(ctx context.Context) ([]Installation, error)
 	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
 }
 
@@ -21,8 +21,8 @@ type githubAppClient struct {
 	client *github.Client
 }
 
-// NewClient returns a new instance of the GitHub client
-func NewClient(baseURL string, apiKey string, appID int64) (Client, error) {
+// NewAppClient returns a new instance of the GitHub client
+func NewAppClient(baseURL string, apiKey string, appID int64) (AppClient, error) {
 	itr, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(apiKey))
 	if err != nil {
 		return nil, err

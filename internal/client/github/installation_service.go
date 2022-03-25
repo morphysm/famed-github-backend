@@ -1,4 +1,4 @@
-package installation
+package github
 
 import (
 	"context"
@@ -6,18 +6,17 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/internal/client/app"
 	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate . Client
-type Client interface {
+//counterfeiter:generate . InstallationClient
+type InstallationClient interface {
 	GetRepos(ctx context.Context, owner string) ([]Repo, error)
 
-	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state IssueState) ([]Issue, error)
+	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error)
 
 	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
 
@@ -72,16 +71,16 @@ func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
 	return client, ok
 }
 
-// githubInstallationClient represents all GitHub installation clients
+// githubInstallationClient represents all GitHub github clients
 type githubInstallationClient struct {
 	baseURL       string
 	webhookSecret string
-	appClient     app.Client
+	appClient     AppClient
 	clients       safeClientMap
 }
 
-// NewClient returns a new instance of the GitHub client
-func NewClient(baseURL string, appClient app.Client, installations map[string]int64, webhookSecret string) (Client, error) {
+// NewInstallationClient returns a new instance of the GitHub client
+func NewInstallationClient(baseURL string, appClient AppClient, installations map[string]int64, webhookSecret string) (InstallationClient, error) {
 	client := &githubInstallationClient{
 		baseURL:       baseURL,
 		webhookSecret: webhookSecret,
@@ -99,7 +98,7 @@ func NewClient(baseURL string, appClient app.Client, installations map[string]in
 	return client, nil
 }
 
-// AddInstallation adds a new installation to the githubInstallationClient.
+// AddInstallation adds a new github to the githubInstallationClient.
 func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
 	ts := NewGithubTokenSource(c.appClient, installationID)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)

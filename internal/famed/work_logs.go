@@ -51,7 +51,7 @@ func (wL WorkLogs) Sum() (map[string]time.Duration, time.Duration) {
 		}
 
 		totalWork[login] = contributorTotalWork
-		// Update work total work time of issue
+		// Add work total work time of issue
 		workSum += contributorTotalWork
 	}
 

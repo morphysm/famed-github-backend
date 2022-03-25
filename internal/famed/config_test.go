@@ -3,7 +3,7 @@ package famed_test
 import (
 	"testing"
 
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ func TestConfig(t *testing.T) {
 
 	assert.Equal(t, cfg.Currency, "c")
 	assert.Equal(t, cfg.Rewards, map[config.IssueSeverity]float64{"s": 0})
-	assert.Equal(t, cfg.Labels, map[string]installation.Label{
+	assert.Equal(t, cfg.Labels, map[string]github.Label{
 		"f": {
 			Name:        "n",
 			Color:       "c",
@@ -29,7 +29,7 @@ func TestConfig(t *testing.T) {
 func NewTestConfig() famed.Config {
 	return famed.NewFamedConfig("c",
 		map[config.IssueSeverity]float64{"s": 0},
-		map[string]installation.Label{
+		map[string]github.Label{
 			"f": {
 				Name:        "n",
 				Color:       "c",

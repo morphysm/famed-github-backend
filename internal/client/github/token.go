@@ -1,19 +1,18 @@
-package installation
+package github
 
 import (
 	"context"
 	"log"
 
-	"github.com/morphysm/famed-github-backend/internal/client/app"
 	"golang.org/x/oauth2"
 )
 
 type gitHubTokenSource struct {
-	client         app.Client
+	client         AppClient
 	installationID int64
 }
 
-func NewGithubTokenSource(client app.Client, installationID int64) oauth2.TokenSource {
+func NewGithubTokenSource(client AppClient, installationID int64) oauth2.TokenSource {
 	return &gitHubTokenSource{
 		client:         client,
 		installationID: installationID,

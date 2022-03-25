@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 type Config struct {
@@ -31,7 +31,7 @@ type Config struct {
 	}
 
 	Famed struct {
-		Labels          map[string]installation.Label
+		Labels          map[string]github.Label
 		Rewards         map[IssueSeverity]float64
 		Currency        string
 		UpdateFrequency int

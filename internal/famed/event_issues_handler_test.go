@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
-	"github.com/morphysm/famed-github-backend/internal/client/installation/installationfakes"
+	gitlib "github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
@@ -23,22 +23,22 @@ func TestPostIssuesEvent(t *testing.T) {
 
 	rewards := map[config.IssueSeverity]float64{
 		config.CVSSNone:     0,
-		config.CVSSLow:      1,
-		config.CVSSMedium:   2,
-		config.CVSSHigh:     3,
-		config.CVSSCritical: 4,
+		config.CVSSLow:      1000,
+		config.CVSSMedium:   2000,
+		config.CVSSHigh:     3000,
+		config.CVSSCritical: 4000,
 	}
 	famedConfig := famed.Config{
-		Labels:   map[string]installation.Label{"famed": {Name: "famed"}},
-		Currency: "eth",
+		Labels:   map[string]gitlib.Label{"famed": {Name: "famed"}},
+		Currency: "POINTS",
 		Rewards:  rewards,
 	}
 
 	testCases := []struct {
 		Name            string
 		Event           *github.IssuesEvent
-		Events          []installation.IssueEvent
-		PullRequest     *installation.PullRequest
+		Events          []gitlib.IssueEvent
+		PullRequest     *gitlib.PullRequest
 		ExpectedComment string
 		ExpectedErr     error
 	}{
@@ -68,7 +68,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &installation.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
 		},
 		{
@@ -91,7 +91,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &installation.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
 		},
 		{
@@ -113,7 +113,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &installation.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
 		},
 		{
@@ -135,7 +135,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &installation.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
 		},
 		{
@@ -178,15 +178,15 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &installation.PullRequest{URL: "test"},
-			Events: []installation.IssueEvent{
+			PullRequest: &gitlib.PullRequest{URL: "test"},
+			Events: []gitlib.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &installation.User{Login: "test"},
+					Assignee:  &gitlib.User{Login: "test"},
 				},
 			},
-			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/boards/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|0.675000 eth|",
+			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/boards/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
 		},
 		// Eligible comment
 		{
@@ -290,7 +290,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &installation.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -316,7 +316,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &installation.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -341,10 +341,10 @@ func TestPostIssuesEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &installationfakes.FakeClient{}
+			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
-			cl, _ := installation.NewClient("", nil, nil, "")
+			cl, _ := gitlib.NewInstallationClient("", nil, nil, "")
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
@@ -357,7 +357,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				assert.Equal(t, 1, fakeInstallationClient.PostCommentCallCount())
 				if fakeInstallationClient.PostCommentCallCount() == 1 {
 					_, _, _, _, comment := fakeInstallationClient.PostCommentArgsForCall(0)
-					assert.Equal(t, []byte(testCase.ExpectedComment), []byte(comment))
+					assert.Equal(t, testCase.ExpectedComment, comment)
 				}
 			}
 			assert.Equal(t, testCase.ExpectedErr, err)

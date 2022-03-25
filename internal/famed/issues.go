@@ -6,19 +6,20 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	"github.com/morphysm/famed-github-backend/internal/client/installation"
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 type WrappedIssue struct {
-	Issue  installation.Issue
-	Events []installation.IssueEvent
+	Issue  github.Issue
+	Events []github.IssueEvent
 }
 
 func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
-	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, installation.Closed)
+	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, pointer.IssueState(github.Closed))
 	if err != nil {
 		return nil, echo.ErrBadGateway.SetInternal(err)
 	}
@@ -28,7 +29,7 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 	for _, issue := range issuesResponse {
 		wg.Add(1)
 
-		go func(ctx context.Context, issue installation.Issue) {
+		go func(ctx context.Context, issue github.Issue) {
 			defer wg.Done()
 
 			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
@@ -44,7 +45,7 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 	return issues, nil
 }
 
-func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue installation.Issue) (WrappedIssue, error) {
+func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue github.Issue) (WrappedIssue, error) {
 	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		return WrappedIssue{}, err
