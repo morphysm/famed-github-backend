@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -65,7 +66,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEv
 	}
 
 	// Post comment to GitHub
-	err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, commentType)
+	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, commentType)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting rewardComment: %v", err)
 		return err
@@ -131,20 +132,29 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event github.Is
 // if so, the handleClosedEvent body is checked for equality against the new handleClosedEvent,
 // if the comments are not equal the handleClosedEvent is updated,
 // if no handleClosedEvent was found a new handleClosedEvent is posted.
-func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) error {
+func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) (bool, error) {
 	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, commentType)
 	if !found {
-		return gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 
-	if foundComment.Body != comment {
-		return gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, foundComment.ID, comment)
+	// Case-insensitive compare because the board url gets transformed to upper case.
+	if !strings.EqualFold(foundComment.Body, comment) {
+		err := gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, foundComment.ID, comment)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }

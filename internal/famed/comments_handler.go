@@ -135,14 +135,14 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 		comment = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Issue.Number, comment, commentReward)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Issue.Number, comment, commentReward)
 	if err != nil {
 		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
 		update.Error = err.Error()
 		return update
 	}
 
-	update.Updated = true
+	update.Updated = updated
 	return update
 }
 
@@ -181,13 +181,13 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.Wai
 
 	comment := issueEligibleComment(issue, pullRequest)
 
-	err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentEligible)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentEligible)
 	if err != nil {
 		log.Printf("[updateEligibleComment] error while posting eligable comment: %v", err)
 		update.Error = err.Error()
 		return update
 	}
 
-	update.Updated = true
+	update.Updated = updated
 	return update
 }
