@@ -6,8 +6,10 @@ import (
 )
 
 type HTTPHandler interface {
-	GetContributors(c echo.Context) error
 	GetInstallations(c echo.Context) error
+	GetRateLimit(c echo.Context) error
+
+	GetContributors(c echo.Context) error
 
 	PostEvent(c echo.Context) error
 

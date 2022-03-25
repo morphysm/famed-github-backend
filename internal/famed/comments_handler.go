@@ -27,6 +27,12 @@ type commentUpdate struct {
 	Error   string `json:"error"`
 }
 
+func NewSafeIssueCommentsUpdates() *safeIssueCommentsUpdates {
+	return &safeIssueCommentsUpdates{
+		m: make(map[int]issueCommentUpdate),
+	}
+}
+
 func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate commentUpdate, commentType commentType) {
 	sICU.lock.Lock()
 	defer sICU.lock.Unlock()
@@ -64,23 +70,28 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 		return ErrAppNotInstalled
 	}
 
-	updates := safeIssueCommentsUpdates{}
+	var wg sync.WaitGroup
+	updates := NewSafeIssueCommentsUpdates()
 	response := updateCommentsResponse{}
+	wg.Add(2)
 	go func() {
-		err := gH.updateRewardComments(c.Request().Context(), owner, repoName, &updates)
+		defer wg.Done()
+		err := gH.updateRewardComments(c.Request().Context(), owner, repoName, updates)
 		if err != nil {
 			response.RewardCommentsError = pointer.String(err.Error())
 		}
 	}()
 	go func() {
-		err := gH.updateEligibleComments(c.Request().Context(), owner, repoName, &updates)
+		defer wg.Done()
+		err := gH.updateEligibleComments(c.Request().Context(), owner, repoName, updates)
 		if err != nil {
 			response.EligibleCommentsError = pointer.String(err.Error())
 		}
 	}()
 
+	wg.Wait()
 	response.Updates = updates.m
-	return c.JSON(http.StatusOK, updates)
+	return c.JSON(http.StatusOK, response)
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.

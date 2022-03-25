@@ -14,6 +14,8 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . InstallationClient
 type InstallationClient interface {
+	GetRateLimit(ctx context.Context, owner string) (RateLimit, error)
+
 	GetRepos(ctx context.Context, owner string) ([]Repo, error)
 
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error)

@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrUnhandledEventType      = errors.New("the event is not handled")
+	ErrRateLimitMissingData    = errors.New("the rate limit is missing data promised by the GitHub API")
 	ErrInstallationMissingData = errors.New("the installation is missing data promised by the GitHub API")
 	ErrRepoMissingData         = errors.New("the repo is missing data promised by the GitHub API")
 	ErrIssueMissingData        = errors.New("the issue is missing data promised by the GitHub API")
