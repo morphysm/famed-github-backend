@@ -19,12 +19,12 @@ type logMsg struct {
 }
 
 type loggingRoundTripper struct {
-	Proxied http.RoundTripper
+	rT http.RoundTripper
 }
 
 func (lRT loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	sendTime := time.Now()
-	res, err := lRT.Proxied.RoundTrip(req)
+	res, err := lRT.rT.RoundTrip(req)
 	receiveTime := time.Now()
 
 	msg := logMsg{
