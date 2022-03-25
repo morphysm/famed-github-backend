@@ -98,6 +98,20 @@ type FakeInstallationClient struct {
 		result1 []github.Issue
 		result2 error
 	}
+	GetRateLimitStub        func(context.Context, string) (github.RateLimit, error)
+	getRateLimitMutex       sync.RWMutex
+	getRateLimitArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	getRateLimitReturns struct {
+		result1 github.RateLimit
+		result2 error
+	}
+	getRateLimitReturnsOnCall map[int]struct {
+		result1 github.RateLimit
+		result2 error
+	}
 	GetReposStub        func(context.Context, string) ([]github.Repo, error)
 	getReposMutex       sync.RWMutex
 	getReposArgsForCall []struct {
@@ -584,6 +598,71 @@ func (fake *FakeInstallationClient) GetIssuesByRepoReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
+func (fake *FakeInstallationClient) GetRateLimit(arg1 context.Context, arg2 string) (github.RateLimit, error) {
+	fake.getRateLimitMutex.Lock()
+	ret, specificReturn := fake.getRateLimitReturnsOnCall[len(fake.getRateLimitArgsForCall)]
+	fake.getRateLimitArgsForCall = append(fake.getRateLimitArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetRateLimitStub
+	fakeReturns := fake.getRateLimitReturns
+	fake.recordInvocation("GetRateLimit", []interface{}{arg1, arg2})
+	fake.getRateLimitMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeInstallationClient) GetRateLimitCallCount() int {
+	fake.getRateLimitMutex.RLock()
+	defer fake.getRateLimitMutex.RUnlock()
+	return len(fake.getRateLimitArgsForCall)
+}
+
+func (fake *FakeInstallationClient) GetRateLimitCalls(stub func(context.Context, string) (github.RateLimit, error)) {
+	fake.getRateLimitMutex.Lock()
+	defer fake.getRateLimitMutex.Unlock()
+	fake.GetRateLimitStub = stub
+}
+
+func (fake *FakeInstallationClient) GetRateLimitArgsForCall(i int) (context.Context, string) {
+	fake.getRateLimitMutex.RLock()
+	defer fake.getRateLimitMutex.RUnlock()
+	argsForCall := fake.getRateLimitArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeInstallationClient) GetRateLimitReturns(result1 github.RateLimit, result2 error) {
+	fake.getRateLimitMutex.Lock()
+	defer fake.getRateLimitMutex.Unlock()
+	fake.GetRateLimitStub = nil
+	fake.getRateLimitReturns = struct {
+		result1 github.RateLimit
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInstallationClient) GetRateLimitReturnsOnCall(i int, result1 github.RateLimit, result2 error) {
+	fake.getRateLimitMutex.Lock()
+	defer fake.getRateLimitMutex.Unlock()
+	fake.GetRateLimitStub = nil
+	if fake.getRateLimitReturnsOnCall == nil {
+		fake.getRateLimitReturnsOnCall = make(map[int]struct {
+			result1 github.RateLimit
+			result2 error
+		})
+	}
+	fake.getRateLimitReturnsOnCall[i] = struct {
+		result1 github.RateLimit
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstallationClient) GetRepos(arg1 context.Context, arg2 string) ([]github.Repo, error) {
 	fake.getReposMutex.Lock()
 	ret, specificReturn := fake.getReposReturnsOnCall[len(fake.getReposArgsForCall)]
@@ -991,6 +1070,8 @@ func (fake *FakeInstallationClient) Invocations() map[string][][]interface{} {
 	defer fake.getIssuePullRequestMutex.RUnlock()
 	fake.getIssuesByRepoMutex.RLock()
 	defer fake.getIssuesByRepoMutex.RUnlock()
+	fake.getRateLimitMutex.RLock()
+	defer fake.getRateLimitMutex.RUnlock()
 	fake.getReposMutex.RLock()
 	defer fake.getReposMutex.RUnlock()
 	fake.postCommentMutex.RLock()
