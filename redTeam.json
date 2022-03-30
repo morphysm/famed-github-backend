@@ -115,6 +115,32 @@
         "meanSeverity": 9
     },
     {
+        "login": "AlexSSD7",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/43043344?v=4",
+        "htmlUrl": "https://github.com/AlexSSD7",
+        "gravatarId": "",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            }
+        ],
+        "rewardSum": 2500,
+        "currency": "POINTS",
+        "timeToDisclosure": {
+            "time": [
+                705600
+            ],
+            "mean": 705600,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "high": 1
+        },
+        "meanSeverity": 9
+    },
+    {
         "login": "holiman",
         "avatarUrl": "https://avatars.githubusercontent.com/u/142290?v=4",
         "htmlUrl": "https://github.com/holiman",
@@ -159,32 +185,6 @@
                 652320
             ],
             "mean": 652320,
-            "standardDeviation": 0
-        },
-        "severities": {
-            "high": 1
-        },
-        "meanSeverity": 9
-    },
-    {
-        "login": "AlexSSD7",
-        "avatarUrl": "https://avatars.githubusercontent.com/u/43043344?v=4",
-        "htmlUrl": "https://github.com/AlexSSD7",
-        "gravatarId": "",
-        "fixCount": 1,
-        "rewards": [
-            {
-                "date": "2021-12-01T00:00:00Z",
-                "reward": 2500
-            }
-        ],
-        "rewardSum": 2500,
-        "currency": "POINTS",
-        "timeToDisclosure": {
-            "time": [
-                705600
-            ],
-            "mean": 705600,
             "standardDeviation": 0
         },
         "severities": {
@@ -272,25 +272,57 @@
         "avatarUrl": "https://avatars.githubusercontent.com/u/494825?v=4",
         "htmlUrl": "https://github.com/asanso",
         "gravatarId": "",
-        "fixCount": 1,
+        "fixCount": 2,
         "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 250
+            },
             {
                 "date": "2021-12-01T00:00:00Z",
                 "reward": 125
             }
         ],
-        "rewardSum": 125,
+        "rewardSum": 375,
         "currency": "POINTS",
         "timeToDisclosure": {
             "time": [
+                400320,
                 313920
             ],
-            "mean": 313920,
+            "mean": 357120,
+            "standardDeviation": 43200
+        },
+        "severities": {
+            "info": 1,
+            "low": 1
+        },
+        "meanSeverity": 1
+    },
+    {
+        "login": "mcdee",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/511384?v=4",
+        "htmlUrl": "https://github.com/mcdee",
+        "gravatarId": "",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 100
+            }
+        ],
+        "rewardSum": 100,
+        "currency": "POINTS",
+        "timeToDisclosure": {
+            "time": [
+                136800
+            ],
+            "mean": 136800,
             "standardDeviation": 0
         },
         "severities": {
-            "low": 1
+            "info": 1
         },
-        "meanSeverity": 2
+        "meanSeverity": 0
     }
 ]
