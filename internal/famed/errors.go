@@ -6,7 +6,7 @@ import (
 
 var (
 	ErrIssueMissingAssignee = errors.New("the issue is missing an assignee")
-	ErrIssueClosedAt        = errors.New("the issue is missing the closed at timestamp")
+	ErrIssueMissingClosedAt = errors.New("the issue is missing the closed at timestamp")
 
 	ErrEventMissingData            = errors.New("the event is missing data promised by the GitHub API")
 	ErrEventNotRepoAdded           = errors.New("the event is not a repo added to github event")

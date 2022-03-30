@@ -99,20 +99,12 @@ func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOpt
 
 // MapIssue updates the contributors map based on a set of events and an issue.
 func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
-	var (
-		// areIncremented tracks contributors that have had their fix counters incremented
-		areIncremented = make(map[string]bool)
-		workLogs       = WorkLogs{}
-		reopenCount    = 0
-		issueCreatedAt = issue.Issue.CreatedAt
-	)
-
 	// Check if issue has closed at timestamp
 	if issue.Issue.ClosedAt == nil {
-		return ErrIssueClosedAt
+		return ErrIssueMissingClosedAt
 	}
 	issueClosedAt := *issue.Issue.ClosedAt
-	timeToDisclosure := issueClosedAt.Sub(issueCreatedAt).Minutes()
+	timeToDisclosure := issueClosedAt.Sub(issue.Issue.CreatedAt).Minutes()
 
 	// Read severity from issue
 	severity, err := severity(issue.Issue)
@@ -121,11 +113,38 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 		return err
 	}
 
+	var workLogs WorkLogs
+	var reopenCount int
+	if !issue.Issue.Migrated {
+		workLogs, reopenCount = contributors.mapEvents(issue.Events, issueClosedAt, severity, timeToDisclosure, boardOptions.currency)
+	}
+	if issue.Issue.Migrated {
+		contributors.mapAssigneeIfMissing(*issue.Issue.Assignee, boardOptions.currency)
+		workLogs = WorkLogs{}
+		workLogs.Add(issue.Issue.Assignee.Login, WorkLog{issue.Issue.CreatedAt, issueClosedAt})
+		contributors.incrementFixCounters(issue.Issue.Assignee.Login, timeToDisclosure, severity)
+	}
+
 	// Get severity reward from config
 	severityReward := boardOptions.rewards[severity]
 
+	// Calculate the reward
+	contributors.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, severityReward)
+
+	return nil
+}
+
+// mapEvents
+func (contributors Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity config.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
+	// areIncremented tracks contributors that have had their fix counters incremented
+	var (
+		workLogs       = WorkLogs{}
+		areIncremented = make(map[string]bool)
+		reopenCount    = 0
+	)
+
 	// Iterate through issue events and map events if event type is of interest
-	for _, event := range issue.Events {
+	for _, event := range events {
 		switch event.Event {
 		case string(github.IssueEventActionAssigned):
 			if event.Assignee == nil {
@@ -136,11 +155,11 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 				continue
 			}
 
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs, boardOptions.currency)
+			contributors.mapEventAssigned(event, issueClosedAt, workLogs, currency)
 
 			// Increment fix count if not yet done
 			if isIncremented := areIncremented[event.Assignee.Login]; !isIncremented {
-				contributors.incrementFixCounters(*event.Assignee, timeToDisclosure, severity)
+				contributors.incrementFixCounters(event.Assignee.Login, timeToDisclosure, severity)
 				areIncremented[event.Assignee.Login] = true
 			}
 		case string(github.IssueEventActionUnassigned):
@@ -150,10 +169,7 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 		}
 	}
 
-	// Calculate the reward
-	contributors.updateRewards(workLogs, issueCreatedAt, issueClosedAt, reopenCount, severityReward)
-
-	return nil
+	return workLogs, reopenCount
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
@@ -191,8 +207,8 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee github.User, curr
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) incrementFixCounters(assignee github.User, timeToDisclosure float64, severity config.IssueSeverity) {
-	contributor := contributors[assignee.Login]
+func (contributors Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity config.IssueSeverity) {
+	contributor := contributors[login]
 
 	// Increment fix count
 	contributor.FixCount++

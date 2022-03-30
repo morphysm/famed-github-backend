@@ -2,7 +2,10 @@ package github
 
 import (
 	"context"
+	"errors"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v41/github"
@@ -30,6 +33,7 @@ type Issue struct {
 	ClosedAt  *time.Time
 	Assignee  *User
 	Labels    []Label
+	Migrated  bool
 }
 
 type User struct {
@@ -118,6 +122,11 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 		}
 	}
 
+	// TODO refactor this code and functions
+	if issue.Body != nil && strings.Contains(compressedIssue.Title, "Famed Retroactive Rewards") {
+		compressedIssue = parseMigrationIssue(compressedIssue, *issue.Body)
+	}
+
 	return compressedIssue, nil
 }
 
@@ -134,6 +143,75 @@ func validateUser(user *github.User) (User, error) {
 		HTMLURL:    user.HTMLURL,
 		GravatarID: user.GravatarID,
 	}, nil
+}
+
+func parseMigrationIssue(issue Issue, body string) Issue {
+	issue.Migrated = true
+
+	createdAt, err := parseReportedTime(body)
+	if err != nil {
+		log.Printf("[parseMigrationIssue] error while parsing reported time: %v", err)
+	} else {
+		issue.CreatedAt = createdAt
+	}
+
+	closedAt, err := parseFixTime(body)
+	if err != nil {
+		log.Printf("[parseMigrationIssue] error while parsing fix time: %v", err)
+	} else {
+		issue.ClosedAt = &closedAt
+	}
+	
+	return issue
+}
+
+func parseReportedTime(body string) (time.Time, error) {
+	r, err := regexp.Compile(`\*\*Reported:\*\*\s*([^\n\r]*)`)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	matches := r.FindStringSubmatch(body)
+	if err != nil {
+		return time.Time{}, errors.New("no matches found for reported time")
+	}
+
+	createdAt, err := parseDate(matches[1])
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return createdAt, nil
+}
+
+func parseFixTime(body string) (time.Time, error) {
+	r, err := regexp.Compile(`\*\*Fixed:\*\*\s*([^\n\r]*)`)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	matches := r.FindStringSubmatch(body)
+	if err != nil {
+		return time.Time{}, errors.New("no matches found for fix time")
+	}
+
+	createdAt, err := parseDate(matches[1])
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return createdAt, nil
+}
+
+func parseDate(data string) (time.Time, error) {
+	const layout = "2006-01-02"
+
+	date, err := time.Parse(layout, data)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return date, nil
 }
 
 // GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.
