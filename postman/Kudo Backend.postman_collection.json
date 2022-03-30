@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f7f631b4-c97c-47f4-a038-25901c3fcda4",
+		"_postman_id": "913a9422-64ac-4fb6-9b69-212a0c76ec73",
 		"name": "Kudo Backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,11 +11,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/famed/repos/:owner/:repo_name/contributors",
+					"raw": "{{host}}/famed/repos/:owner/:repo_name/contributors",
 					"host": [
-						"localhost"
+						"{{host}}"
 					],
-					"port": "8080",
 					"path": [
 						"famed",
 						"repos",
@@ -26,11 +25,42 @@
 					"variable": [
 						{
 							"key": "owner",
-							"value": "morphysm"
+							"value": "KilianKae"
 						},
 						{
 							"key": "repo_name",
-							"value": "famed-git-api-test"
+							"value": "codeGames"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RedTeam",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/famed/repos/:owner/:repo_name/contributors",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"famed",
+						"repos",
+						":owner",
+						":repo_name",
+						"contributors"
+					],
+					"variable": [
+						{
+							"key": "owner",
+							"value": "KilianKae"
+						},
+						{
+							"key": "repo_name",
+							"value": "codeGames"
 						}
 					]
 				}
@@ -74,11 +104,10 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/famed/repos/:owner/:repo_name/update",
+					"raw": "{{host}}/famed/repos/:owner/:repo_name/update",
 					"host": [
-						"localhost"
+						"{{host}}"
 					],
-					"port": "8080",
 					"path": [
 						"famed",
 						"repos",
@@ -89,12 +118,78 @@
 					"variable": [
 						{
 							"key": "owner",
-							"value": "morphysm"
+							"value": "kiliankae"
 						},
 						{
 							"key": "repo_name",
-							"value": "kudos-git-api-test"
+							"value": "codeGames"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Installations",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "HansPeter",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "B?tuf9\",pT5@LU_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/admin/installations",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"admin",
+						"installations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RateLimits",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "HansPeter",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "B?tuf9\",pT5@LU_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/admin/ratelimits",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"admin",
+						"ratelimits"
 					]
 				}
 			},

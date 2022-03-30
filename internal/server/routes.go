@@ -9,6 +9,7 @@ import (
 // FamedRoutes defines endpoints exposed to serve famed api endpoints.
 func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.GET("/repos/:owner/:repo_name/contributors", handler.GetContributors)
+	g.GET("/repos/:owner/:repo_name/redteam", handler.GetRedTeam)
 
 	g.POST("/webhooks/event", handler.PostEvent)
 

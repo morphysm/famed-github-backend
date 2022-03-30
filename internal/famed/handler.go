@@ -10,6 +10,7 @@ type HTTPHandler interface {
 	GetRateLimit(c echo.Context) error
 
 	GetContributors(c echo.Context) error
+	GetRedTeam(c echo.Context) error
 
 	PostEvent(c echo.Context) error
 
