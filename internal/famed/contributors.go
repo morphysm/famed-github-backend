@@ -279,3 +279,17 @@ func sortContributors(contributors []*Contributor) {
 		return contributors[i].RewardSum > contributors[j].RewardSum
 	})
 }
+
+// updateMonthlyRewards maps the rewards of each contributor to a monthly timeframe for the past year.
+func (contributors Contributors) updateMonthlyRewards() {
+	now := time.Now()
+	for _, contributor := range contributors {
+		contributor.RewardsLastYear = newRewardsLastYear(now)
+
+		for _, reward := range contributor.Rewards {
+			if month, ok := isInTheLast12Months(now, reward.Date); ok {
+				contributor.RewardsLastYear[month].Reward += reward.Reward
+			}
+		}
+	}
+}

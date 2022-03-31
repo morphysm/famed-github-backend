@@ -1,6 +1,7 @@
 package famed
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
@@ -8,10 +9,19 @@ import (
 )
 
 func (gH *githubHandler) GetRedTeam(c echo.Context) error {
-	redTeam, err := os.ReadFile("redTeam.json")
+	rawRedTeam, err := os.ReadFile("redTeam.json")
 	if err != nil {
 		return err
 	}
 
-	return c.JSONBlob(http.StatusOK, redTeam)
+	redTeam := Contributors{}
+	err = json.Unmarshal(rawRedTeam, &redTeam)
+	if err != nil {
+		return err
+	}
+
+	redTeam.updateMonthlyRewards()
+	sortedRedTeam := redTeam.toSortedSlice()
+
+	return c.JSON(http.StatusOK, sortedRedTeam)
 }
