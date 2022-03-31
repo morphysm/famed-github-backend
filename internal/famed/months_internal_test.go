@@ -112,6 +112,24 @@ func TestNewRewardsLastYear(t *testing.T) {
 				{Month: "7.2019", Reward: 0},
 			},
 		},
+		{
+			Name: "Start 31.03.2020",
+			Date: time.Date(2020, 3, 31, 0, 0, 0, 0, time.UTC),
+			Expected: RewardsLastYear{
+				{Month: "3.2020", Reward: 0},
+				{Month: "2.2020", Reward: 0},
+				{Month: "1.2020", Reward: 0},
+				{Month: "12.2019", Reward: 0},
+				{Month: "11.2019", Reward: 0},
+				{Month: "10.2019", Reward: 0},
+				{Month: "9.2019", Reward: 0},
+				{Month: "8.2019", Reward: 0},
+				{Month: "7.2019", Reward: 0},
+				{Month: "6.2019", Reward: 0},
+				{Month: "5.2019", Reward: 0},
+				{Month: "4.2019", Reward: 0},
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

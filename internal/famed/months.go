@@ -17,10 +17,14 @@ const monthsInAYear = 12
 // newRewardsLastYear returns RewardsLastYear with instantiated months starting at the current month and going back 11 months.
 func newRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	rewardsLastYear := make([]MonthlyReward, monthsInAYear)
+	year, month, _ := timeStart.Date()
 	for i := 0; i < 12; i++ {
-		timeInMonth := timeStart.AddDate(0, -i, 0)
-		year, month, _ := timeInMonth.Date()
 		rewardsLastYear[i].Month = fmt.Sprintf("%d.%d", month, year)
+		month--
+		if month < 1 {
+			month = 12
+			year--
+		}
 	}
 
 	return rewardsLastYear
