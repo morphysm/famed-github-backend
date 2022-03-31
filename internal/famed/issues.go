@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
-	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 type WrappedIssue struct {
@@ -19,7 +18,8 @@ type WrappedIssue struct {
 func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
-	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, pointer.IssueState(github.Closed))
+	issueState := github.Closed
+	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {
 		return nil, echo.ErrBadGateway.SetInternal(err)
 	}

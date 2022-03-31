@@ -14,14 +14,13 @@ type Contributors map[string]*Contributor
 
 type Contributor struct {
 	Login            string                       `json:"login"`
-	AvatarURL        *string                      `json:"avatarUrl,omitempty"`
-	HTMLURL          *string                      `json:"htmlUrl,omitempty"`
-	GravatarID       *string                      `json:"gravatarId,omitempty"`
-	FixCount         int                          `json:"fixCount,omitempty"`
+	AvatarURL        string                       `json:"avatarUrl"`
+	HTMLURL          string                       `json:"htmlUrl"`
+	FixCount         int                          `json:"fixCount"`
 	Rewards          []Reward                     `json:"rewards"`
 	RewardSum        float64                      `json:"rewardSum"`
 	Currency         string                       `json:"currency"`
-	RewardsLastYear  RewardsLastYear              `json:"rewardsLastYear,omitempty"`
+	RewardsLastYear  RewardsLastYear              `json:"rewardsLastYear"`
 	TimeToDisclosure TimeToDisclosure             `json:"timeToDisclosure"`
 	Severities       map[config.IssueSeverity]int `json:"severities"`
 	MeanSeverity     float64                      `json:"meanSeverity"`
@@ -196,7 +195,6 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee github.User, curr
 			Login:            assignee.Login,
 			AvatarURL:        assignee.AvatarURL,
 			HTMLURL:          assignee.HTMLURL,
-			GravatarID:       assignee.GravatarID,
 			Rewards:          []Reward{},
 			Currency:         currency,
 			TimeToDisclosure: TimeToDisclosure{},

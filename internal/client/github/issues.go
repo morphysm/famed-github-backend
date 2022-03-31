@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 type IssueState string
@@ -37,10 +38,9 @@ type Issue struct {
 }
 
 type User struct {
-	Login      string
-	AvatarURL  *string
-	HTMLURL    *string
-	GravatarID *string
+	Login     string
+	AvatarURL string
+	HTMLURL   string
 }
 
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error) {
@@ -138,10 +138,9 @@ func validateUser(user *github.User) (User, error) {
 	}
 
 	return User{
-		Login:      *user.Login,
-		AvatarURL:  user.AvatarURL,
-		HTMLURL:    user.HTMLURL,
-		GravatarID: user.GravatarID,
+		Login:     *user.Login,
+		AvatarURL: pointer.ToString(user.AvatarURL),
+		HTMLURL:   pointer.ToString(user.HTMLURL),
 	}, nil
 }
 
@@ -161,7 +160,7 @@ func parseMigrationIssue(issue Issue, body string) Issue {
 	} else {
 		issue.ClosedAt = &closedAt
 	}
-	
+
 	return issue
 }
 
