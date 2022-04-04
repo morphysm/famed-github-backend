@@ -64,10 +64,10 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.\n", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue))
+	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue.Assignee))
 
 	// Check that a valid severity label is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue))
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue.Labels))
 
 	// Check that a PR is assigned
 	comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
@@ -78,18 +78,18 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	return comment
 }
 
-func assigneeComment(issue github.Issue) string {
+func assigneeComment(assignee *github.User) string {
 	const msg = " Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
-	if issue.Assignee != nil {
+	if assignee != nil {
 		return "✅" + msg
 	}
 
 	return "❌" + msg
 }
 
-func severityComment(issue github.Issue) string {
+func severityComment(labels []github.Label) string {
 	const msg = " Add a single severity (CVSS) label to compute the score 🏷️"
-	if _, err := severity(issue); err == nil {
+	if _, err := severity(labels); err == nil {
 		return "✅" + msg
 	}
 

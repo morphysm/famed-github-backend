@@ -16,9 +16,9 @@ var (
 // severity returns the issue severity by matching labels against CVSS
 // if no matching issue severity label can be found it returns the IssueMissingLabelErr
 // if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
-func severity(issue github.Issue) (config.IssueSeverity, error) {
+func severity(labels []github.Label) (config.IssueSeverity, error) {
 	var severity config.IssueSeverity
-	for _, label := range issue.Labels {
+	for _, label := range labels {
 		// Check if label is equal to one of the predefined severity labels.
 		if label.Name == string(config.CVSSNone) ||
 			label.Name == string(config.CVSSLow) ||

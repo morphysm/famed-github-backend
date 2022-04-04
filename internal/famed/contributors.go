@@ -106,7 +106,7 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	timeToDisclosure := issueClosedAt.Sub(issue.Issue.CreatedAt).Minutes()
 
 	// Read severity from issue
-	severity, err := severity(issue.Issue)
+	severity, err := severity(issue.Issue.Labels)
 	if err != nil {
 		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.Issue.ID, err)
 		return err

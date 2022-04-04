@@ -169,6 +169,9 @@ type Repository struct {
 	Owner User
 }
 
+// validateIssuesEvent validates issue events received through the webhook.
+// The changes implied by the event in the case of (un)assigned are mapped to the issue to provide an after event issue state,
+// this is done because of a suspected bug in the GitHub API.
 func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	if event.Action == nil ||
 		event.Repo == nil ||
@@ -177,13 +180,13 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	}
 
 	switch *event.Action {
-	case string(Closed):
-		fallthrough
-
 	case string(Assigned):
 		fallthrough
 
 	case string(Unassigned):
+		fallthrough
+
+	case string(Closed):
 		fallthrough
 
 	case string(Labeled):
@@ -198,6 +201,20 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 		owner, err := validateUser(event.Repo.Owner)
 		if err != nil {
 			return IssuesEvent{}, err
+		}
+
+		// Set issue assignee to after event state due to a bug in the GitHub API not returning the after events assignees.
+		if *event.Action == string(Unassigned) {
+			issue.Assignee = nil
+		}
+
+		if *event.Action == string(Assigned) {
+			assignee, err := validateUser(event.Assignee)
+			if err != nil {
+				return IssuesEvent{}, ErrEventUnAssignedMissingData
+			}
+
+			issue.Assignee = &assignee
 		}
 
 		return IssuesEvent{
