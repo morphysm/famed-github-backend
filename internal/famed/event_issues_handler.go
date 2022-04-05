@@ -103,8 +103,9 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 	}
 
 	contributors, err := ContributorsFromIssue(issue, BoardOptions{
-		currency: gH.famedConfig.Currency,
-		rewards:  gH.famedConfig.Rewards,
+		currency:  gH.famedConfig.Currency,
+		rewards:   gH.famedConfig.Rewards,
+		daysToFix: gH.famedConfig.DaysToFix,
 	})
 	if err != nil {
 		return rewardCommentFromError(err), nil

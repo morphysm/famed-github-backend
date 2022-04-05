@@ -32,7 +32,7 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 		return ErrAppNotInstalled
 	}
 
-	issues, err := gH.loadIssuesAndEvents(c.Request().Context(), owner, repoName)
+	issues, err := gH.loadIssues(c.Request().Context(), owner, repoName)
 	if err != nil {
 		return err
 	}
@@ -43,8 +43,9 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 
 	// Use issues with events to generate contributor list
 	contributors := contributorsArray(issues, BoardOptions{
-		currency: gH.famedConfig.Currency,
-		rewards:  gH.famedConfig.Rewards,
+		currency:  gH.famedConfig.Currency,
+		rewards:   gH.famedConfig.Rewards,
+		daysToFix: gH.famedConfig.DaysToFix,
 	})
 
 	return c.JSON(http.StatusOK, contributors)

@@ -96,7 +96,7 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
-	wrappedIssues, err := gH.loadIssuesAndEvents(ctx, owner, repoName)
+	wrappedIssues, err := gH.loadIssues(ctx, owner, repoName)
 	if err != nil {
 		return err
 	}
@@ -125,8 +125,9 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 	update := commentUpdate{}
 	comment := ""
 	contributors, err := ContributorsFromIssue(issue, BoardOptions{
-		currency: gH.famedConfig.Currency,
-		rewards:  gH.famedConfig.Rewards,
+		currency:  gH.famedConfig.Currency,
+		rewards:   gH.famedConfig.Rewards,
+		daysToFix: gH.famedConfig.DaysToFix,
 	})
 	if err != nil {
 		comment = rewardCommentFromError(err)

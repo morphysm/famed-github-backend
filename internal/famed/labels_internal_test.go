@@ -19,8 +19,8 @@ func TestIssueToSeverity(t *testing.T) {
 	}{
 		{
 			Name:     "WrappedIssue severity label none",
-			Label:    "none",
-			Expected: config.CVSSNone,
+			Label:    "info",
+			Expected: config.CVSSInfo,
 		},
 		{
 			Name:     "WrappedIssue severity label low",
@@ -58,7 +58,7 @@ func TestIssueToSeverity(t *testing.T) {
 			issue := github.Issue{Labels: []github.Label{{Name: testCase.Label}}}
 
 			// WHEN
-			severityResult, err := severity(issue)
+			severityResult, err := severity(issue.Labels)
 
 			// THEN
 			assert.Equal(t, testCase.Expected, severityResult)
@@ -72,12 +72,12 @@ func TestIssueToSeverity(t *testing.T) {
 func TestIssueToSeverityMultipleSeverityLabels(t *testing.T) {
 	t.Parallel()
 	// GIVEN
-	labelNone := string(config.CVSSNone)
+	labelNone := string(config.CVSSInfo)
 	labelLow := string(config.CVSSCritical)
 	issue := github.Issue{Labels: []github.Label{{Name: labelNone}, {Name: labelLow}}}
 
 	// WHEN
-	severityResult, err := severity(issue)
+	severityResult, err := severity(issue.Labels)
 
 	// THEN
 	assert.Equal(t, config.IssueSeverity(""), severityResult)

@@ -36,5 +36,5 @@ func NewTestConfig() famed.Config {
 				Description: "d",
 			},
 		},
-		"b")
+		40, "b")
 }

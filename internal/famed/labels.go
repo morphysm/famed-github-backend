@@ -20,7 +20,7 @@ func severity(labels []github.Label) (config.IssueSeverity, error) {
 	var severity config.IssueSeverity
 	for _, label := range labels {
 		// Check if label is equal to one of the predefined severity labels.
-		if label.Name == string(config.CVSSNone) ||
+		if label.Name == string(config.CVSSInfo) ||
 			label.Name == string(config.CVSSLow) ||
 			label.Name == string(config.CVSSMedium) ||
 			label.Name == string(config.CVSSHigh) ||

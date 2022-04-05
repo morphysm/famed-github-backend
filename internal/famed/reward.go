@@ -11,17 +11,17 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // workLogs (time each contributor worked on the issue)
-func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time, closed time.Time, k int, severityReward float64) {
-	baseReward := reward(closed.Sub(open), k)
+func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
+	baseReward := reward(close.Sub(open), k, daysToFix)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
 	totalWork, workSum := workLogs.Sum()
 
 	// Divide base reward based on percentage of each contributor
 	for login, contributorTotalWork := range totalWork {
-		if contributorTotalWork <= 0 {
+		if contributorTotalWork < 0 {
 			// < is a safety measure, should not happen
-			log.Printf("<= 0 contributor total work: %d\n", contributorTotalWork)
+			log.Printf("contributor total work < 0: %d\n", contributorTotalWork)
 			continue
 		}
 		contributor := contributors[login]
@@ -30,19 +30,25 @@ func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time
 		contributor.TotalWorkTime = contributorTotalWork
 
 		// Calculated share of reward
-		reward := points * float64(contributorTotalWork) / float64(workSum)
+		// workSum can be 0 on
+		var reward float64
+		if workSum == 0 {
+			reward = points
+		} else {
+			reward = points * float64(contributorTotalWork) / float64(workSum)
+		}
 
 		// Updated reward sum
 		contributor.RewardSum += reward
 
 		// Add rewards list
 		contributor.Rewards = append(contributor.Rewards, Reward{
-			Date:   closed,
+			Date:   close,
 			Reward: reward,
 		})
 
 		// Add reward by month
-		if month, ok := isInTheLast12Months(time.Now(), closed); ok {
+		if month, ok := isInTheLast12Months(time.Now(), close); ok {
 			contributor.RewardsLastYear[month].Reward += reward
 		}
 	}
@@ -54,8 +60,8 @@ func rewardToPoints(baseReward float64, severityReward float64) float64 {
 }
 
 // reward returns the base reward for t (time the issue was open) and k (number of times the issue was reopened).
-func reward(t time.Duration, k int) float64 {
+func reward(t time.Duration, k int, daysToFix int) float64 {
 	// 1 - t (in days) / 40 ^ 2*k+1
-	reward := math.Pow(1.0-t.Hours()/(90*24), 2*float64(k)+1)
+	reward := math.Pow(1.0-t.Hours()/float64(daysToFix*24), 2*float64(k)+1)
 	return math.Max(0, reward)
 }

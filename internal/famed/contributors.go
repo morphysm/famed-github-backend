@@ -40,8 +40,9 @@ type Reward struct {
 }
 
 type BoardOptions struct {
-	currency string
-	rewards  map[config.IssueSeverity]float64
+	currency  string
+	rewards   map[config.IssueSeverity]float64
+	daysToFix int
 }
 
 // contributorsArray generates a contributor list based on a list of issues
@@ -50,8 +51,6 @@ func contributorsArray(issues map[int]WrappedIssue, options BoardOptions) []*Con
 	contributors := ContributorsFromIssues(issues, options)
 	// Transformation of contributors map to contributors array
 	contributorsArray := contributors.toSortedSlice()
-	// Sort contributors array by total rewards
-	sortContributors(contributorsArray)
 
 	return contributorsArray
 }
@@ -128,7 +127,7 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	severityReward := boardOptions.rewards[severity]
 
 	// Calculate the reward
-	contributors.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, severityReward)
+	contributors.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, boardOptions.daysToFix, severityReward)
 
 	return nil
 }

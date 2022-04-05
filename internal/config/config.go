@@ -34,6 +34,7 @@ type Config struct {
 		Labels          map[string]github.Label
 		Rewards         map[IssueSeverity]float64
 		Currency        string
+		DaysToFix       int
 		UpdateFrequency int
 	}
 
@@ -59,8 +60,8 @@ const (
 	adminPassword = "ADMIN_PASSWORD"
 
 	FamedLabel = "famed"
-	// CVSSNone represents a CVSS of 0
-	CVSSNone IssueSeverity = "none"
+	// CVSSInfo represents a CVSS of 0
+	CVSSInfo IssueSeverity = "info"
 	// CVSSLow represents a CVSS of 0.1-3.9
 	CVSSLow IssueSeverity = "low"
 	// CVSSMedium represents a CVSS of 4.0-6.9
@@ -169,6 +170,9 @@ func verifyConfig(cfg Config) error {
 	if cfg.Github.Host == "" {
 		return errors.New("config.json github.host must be set")
 	}
+	if cfg.Famed.DaysToFix == 0 {
+		return errors.New("config.json famed.daysToFix must be set")
+	}
 	if cfg.Famed.UpdateFrequency == 0 {
 		return errors.New("config.json famed.updateFrequency must be set")
 	}
@@ -176,7 +180,7 @@ func verifyConfig(cfg Config) error {
 	if err := verifyLabel(cfg, FamedLabel); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSNone)); err != nil {
+	if err := verifyLabel(cfg, string(CVSSInfo)); err != nil {
 		return err
 	}
 	if err := verifyLabel(cfg, string(CVSSLow)); err != nil {
@@ -192,7 +196,7 @@ func verifyConfig(cfg Config) error {
 		return err
 	}
 
-	if err := verifyReward(cfg, CVSSNone); err != nil {
+	if err := verifyReward(cfg, CVSSInfo); err != nil {
 		return err
 	}
 	if err := verifyReward(cfg, CVSSLow); err != nil {

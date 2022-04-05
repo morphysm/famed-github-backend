@@ -15,7 +15,7 @@ type WrappedIssue struct {
 	Events []github.IssueEvent
 }
 
-func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
+func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
 	issueState := github.Closed
@@ -27,6 +27,11 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 	wg := sync.WaitGroup{}
 	issues := make(map[int]WrappedIssue, len(issuesResponse))
 	for _, issue := range issuesResponse {
+		// Skip event loading for migrated issues because information is already present
+		//if issue.Migrated {
+		//	issues[issue.Number] = WrappedIssue{Issue: issue}
+		//	continue
+		//}
 		wg.Add(1)
 
 		go func(ctx context.Context, issue github.Issue) {
@@ -34,7 +39,7 @@ func (gH *githubHandler) loadIssuesAndEvents(ctx context.Context, owner string, 
 
 			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
 			if err != nil {
-				log.Printf("[loadIssuesAndEvents] error while requesting events for issue with number %d: %v", issue.Number, err)
+				log.Printf("[loadIssues] error while requesting events for issue with number %d: %v", issue.Number, err)
 			}
 
 			issues[issue.Number] = wrappedIssue

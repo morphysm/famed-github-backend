@@ -22,17 +22,13 @@ func TestPostIssuesEvent(t *testing.T) {
 	t.Parallel()
 
 	rewards := map[config.IssueSeverity]float64{
-		config.CVSSNone:     0,
+		config.CVSSInfo:     0,
 		config.CVSSLow:      1000,
 		config.CVSSMedium:   2000,
 		config.CVSSHigh:     3000,
 		config.CVSSCritical: 4000,
 	}
-	famedConfig := famed.Config{
-		Labels:   map[string]gitlib.Label{"famed": {Name: "famed"}},
-		Currency: "POINTS",
-		Rewards:  rewards,
-	}
+	famedConfig := famed.NewFamedConfig("POINTS", rewards, map[string]gitlib.Label{"famed": {Name: "famed"}}, 40, "")
 
 	testCases := []struct {
 		Name            string
@@ -43,7 +39,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		ExpectedErr     error
 	}{
 		{
-			Name: "Closed - Empty event",
+			Name: "Close - Empty event",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 			},
@@ -51,7 +47,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedErr:     famed.ErrEventMissingData,
 		},
 		{
-			Name: "Closed - No Assignee",
+			Name: "Close - No Assignee",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -72,7 +68,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
 		},
 		{
-			Name: "Closed - No Label",
+			Name: "Close - No Label",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -95,7 +91,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
 		},
 		{
-			Name: "Closed - Multiple Labels",
+			Name: "Close - Multiple Labels",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -117,7 +113,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
 		},
 		{
-			Name: "Closed - No events",
+			Name: "Close - No events",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -139,7 +135,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
 		},
 		{
-			Name: "Closed - No pull request",
+			Name: "Close - No pull request",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -160,7 +156,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a pull request.",
 		},
 		{
-			Name: "Closed - Valid",
+			Name: "Close - Valid",
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
@@ -201,9 +197,9 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedErr: famed.ErrEventMissingData,
 		},
 		{
-			Name: "Assigned - Valid - Non present",
+			Name: "Unassigned - Valid - Non present",
 			Event: &github.IssuesEvent{
-				Action: pointer.String("assigned"),
+				Action: pointer.String("unassigned"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
@@ -267,7 +263,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
-				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
+				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +
@@ -292,7 +288,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
-				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
+				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +

@@ -12,20 +12,21 @@
   "famed": {
     "labels": {
       "famed": {"name": "famed", "color": "566FDB", "description": "Famed - Tracked by Famed"},
-      "none": {"name": "none", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - None"},
+      "info": {"name": "info", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - None"},
       "low": {"name": "low", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Low"},
       "medium": {"name": "medium", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Medium"},
       "high": {"name": "high", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - High"},
       "critical": {"name": "critical", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Critical"}
     },
     "rewards": {
-      "none" : 0,
+      "info" : 0,
       "low" : 1000,
       "medium" : 5000,
       "high" : 10000,
       "critical": 25000
     },
     "currency": "POINTS",
+    "daysToFix": 90,
     "updateFrequency": 120
   }
 }

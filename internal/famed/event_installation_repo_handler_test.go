@@ -23,7 +23,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 	labels := map[string]gitLib.Label{
 		config.FamedLabel:           {Name: config.FamedLabel, Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSNone):     {Name: string(config.CVSSNone), Color: "TestColor", Description: "TestDescription"},
+		string(config.CVSSInfo):     {Name: string(config.CVSSInfo), Color: "TestColor", Description: "TestDescription"},
 		string(config.CVSSLow):      {Name: string(config.CVSSLow), Color: "TestColor", Description: "TestDescription"},
 		string(config.CVSSMedium):   {Name: string(config.CVSSMedium), Color: "TestColor", Description: "TestDescription"},
 		string(config.CVSSHigh):     {Name: string(config.CVSSHigh), Color: "TestColor", Description: "TestDescription"},
