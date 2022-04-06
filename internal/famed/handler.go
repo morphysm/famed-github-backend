@@ -3,6 +3,7 @@ package famed
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/pkg/sync"
 )
 
 type HTTPHandler interface {
@@ -24,6 +25,9 @@ type githubHandler struct {
 	githubAppClient          github.AppClient
 	githubInstallationClient github.InstallationClient
 
+	// TODO: investigate if this should be replace with a queue with a queue worker to avoid multiple blocked goroutines.
+	issuesEventWG *sync.WaitGroups
+
 	famedConfig Config
 }
 
@@ -32,6 +36,7 @@ func NewHandler(githubAppClient github.AppClient, githubInstallationClient githu
 	return &githubHandler{
 		githubAppClient:          githubAppClient,
 		githubInstallationClient: githubInstallationClient,
+		issuesEventWG:            sync.NewWaitGroups(),
 		famedConfig:              famedConfig,
 	}
 }

@@ -19,6 +19,8 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 
 	switch event := event.(type) {
 	case github.IssuesEvent:
+		gH.issuesEventWG.Wait(event.Issue.ID)
+		defer gH.issuesEventWG.Done(event.Issue.ID)
 		return gH.handleIssuesEvent(c, event)
 	case github.InstallationRepositoriesEvent:
 		return gH.handleInstallationRepositoriesEvent(c, event)
