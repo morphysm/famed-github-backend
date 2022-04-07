@@ -15,10 +15,10 @@ func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time
 	baseReward := reward(close.Sub(open), k, daysToFix)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
-	totalWork, workSum := workLogs.Sum()
+	contributorsWork, workSum := workLogs.Sum()
 
 	// Divide base reward based on percentage of each contributor
-	for login, contributorTotalWork := range totalWork {
+	for login, contributorTotalWork := range contributorsWork {
 		if contributorTotalWork < 0 {
 			// < is a safety measure, should not happen
 			log.Printf("contributor total work < 0: %d\n", contributorTotalWork)
@@ -33,7 +33,7 @@ func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time
 		// workSum can be 0 on
 		var reward float64
 		if workSum == 0 {
-			reward = points
+			reward = points / float64(len(contributorsWork))
 		} else {
 			reward = points * float64(contributorTotalWork) / float64(workSum)
 		}

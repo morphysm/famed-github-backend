@@ -182,7 +182,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "test"},
 				},
 			},
-			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/boards/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
+			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
 		},
 		// Eligible comment
 		{
