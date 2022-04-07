@@ -203,20 +203,6 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 			return IssuesEvent{}, err
 		}
 
-		// Set issue assignee to after event state due to a bug in the GitHub API not returning the after events assignees.
-		if *event.Action == string(Unassigned) {
-			issue.Assignee = nil
-		}
-
-		if *event.Action == string(Assigned) {
-			assignee, err := validateUser(event.Assignee)
-			if err != nil {
-				return IssuesEvent{}, ErrEventUnAssignedMissingData
-			}
-
-			issue.Assignee = &assignee
-		}
-
 		return IssuesEvent{
 			Action: *event.Action,
 			Repo: Repository{

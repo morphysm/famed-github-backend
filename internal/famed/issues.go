@@ -5,14 +5,14 @@ import (
 	"log"
 	"sync"
 
-	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 type WrappedIssue struct {
-	Issue  github.Issue
-	Events []github.IssueEvent
+	Issue       github.Issue
+	PullRequest *github.PullRequest
+	Events      []github.IssueEvent
 }
 
 func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
@@ -21,20 +21,28 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 	issueState := github.Closed
 	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {
-		return nil, echo.ErrBadGateway.SetInternal(err)
+		return nil, err
 	}
 
 	wg := sync.WaitGroup{}
 	issues := make(map[int]WrappedIssue, len(issuesResponse))
 	for _, issue := range issuesResponse {
-		// Skip event loading for migrated issues because information is already present
+		// TODO Skip event loading for migrated issues because information is already present
 		//if issue.Migrated {
 		//	issues[issue.Number] = WrappedIssue{Issue: issue}
 		//	continue
 		//}
+
+		//TODO refactor
+		pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
+		if pullRequest == nil || err != nil {
+			issues[issue.Number] = WrappedIssue{Issue: issue, PullRequest: nil}
+			continue
+		}
+
 		wg.Add(1)
 
-		go func(ctx context.Context, issue github.Issue) {
+		go func(ctx context.Context, issue github.Issue, pullRequest *github.PullRequest) {
 			defer wg.Done()
 
 			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
@@ -42,8 +50,9 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 				log.Printf("[loadIssues] error while requesting events for issue with number %d: %v", issue.Number, err)
 			}
 
+			wrappedIssue.PullRequest = pullRequest
 			issues[issue.Number] = wrappedIssue
-		}(ctx, issue)
+		}(ctx, issue, pullRequest)
 	}
 
 	wg.Wait()

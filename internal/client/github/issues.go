@@ -32,7 +32,7 @@ type Issue struct {
 	Title     string
 	CreatedAt time.Time
 	ClosedAt  *time.Time
-	Assignee  *User
+	Assignees []User
 	Labels    []Label
 	Migrated  bool
 }
@@ -107,9 +107,11 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 		ClosedAt:  issue.ClosedAt,
 	}
 
-	assignee, err := validateUser(issue.Assignee)
-	if err == nil {
-		compressedIssue.Assignee = &assignee
+	for _, assignee := range issue.Assignees {
+		assignee, err := validateUser(assignee)
+		if err == nil {
+			compressedIssue.Assignees = append(compressedIssue.Assignees, assignee)
+		}
 	}
 
 	if issue.Labels != nil {

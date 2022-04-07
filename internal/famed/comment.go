@@ -64,7 +64,7 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.\n", issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue.Assignee))
+	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue.Assignees))
 
 	// Check that a valid severity label is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue.Labels))
@@ -78,9 +78,9 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	return comment
 }
 
-func assigneeComment(assignee *github.User) string {
+func assigneeComment(assignees []github.User) string {
 	const msg = " Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
-	if assignee != nil {
+	if len(assignees) > 0 {
 		return "✅" + msg
 	}
 

@@ -76,7 +76,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("test"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Number:    pointer.Int(0),
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
@@ -99,7 +99,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("test"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}, {Name: pointer.String("low")}},
 					Number:    pointer.Int(0),
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
@@ -121,7 +121,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("test"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
@@ -143,7 +143,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("test"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
@@ -164,7 +164,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("test"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
@@ -183,6 +183,39 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
+		},
+		{
+			Name: "Close - Valid - Multiple Assignees",
+			Event: &github.IssuesEvent{
+				Action: pointer.String("closed"),
+				Issue: &github.Issue{
+					ID:        pointer.Int64(0),
+					Title:     pointer.String("test"),
+					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Number:    pointer.Int(0),
+					Assignees: []*github.User{{Login: pointer.String("test1")}, {Login: pointer.String("test2")}},
+					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
+					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+				},
+				Repo: &github.Repository{
+					Name:  pointer.String("test"),
+					Owner: &github.User{Login: pointer.String("testOwner")},
+				},
+			},
+			PullRequest: &gitlib.PullRequest{URL: "test"},
+			Events: []gitlib.IssueEvent{
+				{
+					Event:     "assigned",
+					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
+					Assignee:  &gitlib.User{Login: "test1"},
+				},
+				{
+					Event:     "assigned",
+					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
+					Assignee:  &gitlib.User{Login: "test2"},
+				},
+			},
+			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
 		},
 		// Eligible comment
 		{
@@ -230,7 +263,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("Test"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
@@ -255,6 +288,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("Test"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
@@ -279,6 +313,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("Test"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{
@@ -304,7 +339,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Title:     pointer.String("Test"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Assignee:  &github.User{Login: pointer.String("test")},
+					Assignees: []*github.User{{Login: pointer.String("test")}},
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 				Repo: &github.Repository{

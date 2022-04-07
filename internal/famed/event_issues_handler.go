@@ -84,7 +84,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 		return "", ErrEventMissingFamedLabel
 	}
 
-	if event.Issue.Assignee == nil {
+	if len(event.Issue.Assignees) == 0 {
 		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 

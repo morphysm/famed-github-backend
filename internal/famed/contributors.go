@@ -25,7 +25,7 @@ type Contributor struct {
 	Severities       map[config.IssueSeverity]int `json:"severities"`
 	MeanSeverity     float64                      `json:"meanSeverity"`
 	// For issue rewardComment generation
-	TotalWorkTime time.Duration
+	TotalWorkTime time.Duration `json:"-"`
 }
 
 type TimeToDisclosure struct {
@@ -117,10 +117,12 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 		workLogs, reopenCount = contributors.mapEvents(issue.Events, issueClosedAt, severity, timeToDisclosure, boardOptions.currency)
 	}
 	if issue.Issue.Migrated {
-		contributors.mapAssigneeIfMissing(*issue.Issue.Assignee, boardOptions.currency)
-		workLogs = WorkLogs{}
-		workLogs.Add(issue.Issue.Assignee.Login, WorkLog{issue.Issue.CreatedAt, issueClosedAt})
-		contributors.incrementFixCounters(issue.Issue.Assignee.Login, timeToDisclosure, severity)
+		for _, assignee := range issue.Issue.Assignees {
+			contributors.mapAssigneeIfMissing(assignee, boardOptions.currency)
+			workLogs = WorkLogs{}
+			workLogs.Add(assignee.Login, WorkLog{issue.Issue.CreatedAt, issueClosedAt})
+			contributors.incrementFixCounters(assignee.Login, timeToDisclosure, severity)
+		}
 	}
 
 	// Get severity reward from config
