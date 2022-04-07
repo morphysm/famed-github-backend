@@ -13,8 +13,8 @@ import (
 )
 
 type safeIssueCommentsUpdates struct {
-	m    map[int]issueCommentUpdate
-	lock sync.RWMutex
+	m map[int]issueCommentUpdate
+	sync.RWMutex
 }
 
 type issueCommentUpdate struct {
@@ -34,8 +34,8 @@ func NewSafeIssueCommentsUpdates() *safeIssueCommentsUpdates {
 }
 
 func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate commentUpdate, commentType commentType) {
-	sICU.lock.Lock()
-	defer sICU.lock.Unlock()
+	sICU.Lock()
+	defer sICU.Unlock()
 
 	elmt := sICU.m[issueNumber]
 	if commentType != commentEligible {

@@ -15,6 +15,17 @@ type WrappedIssue struct {
 	Events      []github.IssueEvent
 }
 
+type safeWrappedIssue struct {
+	sync.RWMutex
+	wrappedIssues map[int]WrappedIssue
+}
+
+func (sWI *safeWrappedIssue) Add(wI WrappedIssue) {
+	sWI.Lock()
+	defer sWI.Unlock()
+	sWI.wrappedIssues[wI.Issue.Number] = wI
+}
+
 func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
@@ -25,7 +36,7 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 	}
 
 	wg := sync.WaitGroup{}
-	issues := make(map[int]WrappedIssue, len(issuesResponse))
+	safeIssues := safeWrappedIssue{wrappedIssues: make(map[int]WrappedIssue, len(issuesResponse))}
 	for _, issue := range issuesResponse {
 		// TODO Skip event loading for migrated issues because information is already present
 		//if issue.Migrated {
@@ -36,7 +47,7 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 		//TODO refactor
 		pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 		if pullRequest == nil || err != nil {
-			issues[issue.Number] = WrappedIssue{Issue: issue, PullRequest: nil}
+			safeIssues.Add(WrappedIssue{Issue: issue, PullRequest: nil})
 			continue
 		}
 
@@ -51,12 +62,12 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 			}
 
 			wrappedIssue.PullRequest = pullRequest
-			issues[issue.Number] = wrappedIssue
+			safeIssues.Add(wrappedIssue)
 		}(ctx, issue, pullRequest)
 	}
 
 	wg.Wait()
-	return issues, nil
+	return safeIssues.wrappedIssues, nil
 }
 
 func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue github.Issue) (WrappedIssue, error) {
