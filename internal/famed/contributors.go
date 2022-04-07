@@ -8,6 +8,8 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 type Contributors map[string]*Contributor
@@ -274,7 +276,11 @@ func (contributors Contributors) toSlice() []*Contributor {
 
 // sortContributors sorts the contributors by descending reward sum.
 func sortContributors(contributors []*Contributor) {
+	c := collate.New(language.Und, collate.IgnoreCase)
 	sort.SliceStable(contributors, func(i, j int) bool {
+		if contributors[i].RewardSum == contributors[j].RewardSum {
+			return c.CompareString(contributors[i].Login, contributors[j].Login) == -1
+		}
 		return contributors[i].RewardSum > contributors[j].RewardSum
 	})
 }
