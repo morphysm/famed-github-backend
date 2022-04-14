@@ -45,11 +45,12 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 		//}
 
 		//TODO refactor
-		pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
-		if pullRequest == nil || err != nil {
-			safeIssues.Add(WrappedIssue{Issue: issue, PullRequest: nil})
-			continue
-		}
+		//TODO commented out for DevConnect
+		pullRequest, _ := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
+		//if pullRequest == nil || err != nil {
+		//	safeIssues.Add(WrappedIssue{Issue: issue, PullRequest: nil})
+		//	continue
+		//}
 
 		wg.Add(1)
 

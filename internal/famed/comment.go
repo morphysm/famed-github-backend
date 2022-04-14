@@ -52,7 +52,8 @@ func rewardCommentFromError(err error) string {
 		return fmt.Sprintf("%sThe issue has more than one severity label.", comment)
 
 	case ErrNoContributors:
-		return fmt.Sprintf("%sThe data provided by GitHub is not sufficient to generate a reward suggestion.", comment)
+		comment = fmt.Sprintf("%sThe data provided by GitHub is not sufficient to generate a reward suggestion.", comment)
+		return fmt.Sprintf("%s\nThis might be due to an assignement after the issue has been closed. Please assigne assignees in the open state.", comment)
 
 	default:
 		return fmt.Sprintf("%s Unknown.", comment)

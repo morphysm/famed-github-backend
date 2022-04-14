@@ -136,7 +136,7 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	return nil
 }
 
-// mapEvents
+// mapEvents maps issue events to the contributors
 func (contributors Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity config.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
 	// areIncremented tracks contributors that have had their fix counters incremented
 	var (
