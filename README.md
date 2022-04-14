@@ -8,9 +8,9 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 </h1>
 
 <h1 align="center">
-  <img src="https://img.shields.io/badge/Go-^1.17.0-red" alt="python badge">
+  <img src="https://img.shields.io/badge/Go-^1.18.0-green" alt="python badge">
 
- <img src="https://img.shields.io/badge/version-1.1-orange" alt="version badge">
+ <img src="https://img.shields.io/badge/version-1.1-green" alt="version badge">
  <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
  <a href="https://codecov.io/gh/morphysm/famed-github-backend">
   <img src="https://codecov.io/gh/morphysm/famed-github-backend/branch/master/graph/badge.svg?token=P5ZUKZF9XN"/>

@@ -70,7 +70,8 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue.Labels))
 
 	// Check that a PR is assigned
-	comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
+	// TODO create rule
+	// comment = fmt.Sprintf("%s\n%s", comment, prComment(pullRequest))
 
 	// Final note
 	comment = fmt.Sprintf("%s\n\nHappy hacking! 🦾💙❤️️", comment)

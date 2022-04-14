@@ -88,14 +88,15 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 
-	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
-	if err != nil {
-		return "", err
-	}
-
-	if pullRequest == nil {
-		return rewardCommentFromError(ErrIssueMissingPullRequest), nil
-	}
+	// TODO add rule
+	//pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
+	//if err != nil {
+	//	return "", err
+	//}
+	//
+	//if pullRequest == nil {
+	//	return rewardCommentFromError(ErrIssueMissingPullRequest), nil
+	//}
 
 	issue, err := gH.loadIssueEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
 	if err != nil {
