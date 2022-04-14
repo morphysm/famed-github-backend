@@ -25,9 +25,9 @@ func (gH *githubHandler) GetInstallations(c echo.Context) error {
 			return err
 		}
 
-		var repos []string
-		for _, repo := range repositories {
-			repos = append(repos, repo.Name)
+		repos := make([]string, len(repositories))
+		for j, repo := range repositories {
+			repos[j] = repo.Name
 		}
 
 		resp[i] = installation{Installation: instal, Repos: repos}
