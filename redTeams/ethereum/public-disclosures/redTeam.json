@@ -1,0 +1,331 @@
+{
+    "Alexander Sadovskyi": {
+        "login": "AlexSSD7",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/43043344?v=4",
+        "htmlUrl": "https://github.com/AlexSSD7",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            }
+        ],
+        "rewardSum": 2500,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                705600
+            ],
+            "mean": 705600,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "high": 1
+        },
+        "meanSeverity": 9
+    },
+    "Antoine Toulme": {
+        "login": "atoulme",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/16758?v=4",
+        "htmlUrl": "https://github.com/atoulme",
+        "fixCount": 2,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            }
+        ],
+        "rewardSum": 5000,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                646560,
+                646560
+            ],
+            "mean": 646560,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "high": 2
+        },
+        "meanSeverity": 9
+    },
+    "Antonio Sanso": {
+        "login": "asanso",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/494825?v=4",
+        "htmlUrl": "https://github.com/asanso",
+        "fixCount": 2,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 125
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 250
+            }
+        ],
+        "rewardSum": 375,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                313920,
+                400320
+            ],
+            "mean": 357120,
+            "standardDeviation": 43200
+        },
+        "severities": {
+            "info": 1,
+            "low": 1
+        },
+        "meanSeverity": 1
+    },
+    "Guido Vranken": {
+        "login": "guidovranken",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/6846644?v=4",
+        "htmlUrl": "https://github.com/guidovranken",
+        "fixCount": 6,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 250
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 125
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 250
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 500
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 500
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 500
+            }
+        ],
+        "rewardSum": 2125,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                377280,
+                313920,
+                299520,
+                169920,
+                167040,
+                380160
+            ],
+            "mean": 284640,
+            "standardDeviation": 87345.49330102841
+        },
+        "severities": {
+            "low": 5,
+            "medium": 1
+        },
+        "meanSeverity": 2.5833333333333335
+    },
+    "Jim McDonald": {
+        "login": "mcdee",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/511384?v=4",
+        "htmlUrl": "https://github.com/mcdee",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 100
+            }
+        ],
+        "rewardSum": 100,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                136800
+            ],
+            "mean": 136800,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "info": 1
+        },
+        "meanSeverity": 0
+    },
+    "Jonny Rhea": {
+        "login": "jrhea",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/5555162?v=4",
+        "htmlUrl": "https://github.com/jrhea",
+        "fixCount": 4,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 1250
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 1250
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 5000
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 500
+            }
+        ],
+        "rewardSum": 8000,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                745920,
+                709920,
+                666720,
+                884160
+            ],
+            "mean": 751680,
+            "standardDeviation": 81465.06490514815
+        },
+        "severities": {
+            "high": 3,
+            "medium": 1
+        },
+        "meanSeverity": 8.125
+    },
+    "Martin Holst Swende": {
+        "login": "holiman",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/142290?v=4",
+        "htmlUrl": "https://github.com/holiman",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            }
+        ],
+        "rewardSum": 2500,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                705600
+            ],
+            "mean": 705600,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "high": 1
+        },
+        "meanSeverity": 9
+    },
+    "Quan": {
+        "login": "cryptosubtlety",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/1834775?v=4",
+        "htmlUrl": "https://github.com/cryptosubtlety",
+        "fixCount": 4,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 5000
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2000
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            },
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 500
+            }
+        ],
+        "rewardSum": 10000,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                551520,
+                551520,
+                531360,
+                516960
+            ],
+            "mean": 537840,
+            "standardDeviation": 14596.65715155357
+        },
+        "severities": {
+            "high": 2,
+            "medium": 2
+        },
+        "meanSeverity": 7.25
+    },
+    "Stefan Kobrc": {
+        "login": "Stefan Kobrc",
+        "avatarUrl": "",
+        "htmlUrl": "",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 1700
+            }
+        ],
+        "rewardSum": 1700,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                599040
+            ],
+            "mean": 599040,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "low": 1
+        },
+        "meanSeverity": 2
+    },
+    "Tintin": {
+        "login": "tintinweb",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/2865694?v=4",
+        "htmlUrl": "https://github.com/tintinweb",
+        "fixCount": 1,
+        "rewards": [
+            {
+                "date": "2021-12-01T00:00:00Z",
+                "reward": 2500
+            }
+        ],
+        "rewardSum": 2500,
+        "currency": "POINTS",
+        "rewardsLastYear": null,
+        "timeToDisclosure": {
+            "time": [
+                652320
+            ],
+            "mean": 652320,
+            "standardDeviation": 0
+        },
+        "severities": {
+            "high": 1
+        },
+        "meanSeverity": 9
+    }
+}
