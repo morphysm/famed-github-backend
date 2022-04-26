@@ -35,8 +35,8 @@ func rewardComment(contributors Contributors, currency string, owner string, rep
 
 // rewardComment generates a reward from an error.
 func rewardCommentFromError(err error) string {
-	comment := "### Famed could not generate a reward suggestion. \n" +
-		"Reason: "
+	comment := "### Famed could not generate a reward suggestion." +
+		"\nReason: "
 
 	switch err {
 	case ErrIssueMissingPullRequest:
@@ -53,7 +53,7 @@ func rewardCommentFromError(err error) string {
 
 	case ErrNoContributors:
 		comment = fmt.Sprintf("%sThe data provided by GitHub is not sufficient to generate a reward suggestion.", comment)
-		return fmt.Sprintf("%s\nThis might be due to an assignement after the issue has been closed. Please assigne assignees in the open state.", comment)
+		return fmt.Sprintf("%s\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.", comment)
 
 	default:
 		return fmt.Sprintf("%s Unknown.", comment)

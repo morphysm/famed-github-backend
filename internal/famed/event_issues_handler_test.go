@@ -65,7 +65,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing an assignee.",
+			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing an assignee.",
 		},
 		{
 			Name: "Close - No Label",
@@ -88,7 +88,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a severity label.",
+			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a severity label.",
 		},
 		{
 			Name: "Close - Multiple Labels",
@@ -110,7 +110,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue has more than one severity label.",
+			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue has more than one severity label.",
 		},
 		{
 			Name: "Close - No events",
@@ -132,29 +132,30 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.",
+			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.",
 		},
-		{
-			Name: "Close - No pull request",
-			Event: &github.IssuesEvent{
-				Action: pointer.String("closed"),
-				Issue: &github.Issue{
-					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
-					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
-					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
-				},
-				Assignee: &github.User{Login: pointer.String("test")},
-				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
-				},
-			},
-			ExpectedComment: "### Famed could not generate a reward suggestion. \nReason: The issue is missing a pull request.",
-		},
+		// Commented out for DevConnect
+		//{
+		//	Name: "Close - No pull request",
+		//	Event: &github.IssuesEvent{
+		//		Action: pointer.String("closed"),
+		//		Issue: &github.Issue{
+		//			ID:        pointer.Int64(0),
+		//			Title:     pointer.String("test"),
+		//			Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
+		//			Number:    pointer.Int(0),
+		//			Assignees: []*github.User{{Login: pointer.String("test")}},
+		//			CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+		//			ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+		//		},
+		//		Assignee: &github.User{Login: pointer.String("test")},
+		//		Repo: &github.Repository{
+		//			Name:  pointer.String("test"),
+		//			Owner: &github.User{Login: pointer.String("test")},
+		//		},
+		//	},
+		//	ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a pull request.",
+		//},
 		{
 			Name: "Close - Valid",
 			Event: &github.IssuesEvent{
@@ -249,7 +250,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
-				"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
+				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +
 				"\nHappy hacking! \U0001F9BE💙❤️️",
 		},
@@ -274,7 +275,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
-				"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
+				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +
 				"\nHappy hacking! \U0001F9BE💙❤️️",
 		},
@@ -299,7 +300,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
-				"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
+				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +
 				"\nHappy hacking! \U0001F9BE💙❤️️",
 		},
@@ -325,7 +326,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
-				"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
+				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n" +
 				"\nHappy hacking! \U0001F9BE💙❤️️",
 		},
@@ -351,7 +352,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
-				"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
+				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
 				"\n\nHappy hacking! \U0001F9BE💙❤️️",
 		},
 	}
