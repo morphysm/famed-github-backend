@@ -92,16 +92,17 @@ func TestGetContributors(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{{
-				ID:        0,
-				Number:    0,
-				Title:     "TestIssue",
-				CreatedAt: open,
-				ClosedAt:  &closed,
-				Assignees: []gitlib.User{{Login: "testUser"}},
-				Labels:    []gitlib.Label{{Name: "famed"}, {Name: "low"}},
-				Migrated:  false,
-			},
+			Issues: []gitlib.Issue{
+				{
+					ID:        0,
+					Number:    0,
+					Title:     "TestIssue",
+					CreatedAt: open,
+					ClosedAt:  &closed,
+					Assignees: []gitlib.User{{Login: "testUser"}},
+					Labels:    []gitlib.Label{{Name: "famed"}, {Name: "low"}},
+					Migrated:  false,
+				},
 				{
 					ID:        1,
 					Number:    1,
@@ -111,7 +112,8 @@ func TestGetContributors(t *testing.T) {
 					Assignees: []gitlib.User{{Login: "testUser"}},
 					Labels:    []gitlib.Label{{Name: "famed"}, {Name: "low"}},
 					Migrated:  false,
-				}},
+				},
+			},
 			Event: &github.IssuesEvent{
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{

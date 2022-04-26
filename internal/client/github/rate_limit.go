@@ -14,9 +14,7 @@ type RateLimit struct {
 }
 
 func (c *githubInstallationClient) GetRateLimit(ctx context.Context, owner string) (RateLimit, error) {
-	var (
-		client, _ = c.clients.get(owner)
-	)
+	client, _ := c.clients.get(owner)
 
 	rateLimit, _, err := client.RateLimits(ctx)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// CleanState iterates over all issues and updates their comments if necessary.
 func (gH *githubHandler) CleanState() {
 	log.Printf("[CleanState] running clean up...")
 
@@ -15,8 +16,7 @@ func (gH *githubHandler) CleanState() {
 	}
 
 	for _, installation := range installations {
-		// Check and if necessary add github clients
-		//TODO add check for null pointer
+		// Check if installation client is set up and if necessary add client
 		if !gH.githubInstallationClient.CheckInstallation(installation.Account.Login) {
 			err := gH.githubInstallationClient.AddInstallation(installation.Account.Login, installation.ID)
 			if err != nil {

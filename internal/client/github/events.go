@@ -193,7 +193,8 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 		fallthrough
 
 	case string(Unlabeled):
-		issue, err := validateIssue(event.Issue)
+		// TODO add check
+		issue, err := validateIssue(event.Issue, *event.Repo.Owner.Login, *event.Repo.Name)
 		if err != nil {
 			return IssuesEvent{}, err
 		}

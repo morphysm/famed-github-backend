@@ -78,7 +78,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	}
 
 	for _, issue := range allIssues {
-		compressedIssue, err := validateIssue(issue)
+		compressedIssue, err := validateIssue(issue, owner, repoName)
 		if err != nil {
 			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
 		}
@@ -89,7 +89,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	return allCompressedIssues, nil
 }
 
-func validateIssue(issue *github.Issue) (Issue, error) {
+func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, error) {
 	var compressedIssue Issue
 	if issue == nil ||
 		issue.ID == nil ||
@@ -119,13 +119,18 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 			if label.Name == nil {
 				continue
 			}
+
 			compressedLabel := Label{Name: *label.Name}
 			compressedIssue.Labels = append(compressedIssue.Labels, compressedLabel)
 		}
 	}
 
 	// TODO refactor this code and functions
-	if issue.Body != nil && strings.Contains(compressedIssue.Title, "Famed Retroactive Rewards") {
+	// Detecting migrated ethereum issues
+	if issue.Body != nil &&
+		(strings.Contains(compressedIssue.Title, "Famed Retroactive Rewards") ||
+			(owner == "ethereum" &&
+				repoName == "public-disclosures")) {
 		compressedIssue = parseMigrationIssue(compressedIssue, *issue.Body)
 	}
 
@@ -136,7 +141,6 @@ func validateUser(user *github.User) (User, error) {
 	if user == nil ||
 		user.Login == nil {
 		return User{}, ErrUserMissingData
-
 	}
 
 	return User{
