@@ -16,6 +16,8 @@ import (
 type InstallationClient interface {
 	GetRateLimit(ctx context.Context, owner string) (RateLimit, error)
 
+	GetUser(ctx context.Context, owner string, login string) (User, error)
+
 	GetRepos(ctx context.Context, owner string) ([]Repo, error)
 
 	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error)

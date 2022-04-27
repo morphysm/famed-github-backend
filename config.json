@@ -28,5 +28,24 @@
     "currency": "POINTS",
     "daysToFix": 90,
     "updateFrequency": 120
+  },
+  "redTeamers": {
+    "Jonny Rhea":                 "jrhea",
+    "Alexander Sadovskyi":        "AlexSSD7",
+    "Martin Holst Swende":        "holiman",
+    "Tintin":                     "tintinweb",
+    "Antoine Toulme":             "atoulme",
+    "Stefan Kobrc":               "",
+    "Quan":                       "cryptosubtlety",
+    "WINE Academic Workshop":     "",
+    "Proto":                      "protolambda",
+    "Taurus":                     "",
+    "Saulius Grigaitis (+team).": "sifraitech",
+    "Antonio Sanso":              "asanso",
+    "Guido Vranken":              "guidovranken",
+    "Jacek":                      "arnetheduck",
+    "Onur Kılıç":                 "kilic",
+    "Jim McDonald":               "mcdee",
+    "Nishant (Prysm)":            "nisdas"
   }
 }

@@ -98,7 +98,7 @@ func issuesAndEventsToContributors(issues map[int]WrappedIssue, options BoardOpt
 }
 
 // MapIssue updates the contributors map based on a set of events and an issue.
-func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
+func (cs Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) error {
 	// Check if issue has closed at timestamp
 	if issue.Issue.ClosedAt == nil {
 		return ErrIssueMissingClosedAt
@@ -116,14 +116,14 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	var workLogs WorkLogs
 	var reopenCount int
 	if !issue.Issue.Migrated {
-		workLogs, reopenCount = contributors.mapEvents(issue.Events, issueClosedAt, severity, timeToDisclosure, boardOptions.currency)
+		workLogs, reopenCount = cs.mapEvents(issue.Events, issueClosedAt, severity, timeToDisclosure, boardOptions.currency)
 	}
 	if issue.Issue.Migrated {
 		for _, assignee := range issue.Issue.Assignees {
-			contributors.mapAssigneeIfMissing(assignee, boardOptions.currency)
+			cs.mapAssigneeIfMissing(assignee, boardOptions.currency)
 			workLogs = WorkLogs{}
 			workLogs.Add(assignee.Login, WorkLog{issue.Issue.CreatedAt, issueClosedAt})
-			contributors.incrementFixCounters(assignee.Login, timeToDisclosure, severity)
+			cs.incrementFixCounters(assignee.Login, timeToDisclosure, severity)
 		}
 	}
 
@@ -131,13 +131,13 @@ func (contributors Contributors) MapIssue(issue WrappedIssue, boardOptions Board
 	severityReward := boardOptions.rewards[severity]
 
 	// Calculate the reward
-	contributors.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, boardOptions.daysToFix, severityReward)
+	cs.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, boardOptions.daysToFix, severityReward)
 
 	return nil
 }
 
 // mapEvents maps issue events to the contributors
-func (contributors Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity config.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
+func (cs Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity config.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
 	// areIncremented tracks contributors that have had their fix counters incremented
 	var (
 		workLogs       = WorkLogs{}
@@ -157,11 +157,11 @@ func (contributors Contributors) mapEvents(events []github.IssueEvent, issueClos
 				continue
 			}
 
-			contributors.mapEventAssigned(event, issueClosedAt, workLogs, currency)
+			cs.mapEventAssigned(event, issueClosedAt, workLogs, currency)
 
 			// Increment fix count if not yet done
 			if isIncremented := areIncremented[event.Assignee.Login]; !isIncremented {
-				contributors.incrementFixCounters(event.Assignee.Login, timeToDisclosure, severity)
+				cs.incrementFixCounters(event.Assignee.Login, timeToDisclosure, severity)
 				areIncremented[event.Assignee.Login] = true
 			}
 		case string(github.IssueEventActionUnassigned):
@@ -175,8 +175,8 @@ func (contributors Contributors) mapEvents(events []github.IssueEvent, issueClos
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (contributors Contributors) mapEventAssigned(event github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
-	contributors.mapAssigneeIfMissing(*event.Assignee, currency)
+func (cs Contributors) mapEventAssigned(event github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
+	cs.mapAssigneeIfMissing(*event.Assignee, currency)
 
 	// Append work log
 	workLogs.Add(event.Assignee.Login, WorkLog{event.CreatedAt, issueClosedAt})
@@ -191,10 +191,10 @@ func mapEventUnassigned(event github.IssueEvent, workLogs WorkLogs) {
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func (contributors Contributors) mapAssigneeIfMissing(assignee github.User, currency string) {
-	_, ok := contributors[assignee.Login]
+func (cs Contributors) mapAssigneeIfMissing(assignee github.User, currency string) {
+	_, ok := cs[assignee.Login]
 	if !ok {
-		contributors[assignee.Login] = &Contributor{
+		cs[assignee.Login] = &Contributor{
 			Login:            assignee.Login,
 			AvatarURL:        assignee.AvatarURL,
 			HTMLURL:          assignee.HTMLURL,
@@ -208,8 +208,8 @@ func (contributors Contributors) mapAssigneeIfMissing(assignee github.User, curr
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (contributors Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity config.IssueSeverity) {
-	contributor := contributors[login]
+func (cs Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity config.IssueSeverity) {
+	contributor := cs[login]
 
 	// Increment fix count
 	contributor.FixCount++
@@ -221,8 +221,8 @@ func (contributors Contributors) incrementFixCounters(login string, timeToDisclo
 }
 
 // updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.
-func (contributors Contributors) updateMeanAndDeviationOfDisclosure() {
-	for _, contributor := range contributors {
+func (cs Contributors) updateMeanAndDeviationOfDisclosure() {
+	for _, contributor := range cs {
 		if contributor.FixCount == 0 {
 			continue
 		}
@@ -245,8 +245,8 @@ func (contributors Contributors) updateMeanAndDeviationOfDisclosure() {
 }
 
 // updateAverageSeverity updates the average severity field of all contributors.
-func (contributors Contributors) updateAverageSeverity() {
-	for _, contributor := range contributors {
+func (cs Contributors) updateAverageSeverity() {
+	for _, contributor := range cs {
 		if contributor.FixCount == 0 {
 			continue
 		}
@@ -258,16 +258,16 @@ func (contributors Contributors) updateAverageSeverity() {
 	}
 }
 
-func (contributors Contributors) toSortedSlice() []*Contributor {
-	contributorsSlice := contributors.toSlice()
+func (cs Contributors) toSortedSlice() []*Contributor {
+	contributorsSlice := cs.toSlice()
 	sortContributors(contributorsSlice)
 	return contributorsSlice
 }
 
 // mapToSlice transforms the contributors map to a contributors slice.
-func (contributors Contributors) toSlice() []*Contributor {
+func (cs Contributors) toSlice() []*Contributor {
 	contributorsSlice := make([]*Contributor, 0)
-	for _, contributor := range contributors {
+	for _, contributor := range cs {
 		contributorsSlice = append(contributorsSlice, contributor)
 	}
 
@@ -286,9 +286,9 @@ func sortContributors(contributors []*Contributor) {
 }
 
 // updateMonthlyRewards maps the rewards of each contributor to a monthly timeframe for the past year.
-func (contributors Contributors) updateMonthlyRewards() {
+func (cs Contributors) updateMonthlyRewards() {
 	now := time.Now()
-	for _, contributor := range contributors {
+	for _, contributor := range cs {
 		contributor.RewardsLastYear = newRewardsLastYear(now)
 
 		for _, reward := range contributor.Rewards {

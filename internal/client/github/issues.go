@@ -5,11 +5,11 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 type IssueState string
@@ -27,20 +27,16 @@ const (
 )
 
 type Issue struct {
-	ID        int64
-	Number    int
-	Title     string
-	CreatedAt time.Time
-	ClosedAt  *time.Time
-	Assignees []User
-	Labels    []Label
-	Migrated  bool
-}
-
-type User struct {
-	Login     string
-	AvatarURL string
-	HTMLURL   string
+	ID           int64
+	Number       int
+	Title        string
+	CreatedAt    time.Time
+	ClosedAt     *time.Time
+	Assignees    []User
+	Labels       []Label
+	Migrated     bool
+	RedTeamer    *User
+	BountyPoints *int
 }
 
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error) {
@@ -137,19 +133,6 @@ func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, e
 	return compressedIssue, nil
 }
 
-func validateUser(user *github.User) (User, error) {
-	if user == nil ||
-		user.Login == nil {
-		return User{}, ErrUserMissingData
-	}
-
-	return User{
-		Login:     *user.Login,
-		AvatarURL: pointer.ToString(user.AvatarURL),
-		HTMLURL:   pointer.ToString(user.HTMLURL),
-	}, nil
-}
-
 func parseMigrationIssue(issue Issue, body string) Issue {
 	issue.Migrated = true
 
@@ -165,6 +148,21 @@ func parseMigrationIssue(issue Issue, body string) Issue {
 		log.Printf("[parseMigrationIssue] error while parsing fix time: %v", err)
 	} else {
 		issue.ClosedAt = &closedAt
+	}
+
+	redTeamer, err := parseRedTeamer(body)
+	if err != nil {
+		log.Printf("[parseMigrationIssue] error while parsing red teamer: %v", err)
+	} else {
+		// TODO: add icon and link to GitHub
+		issue.RedTeamer = &User{Login: redTeamer}
+	}
+
+	bountyPoints, err := parseBountyPoints(body)
+	if err != nil {
+		log.Printf("[parseMigrationIssue] error while parsing bounty points: %v", err)
+	} else {
+		issue.BountyPoints = &bountyPoints
 	}
 
 	return issue
@@ -206,6 +204,39 @@ func parseFixTime(body string) (time.Time, error) {
 	}
 
 	return createdAt, nil
+}
+
+func parseRedTeamer(body string) (string, error) {
+	r, err := regexp.Compile(`\*\*Bounty Hunter:\*\*\s*([^\n\r]*)`)
+	if err != nil {
+		return "", err
+	}
+
+	matches := r.FindStringSubmatch(body)
+	if err != nil {
+		return "", errors.New("no matches found for red teamer")
+	}
+
+	return matches[1], nil
+}
+
+func parseBountyPoints(body string) (int, error) {
+	r, err := regexp.Compile(`\*\*Bounty Points:\*\*\s*([^\n\r]*)`)
+	if err != nil {
+		return -1, err
+	}
+
+	matches := r.FindStringSubmatch(body)
+	if err != nil {
+		return -1, errors.New("no matches found for bounty points")
+	}
+
+	bountyPoints, err := strconv.ParseInt(matches[1], 10, 32)
+	if err != nil {
+		return -1, err
+	}
+
+	return int(bountyPoints), nil
 }
 
 func parseDate(data string) (time.Time, error) {

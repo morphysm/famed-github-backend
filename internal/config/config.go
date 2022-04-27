@@ -38,6 +38,9 @@ type Config struct {
 		UpdateFrequency int
 	}
 
+	// TODO this should probably not be in memory
+	RedTeamers map[string]string
+
 	Admin struct {
 		Username string
 		Password string

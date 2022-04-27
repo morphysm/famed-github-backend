@@ -11,7 +11,7 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // workLogs (time each contributor worked on the issue)
-func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
+func (cs Contributors) updateRewards(workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
 	baseReward := reward(close.Sub(open), k, daysToFix)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
@@ -24,7 +24,7 @@ func (contributors Contributors) updateRewards(workLogs WorkLogs, open time.Time
 			log.Printf("contributor total work < 0: %d\n", contributorTotalWork)
 			continue
 		}
-		contributor := contributors[login]
+		contributor := cs[login]
 
 		// Assign total work to contributor for issue rewardComment generation
 		contributor.TotalWorkTime = contributorTotalWork
