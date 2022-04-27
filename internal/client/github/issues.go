@@ -29,6 +29,7 @@ const (
 type Issue struct {
 	ID           int64
 	Number       int
+	HTMLURL      string
 	Title        string
 	CreatedAt    time.Time
 	ClosedAt     *time.Time
@@ -90,6 +91,7 @@ func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, e
 	if issue == nil ||
 		issue.ID == nil ||
 		issue.Number == nil ||
+		issue.HTMLURL == nil ||
 		issue.Title == nil ||
 		issue.CreatedAt == nil {
 		return compressedIssue, ErrIssueMissingData
@@ -98,6 +100,7 @@ func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, e
 	compressedIssue = Issue{
 		ID:        *issue.ID,
 		Number:    *issue.Number,
+		HTMLURL:   *issue.HTMLURL,
 		Title:     *issue.Title,
 		CreatedAt: *issue.CreatedAt,
 		ClosedAt:  issue.ClosedAt,

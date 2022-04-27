@@ -39,6 +39,7 @@ type TimeToDisclosure struct {
 type Reward struct {
 	Date   time.Time `json:"date"`
 	Reward float64   `json:"reward"`
+	URL    string    `json:"url"`
 }
 
 type BoardOptions struct {
@@ -131,7 +132,7 @@ func (cs Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) e
 	severityReward := boardOptions.rewards[severity]
 
 	// Calculate the reward
-	cs.updateRewards(workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, boardOptions.daysToFix, severityReward)
+	cs.updateRewards(issue.Issue.HTMLURL, workLogs, issue.Issue.CreatedAt, issueClosedAt, reopenCount, boardOptions.daysToFix, severityReward)
 
 	return nil
 }

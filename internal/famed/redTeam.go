@@ -48,7 +48,7 @@ func (gH *githubHandler) generateRedTeamFromIssues(ctx context.Context, owner st
 			continue
 		}
 
-		contributors.mapBug(ctx, gH.githubInstallationClient, owner, issue, gH.famedConfig.RedTeamers, gH.famedConfig.Currency)
+		contributors.mapIssue(ctx, gH.githubInstallationClient, owner, issue, gH.famedConfig.RedTeamers, gH.famedConfig.Currency)
 	}
 
 	contributors.updateMeanAndDeviationOfDisclosure()
@@ -58,8 +58,8 @@ func (gH *githubHandler) generateRedTeamFromIssues(ctx context.Context, owner st
 	return contributors.toSortedSlice(), nil
 }
 
-// mapBug maps a bug to the contributors map.
-func (cs Contributors) mapBug(ctx context.Context, client github.InstallationClient, owner string, issue github.Issue, redTeamers map[string]string, currency string) {
+// mapIssue maps a bug to the contributors map.
+func (cs Contributors) mapIssue(ctx context.Context, client github.InstallationClient, owner string, issue github.Issue, redTeamers map[string]string, currency string) {
 	// Get red team contributor from map
 	contributor, ok := cs[issue.RedTeamer.Login]
 	if !ok {
@@ -93,13 +93,17 @@ func (cs Contributors) mapBug(ctx context.Context, client github.InstallationCli
 		return
 	}
 
-	contributor.mapBug(issue.CreatedAt, *issue.ClosedAt, float64(*issue.BountyPoints), severity)
+	contributor.mapIssue(issue.HTMLURL, issue.CreatedAt, *issue.ClosedAt, float64(*issue.BountyPoints), severity)
 }
 
-// mapBug maps a bug to a contributor
-func (c *Contributor) mapBug(reportedDate, publishedDate time.Time, reward float64, severity config.IssueSeverity) {
+// mapIssue maps a bug to a contributor
+func (c *Contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity config.IssueSeverity) {
 	// Set reward
-	c.Rewards = append(c.Rewards, Reward{Date: publishedDate, Reward: reward})
+	c.Rewards = append(c.Rewards, Reward{
+		Date:   publishedDate,
+		Reward: reward,
+		URL:    url,
+	})
 
 	// Updated reward sum
 	c.RewardSum += reward

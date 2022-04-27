@@ -11,7 +11,7 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // workLogs (time each contributor worked on the issue)
-func (cs Contributors) updateRewards(workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
+func (cs Contributors) updateRewards(url string, workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
 	baseReward := reward(close.Sub(open), k, daysToFix)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
@@ -30,7 +30,7 @@ func (cs Contributors) updateRewards(workLogs WorkLogs, open time.Time, close ti
 		contributor.TotalWorkTime = contributorTotalWork
 
 		// Calculated share of reward
-		// workSum can be 0 on
+		// workSum can be 0
 		var reward float64
 		if workSum == 0 {
 			reward = points / float64(len(contributorsWork))
@@ -45,6 +45,7 @@ func (cs Contributors) updateRewards(workLogs WorkLogs, open time.Time, close ti
 		contributor.Rewards = append(contributor.Rewards, Reward{
 			Date:   close,
 			Reward: reward,
+			URL:    url,
 		})
 
 		// Add reward by month
