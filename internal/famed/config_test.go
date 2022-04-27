@@ -14,27 +14,45 @@ func TestConfig(t *testing.T) {
 
 	cfg := NewTestConfig()
 
-	assert.Equal(t, cfg.Currency, "c")
-	assert.Equal(t, cfg.Rewards, map[config.IssueSeverity]float64{"s": 0})
+	assert.Equal(t, cfg.Currency, "POINTS")
+	assert.Equal(t, cfg.Rewards, map[config.IssueSeverity]float64{
+		config.CVSSInfo:     0,
+		config.CVSSLow:      1000,
+		config.CVSSMedium:   2000,
+		config.CVSSHigh:     3000,
+		config.CVSSCritical: 4000,
+	})
 	assert.Equal(t, cfg.Labels, map[string]github.Label{
-		"f": {
-			Name:        "n",
-			Color:       "c",
-			Description: "d",
+		"famed": {
+			Name:        "famed",
+			Color:       "testColor",
+			Description: "testDescription",
 		},
 	})
 	assert.Equal(t, cfg.BotLogin, "b")
 }
 
 func NewTestConfig() famed.Config {
-	return famed.NewFamedConfig("c",
-		map[config.IssueSeverity]float64{"s": 0},
-		map[string]github.Label{
-			"f": {
-				Name:        "n",
-				Color:       "c",
-				Description: "d",
-			},
+	rewards := map[config.IssueSeverity]float64{
+		config.CVSSInfo:     0,
+		config.CVSSLow:      1000,
+		config.CVSSMedium:   2000,
+		config.CVSSHigh:     3000,
+		config.CVSSCritical: 4000,
+	}
+	labels := map[string]github.Label{
+		"famed": {
+			Name:        "famed",
+			Color:       "testColor",
+			Description: "testDescription",
 		},
-		40, "b")
+	}
+
+	return famed.NewFamedConfig("POINTS",
+		rewards,
+		labels,
+		40,
+		"b",
+		map[string]string{"testUser": "testUser"},
+	)
 }

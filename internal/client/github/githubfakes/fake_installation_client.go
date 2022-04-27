@@ -126,6 +126,21 @@ type FakeInstallationClient struct {
 		result1 []github.Repo
 		result2 error
 	}
+	GetUserStub        func(context.Context, string, string) (github.User, error)
+	getUserMutex       sync.RWMutex
+	getUserArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	getUserReturns struct {
+		result1 github.User
+		result2 error
+	}
+	getUserReturnsOnCall map[int]struct {
+		result1 github.User
+		result2 error
+	}
 	PostCommentStub        func(context.Context, string, string, int, string) error
 	postCommentMutex       sync.RWMutex
 	postCommentArgsForCall []struct {
@@ -728,6 +743,72 @@ func (fake *FakeInstallationClient) GetReposReturnsOnCall(i int, result1 []githu
 	}{result1, result2}
 }
 
+func (fake *FakeInstallationClient) GetUser(arg1 context.Context, arg2 string, arg3 string) (github.User, error) {
+	fake.getUserMutex.Lock()
+	ret, specificReturn := fake.getUserReturnsOnCall[len(fake.getUserArgsForCall)]
+	fake.getUserArgsForCall = append(fake.getUserArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.GetUserStub
+	fakeReturns := fake.getUserReturns
+	fake.recordInvocation("GetUser", []interface{}{arg1, arg2, arg3})
+	fake.getUserMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeInstallationClient) GetUserCallCount() int {
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
+	return len(fake.getUserArgsForCall)
+}
+
+func (fake *FakeInstallationClient) GetUserCalls(stub func(context.Context, string, string) (github.User, error)) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = stub
+}
+
+func (fake *FakeInstallationClient) GetUserArgsForCall(i int) (context.Context, string, string) {
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
+	argsForCall := fake.getUserArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeInstallationClient) GetUserReturns(result1 github.User, result2 error) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = nil
+	fake.getUserReturns = struct {
+		result1 github.User
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInstallationClient) GetUserReturnsOnCall(i int, result1 github.User, result2 error) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = nil
+	if fake.getUserReturnsOnCall == nil {
+		fake.getUserReturnsOnCall = make(map[int]struct {
+			result1 github.User
+			result2 error
+		})
+	}
+	fake.getUserReturnsOnCall[i] = struct {
+		result1 github.User
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstallationClient) PostComment(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 string) error {
 	fake.postCommentMutex.Lock()
 	ret, specificReturn := fake.postCommentReturnsOnCall[len(fake.postCommentArgsForCall)]
@@ -1074,6 +1155,8 @@ func (fake *FakeInstallationClient) Invocations() map[string][][]interface{} {
 	defer fake.getRateLimitMutex.RUnlock()
 	fake.getReposMutex.RLock()
 	defer fake.getReposMutex.RUnlock()
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
 	fake.postCommentMutex.RLock()
 	defer fake.postCommentMutex.RUnlock()
 	fake.postLabelMutex.RLock()

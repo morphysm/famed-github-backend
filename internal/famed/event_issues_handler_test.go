@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	gitlib "github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
@@ -21,15 +20,7 @@ import (
 func TestPostIssuesEvent(t *testing.T) {
 	t.Parallel()
 
-	rewards := map[config.IssueSeverity]float64{
-		config.CVSSInfo:     0,
-		config.CVSSLow:      1000,
-		config.CVSSMedium:   2000,
-		config.CVSSHigh:     3000,
-		config.CVSSCritical: 4000,
-	}
-	famedConfig := famed.NewFamedConfig("POINTS", rewards, map[string]gitlib.Label{"famed": {Name: "famed"}}, 40, "")
-
+	famedConfig := NewTestConfig()
 	testCases := []struct {
 		Name            string
 		Event           *github.IssuesEvent
@@ -53,6 +44,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Number:    pointer.Int(0),
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
@@ -74,6 +66,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Number:    pointer.Int(0),
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -97,6 +90,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}, {Name: pointer.String("low")}},
 					Number:    pointer.Int(0),
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -119,6 +113,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -163,6 +158,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -192,6 +188,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
 					Title:     pointer.String("test"),
+					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
 					Assignees: []*github.User{{Login: pointer.String("test1")}, {Login: pointer.String("test2")}},
@@ -238,6 +235,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
 					Title:     pointer.String("Test"),
+					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 				},
@@ -262,6 +260,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
 					Title:     pointer.String("Test"),
+					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -287,6 +286,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
 					Title:     pointer.String("Test"),
+					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -312,6 +312,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
 					Title:     pointer.String("Test"),
+					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Assignees: []*github.User{{Login: pointer.String("test")}},
@@ -338,6 +339,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					ID:        pointer.Int64(0),
 					Number:    pointer.Int(0),
 					Title:     pointer.String("Test"),
+					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Assignees: []*github.User{{Login: pointer.String("test")}},

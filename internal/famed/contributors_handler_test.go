@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	gitlib "github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
@@ -24,14 +23,7 @@ func TestGetContributors(t *testing.T) {
 
 	open := time.Date(2022, 4, 4, 0, 0, 0, 0, time.UTC)
 	closed := open.Add(24 * time.Hour)
-	rewards := map[config.IssueSeverity]float64{
-		config.CVSSInfo:     0,
-		config.CVSSLow:      1000,
-		config.CVSSMedium:   2000,
-		config.CVSSHigh:     3000,
-		config.CVSSCritical: 4000,
-	}
-	famedConfig := famed.NewFamedConfig("POINTS", rewards, map[string]gitlib.Label{"famed": {Name: "famed"}}, 40, "")
+	famedConfig := NewTestConfig()
 
 	testCases := []struct {
 		Name             string
@@ -53,6 +45,7 @@ func TestGetContributors(t *testing.T) {
 			Issues: []gitlib.Issue{{
 				ID:        0,
 				Number:    0,
+				HTMLURL:   "TestURL",
 				Title:     "TestIssue",
 				CreatedAt: open,
 				ClosedAt:  &closed,
@@ -85,7 +78,7 @@ func TestGetContributors(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "test"},
 				},
 			},
-			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
+			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
 		},
 		{
 			Name:         "Valid - Two Issues",
@@ -96,6 +89,7 @@ func TestGetContributors(t *testing.T) {
 				{
 					ID:        0,
 					Number:    0,
+					HTMLURL:   "TestURL",
 					Title:     "TestIssue",
 					CreatedAt: open,
 					ClosedAt:  &closed,
@@ -106,6 +100,7 @@ func TestGetContributors(t *testing.T) {
 				{
 					ID:        1,
 					Number:    1,
+					HTMLURL:   "TestURL",
 					Title:     "TestIssue",
 					CreatedAt: open,
 					ClosedAt:  &closed,
@@ -139,7 +134,7 @@ func TestGetContributors(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "test"},
 				},
 			},
-			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":2,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975},{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975}],\"rewardSum\":1950,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":1950},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440,1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":2},\"meanSeverity\":2}]\n",
+			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":2,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"},{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":1950,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":1950},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440,1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":2},\"meanSeverity\":2}]\n",
 		},
 	}
 

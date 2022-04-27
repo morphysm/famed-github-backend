@@ -84,7 +84,7 @@ func TestUpdateReward(t *testing.T) {
 				HTMLURL:          "nil",
 				FixCount:         0,
 				RewardsLastYear:  nil,
-				Rewards:          []Reward{{Date: time.Time{}, Reward: 1}},
+				Rewards:          []Reward{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
 				RewardSum:        1,
 				TimeToDisclosure: TimeToDisclosure{},
 				Severities:       nil,
@@ -127,7 +127,7 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5}},
+					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
 					RewardSum:        0.5,
 					TimeToDisclosure: TimeToDisclosure{},
 					Severities:       nil,
@@ -139,7 +139,7 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5}},
+					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
 					RewardSum:        0.5,
 					TimeToDisclosure: TimeToDisclosure{},
 					Severities:       nil,
@@ -183,7 +183,7 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0}},
+					Rewards:          []Reward{{Date: time.Time{}, Reward: 0, URL: "TestURL"}},
 					RewardSum:        0,
 					TimeToDisclosure: TimeToDisclosure{},
 					Severities:       nil,
@@ -195,7 +195,7 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 1}},
+					Rewards:          []Reward{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
 					RewardSum:        1,
 					TimeToDisclosure: TimeToDisclosure{},
 					Severities:       nil,
@@ -240,7 +240,7 @@ func TestUpdateReward(t *testing.T) {
 					{Month: "6.2021", Reward: 0},
 					{Month: "5.2021", Reward: 0},
 				},
-				Rewards:          []Reward{{Date: exampleTime.Add(time.Hour * 24), Reward: 0.975}},
+				Rewards:          []Reward{{Date: exampleTime.Add(time.Hour * 24), Reward: 0.975, URL: "TestURL"}},
 				RewardSum:        0.975,
 				TimeToDisclosure: TimeToDisclosure{},
 				Severities:       nil,
@@ -255,7 +255,7 @@ func TestUpdateReward(t *testing.T) {
 		t.Run(tC.Name, func(t *testing.T) {
 			t.Parallel()
 			// WHEN
-			tC.Contributors.updateRewards(tC.WorkLogs, tC.Open, tC.Close, tC.K, 40, 1)
+			tC.Contributors.updateRewards("TestURL", tC.WorkLogs, tC.Open, tC.Close, tC.K, 40, 1)
 
 			// THEN
 			assert.Equal(t, tC.Expected, tC.Contributors)
