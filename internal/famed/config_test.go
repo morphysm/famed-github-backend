@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,12 +14,12 @@ func TestConfig(t *testing.T) {
 	cfg := NewTestConfig()
 
 	assert.Equal(t, cfg.Currency, "POINTS")
-	assert.Equal(t, cfg.Rewards, map[config.IssueSeverity]float64{
-		config.CVSSInfo:     0,
-		config.CVSSLow:      1000,
-		config.CVSSMedium:   2000,
-		config.CVSSHigh:     3000,
-		config.CVSSCritical: 4000,
+	assert.Equal(t, cfg.Rewards, map[github.IssueSeverity]float64{
+		github.Info:     0,
+		github.Low:      1000,
+		github.Medium:   2000,
+		github.High:     3000,
+		github.Critical: 4000,
 	})
 	assert.Equal(t, cfg.Labels, map[string]github.Label{
 		"famed": {
@@ -33,12 +32,12 @@ func TestConfig(t *testing.T) {
 }
 
 func NewTestConfig() famed.Config {
-	rewards := map[config.IssueSeverity]float64{
-		config.CVSSInfo:     0,
-		config.CVSSLow:      1000,
-		config.CVSSMedium:   2000,
-		config.CVSSHigh:     3000,
-		config.CVSSCritical: 4000,
+	rewards := map[github.IssueSeverity]float64{
+		github.Info:     0,
+		github.Low:      1000,
+		github.Medium:   2000,
+		github.High:     3000,
+		github.Critical: 4000,
 	}
 	labels := map[string]github.Label{
 		"famed": {

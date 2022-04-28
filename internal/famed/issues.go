@@ -28,7 +28,7 @@ func (sWI *safeWrappedIssue) Add(wI WrappedIssue) {
 
 func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
 	// Get all issues filtered by label and closed state
-	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := github.Closed
 	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {

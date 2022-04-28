@@ -106,18 +106,20 @@ type githubInstallationClient struct {
 	webhookSecret string
 	appClient     AppClient
 	clients       safeClientMap
+	famedLabel    string
 	// TODO replace by cache eg. redis
 	redTeamLogins map[string]string
 	cachedRedTeam *safeUserMap
 }
 
 // NewInstallationClient returns a new instance of the GitHub client
-func NewInstallationClient(baseURL string, appClient AppClient, installations map[string]int64, webhookSecret string, redTeamLogins map[string]string) (InstallationClient, error) {
+func NewInstallationClient(baseURL string, appClient AppClient, installations map[string]int64, webhookSecret string, famedLabel string, redTeamLogins map[string]string) (InstallationClient, error) {
 	client := &githubInstallationClient{
 		baseURL:       baseURL,
 		webhookSecret: webhookSecret,
 		appClient:     appClient,
 		clients:       newSafeClientMap(),
+		famedLabel:    famedLabel,
 		redTeamLogins: redTeamLogins,
 		cachedRedTeam: newSafeUserMap(),
 	}

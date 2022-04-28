@@ -135,7 +135,7 @@ func (c *githubInstallationClient) ValidateWebHookEvent(request *http.Request) (
 
 	switch event := event.(type) {
 	case *github.IssuesEvent:
-		issuesEvent, err := validateIssuesEvent(event)
+		issuesEvent, err := validateIssuesEvent(event, c.famedLabel)
 		if err != nil {
 			return event, err
 		}
@@ -178,12 +178,16 @@ type Repository struct {
 // validateIssuesEvent validates issue events received through the webhook.
 // The changes implied by the event in the case of (un)assigned are mapped to the issue to provide an after event issue state,
 // this is done because of a suspected bug in the GitHub API.
-func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
+func validateIssuesEvent(event *github.IssuesEvent, famedLabel string) (IssuesEvent, error) {
 	if event.Action == nil ||
 		event.Issue == nil ||
 		event.Repo == nil ||
 		event.Repo.Name == nil {
 		return IssuesEvent{}, ErrEventMissingData
+	}
+
+	if !isIssueFamedLabeled(event.Issue, famedLabel) {
+		return IssuesEvent{}, ErrEventNotFamedLabeled
 	}
 
 	switch *event.Action {
@@ -222,6 +226,18 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	default:
 		return IssuesEvent{}, ErrUnhandledEventType
 	}
+}
+
+// isIssueFamedLabeled checks weather the issue labels contain expected famed label.
+func isIssueFamedLabeled(issue *github.Issue, famedLabel string) bool {
+	for _, label := range issue.Labels {
+		if *label.Name == famedLabel {
+			return true
+		}
+	}
+
+	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, issue.ID)
+	return false
 }
 
 type InstallationRepositoriesEvent struct {

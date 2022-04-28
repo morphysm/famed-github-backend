@@ -149,7 +149,7 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 
 func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
 	// TODO duplicate GetIssues call
-	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, nil)
 	if err != nil {
 		return err

@@ -32,8 +32,18 @@ func (gH *githubHandler) CleanState() {
 		}
 
 		for _, repo := range repos {
-			go gH.updateRewardComments(ctx, installation.Account.Login, repo.Name, nil)
-			go gH.updateEligibleComments(ctx, installation.Account.Login, repo.Name, nil)
+			go func(owner string, repoName string) {
+				err := gH.updateRewardComments(ctx, owner, repoName, nil)
+				if err != nil {
+					log.Printf("[CleanState] error while updating reward comments: %v", err)
+				}
+			}(installation.Account.Login, repo.Name)
+			go func(owner string, repoName string) {
+				err := gH.updateEligibleComments(ctx, owner, repoName, nil)
+				if err != nil {
+					log.Printf("[CleanState] error while updating reward comments: %v", err)
+				}
+			}(installation.Account.Login, repo.Name)
 		}
 	}
 }

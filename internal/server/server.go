@@ -58,7 +58,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create a new github client to fetch repo data
-	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.RedTeamers)
+	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamers)
 	if err != nil {
 		return nil, err
 	}

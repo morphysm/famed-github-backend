@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
 type commentType int
@@ -77,18 +76,11 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEv
 
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
 func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
-	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
-
-	famedLabeled := isIssueFamedLabeled(event.Issue, famedLabel.Name)
-	if !famedLabeled {
-		return "", ErrEventMissingFamedLabel
-	}
-
 	if len(event.Issue.Assignees) == 0 {
 		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 
-	// TODO add rule
+	// TODO removed for DevConnect add rule
 	//pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	//if err != nil {
 	//	return "", err
@@ -117,11 +109,6 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
 func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
-	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
-	if !isIssueFamedLabeled(event.Issue, famedLabel.Name) {
-		return "", ErrEventMissingFamedLabel
-	}
-
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if err != nil {
 		return "", err

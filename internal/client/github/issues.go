@@ -16,15 +16,30 @@ import (
 type IssueState string
 
 const (
-	All IssueState = "all"
-	//Opened     IssueState = "opened"
-	Closed IssueState = "closed"
-	//Reopened   IssueState = "reopened"
-	//Edited     IssueState = "edited"
+	All        IssueState = "all"
+	Opened     IssueState = "opened"
+	Closed     IssueState = "closed"
+	Reopened   IssueState = "reopened"
+	Edited     IssueState = "edited"
 	Assigned   IssueState = "assigned"
 	Unassigned IssueState = "unassigned"
 	Labeled    IssueState = "labeled"
 	Unlabeled  IssueState = "unlabeled"
+)
+
+type IssueSeverity string
+
+const (
+	// Info represents a CVSS of 0
+	Info IssueSeverity = "info"
+	// Low represents a CVSS of 0.1-3.9
+	Low IssueSeverity = "low"
+	// Medium represents a CVSS of 4.0-6.9
+	Medium IssueSeverity = "medium"
+	// High represents a CVSS of 7.0-8.9
+	High IssueSeverity = "high"
+	// Critical represents a CVSS of 9.0-10.0
+	Critical IssueSeverity = "critical"
 )
 
 type Issue struct {
@@ -35,10 +50,24 @@ type Issue struct {
 	CreatedAt    time.Time
 	ClosedAt     *time.Time
 	Assignees    []User
-	Labels       []Label
+	Severities   []IssueSeverity
 	Migrated     bool
 	RedTeam      []User
 	BountyPoints *int
+}
+
+// Severity returns the issue severity.
+// If 0 or more than one severity are present it returns an error.
+func (i *Issue) Severity() (IssueSeverity, error) {
+	// Check for single severity
+	if len(i.Severities) == 0 {
+		return "", ErrIssueMissingSeverityLabel
+	}
+	if len(i.Severities) > 1 {
+		return "", ErrIssueMultipleSeverityLabels
+	}
+
+	return i.Severities[0], nil
 }
 
 // GetIssuesByRepo returns all issues from a given repository.
@@ -106,17 +135,19 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 		issue.Number == nil ||
 		issue.HTMLURL == nil ||
 		issue.Title == nil ||
-		issue.CreatedAt == nil {
-		return compressedIssue, ErrIssueMissingData
+		issue.CreatedAt == nil ||
+		issue.Labels == nil {
+		return Issue{}, ErrIssueMissingData
 	}
 
 	compressedIssue = Issue{
-		ID:        *issue.ID,
-		Number:    *issue.Number,
-		HTMLURL:   *issue.HTMLURL,
-		Title:     *issue.Title,
-		CreatedAt: *issue.CreatedAt,
-		ClosedAt:  issue.ClosedAt,
+		ID:         *issue.ID,
+		Number:     *issue.Number,
+		HTMLURL:    *issue.HTMLURL,
+		Title:      *issue.Title,
+		CreatedAt:  *issue.CreatedAt,
+		ClosedAt:   issue.ClosedAt,
+		Severities: parseSeverities(issue.Labels),
 	}
 
 	for _, assignee := range issue.Assignees {
@@ -126,18 +157,28 @@ func validateIssue(issue *github.Issue) (Issue, error) {
 		}
 	}
 
-	if issue.Labels != nil {
-		for _, label := range issue.Labels {
-			if label.Name == nil {
-				continue
-			}
+	return compressedIssue, nil
+}
 
-			compressedLabel := Label{Name: *label.Name}
-			compressedIssue.Labels = append(compressedIssue.Labels, compressedLabel)
+// severity returns the issue severity by matching labels against CVSS
+// if no matching issue severity label can be found it returns the IssueMissingLabelErr
+// if multiple matching issue severity labels can be found it returns the IssueMultipleSeverityLabelsErr.
+func parseSeverities(labels []*github.Label) []IssueSeverity {
+	var severities []IssueSeverity
+	for _, label := range labels {
+		// Check if label is equal to one of the predefined severity labels.
+		if (label != nil &&
+			label.Name != nil) &&
+			(*label.Name == string(Info) ||
+				*label.Name == string(Low) ||
+				*label.Name == string(Medium) ||
+				*label.Name == string(High) ||
+				*label.Name == string(Critical)) {
+			severities = append(severities, IssueSeverity(*label.Name))
 		}
 	}
 
-	return compressedIssue, nil
+	return severities
 }
 
 // parseMigrationIssue returns an updated issue with migration info parsed from a GitHub issue body.

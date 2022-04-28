@@ -45,10 +45,10 @@ func rewardCommentFromError(err error) string {
 	case ErrIssueMissingAssignee:
 		return fmt.Sprintf("%sThe issue is missing an assignee.", comment)
 
-	case ErrIssueMissingSeverityLabel:
+	case github.ErrIssueMissingSeverityLabel:
 		return fmt.Sprintf("%sThe issue is missing a severity label.", comment)
 
-	case ErrIssueMultipleSeverityLabels:
+	case github.ErrIssueMultipleSeverityLabels:
 		return fmt.Sprintf("%sThe issue has more than one severity label.", comment)
 
 	case ErrNoContributors:
@@ -68,7 +68,7 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue.Assignees))
 
 	// Check that a valid severity label is assigned
-	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue.Labels))
+	comment = fmt.Sprintf("%s\n%s️", comment, severityComment(issue.Severities))
 
 	// Check that a PR is assigned
 	// TODO create rule
@@ -89,23 +89,24 @@ func assigneeComment(assignees []github.User) string {
 	return "❌" + msg
 }
 
-func severityComment(labels []github.Label) string {
+func severityComment(severities []github.IssueSeverity) string {
 	const msg = " Add a single severity (CVSS) label to compute the score 🏷️"
-	if _, err := severity(labels); err == nil {
+	if len(severities) == 1 {
 		return "✅" + msg
 	}
 
 	return "❌" + msg
 }
 
-func prComment(pullRequest *github.PullRequest) string {
-	const msg = " Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
-	if pullRequest != nil {
-		return "✅" + msg
-	}
-
-	return "❌" + msg
-}
+// TODO commented out for DevConnect
+//func prComment(pullRequest *github.PullRequest) string {
+//	const msg = " Link a PR when closing the issue ♻️ \U0001F9B8‍♀️\U0001F9B9"
+//	if pullRequest != nil {
+//		return "✅" + msg
+//	}
+//
+//	return "❌" + msg
+//}
 
 // findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
 func findComment(comments []github.IssueComment, botLogin string, commentType commentType) (github.IssueComment, bool) {

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
@@ -24,7 +23,7 @@ type Contributor struct {
 	Currency         string                       `json:"currency"`
 	RewardsLastYear  RewardsLastYear              `json:"rewardsLastYear"`
 	TimeToDisclosure TimeToDisclosure             `json:"timeToDisclosure"`
-	Severities       map[config.IssueSeverity]int `json:"severities"`
+	Severities       map[github.IssueSeverity]int `json:"severities"`
 	MeanSeverity     float64                      `json:"meanSeverity"`
 	// For issue rewardComment generation
 	TotalWorkTime time.Duration `json:"-"`
@@ -44,7 +43,7 @@ type Reward struct {
 
 type BoardOptions struct {
 	currency  string
-	rewards   map[config.IssueSeverity]float64
+	rewards   map[github.IssueSeverity]float64
 	daysToFix int
 }
 
@@ -107,10 +106,9 @@ func (cs Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) e
 	issueClosedAt := *issue.Issue.ClosedAt
 	timeToDisclosure := issueClosedAt.Sub(issue.Issue.CreatedAt).Minutes()
 
-	// Read severity from issue
-	severity, err := severity(issue.Issue.Labels)
+	severity, err := issue.Issue.Severity()
 	if err != nil {
-		log.Printf("[MapIssue] no valid label found for issue with ID: %d and label error: %v", issue.Issue.ID, err)
+		log.Printf("[MapIssue] error while reading severity from with id: %d: %v", issue.Issue.ID, err)
 		return err
 	}
 
@@ -138,7 +136,7 @@ func (cs Contributors) MapIssue(issue WrappedIssue, boardOptions BoardOptions) e
 }
 
 // mapEvents maps issue events to the contributors
-func (cs Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity config.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
+func (cs Contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity github.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
 	// areIncremented tracks contributors that have had their fix counters incremented
 	var (
 		workLogs       = WorkLogs{}
@@ -202,14 +200,14 @@ func (cs Contributors) mapAssigneeIfMissing(assignee github.User, currency strin
 			Rewards:          []Reward{},
 			Currency:         currency,
 			TimeToDisclosure: TimeToDisclosure{},
-			Severities:       map[config.IssueSeverity]int{},
+			Severities:       map[github.IssueSeverity]int{},
 			RewardsLastYear:  newRewardsLastYear(time.Now()),
 		}
 	}
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (cs Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity config.IssueSeverity) {
+func (cs Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity github.IssueSeverity) {
 	contributor := cs[login]
 
 	// Increment fix count
@@ -252,10 +250,10 @@ func (cs Contributors) updateAverageSeverity() {
 			continue
 		}
 
-		contributor.MeanSeverity = (2*float64(contributor.Severities[config.CVSSLow]) +
-			5.5*float64(contributor.Severities[config.CVSSMedium]) +
-			9*float64(contributor.Severities[config.CVSSHigh]) +
-			9.5*float64(contributor.Severities[config.CVSSCritical])) / float64(contributor.FixCount)
+		contributor.MeanSeverity = (2*float64(contributor.Severities[github.Low]) +
+			5.5*float64(contributor.Severities[github.Medium]) +
+			9*float64(contributor.Severities[github.High]) +
+			9.5*float64(contributor.Severities[github.Critical])) / float64(contributor.FixCount)
 	}
 }
 

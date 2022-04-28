@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// waitGroups represents a mutex map of a ID with an associated sync.WaitGroup slice.
+// WaitGroups represents a mutex map of a ID with an associated sync.WaitGroup slice.
 type WaitGroups struct {
 	wGs map[int64][]*sync.WaitGroup
 	mu  sync.Mutex

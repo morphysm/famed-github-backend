@@ -35,11 +35,11 @@ func validateRateLimit(rateLimits *github.RateLimits) (RateLimit, error) {
 		return RateLimit{}, ErrRateLimitMissingData
 	}
 
-	time := rateLimits.Core.Reset.Time
+	reset := rateLimits.Core.Reset.Time
 
 	return RateLimit{
 		Limit:     rateLimits.Core.Limit,
 		Remaining: rateLimits.Core.Remaining,
-		Reset:     time,
+		Reset:     reset,
 	}, nil
 }

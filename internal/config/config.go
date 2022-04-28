@@ -32,7 +32,7 @@ type Config struct {
 
 	Famed struct {
 		Labels          map[string]github.Label
-		Rewards         map[IssueSeverity]float64
+		Rewards         map[github.IssueSeverity]float64
 		Currency        string
 		DaysToFix       int
 		UpdateFrequency int
@@ -47,8 +47,6 @@ type Config struct {
 	}
 }
 
-type IssueSeverity string
-
 const (
 	newRelicNameEnvName    = "NEWRELIC_NAME"
 	newRelicKeyEnvName     = "NEWRELIC_KEY"
@@ -62,17 +60,7 @@ const (
 	adminUsername = "ADMIN_USERNAME"
 	adminPassword = "ADMIN_PASSWORD"
 
-	FamedLabel = "famed"
-	// CVSSInfo represents a CVSS of 0
-	CVSSInfo IssueSeverity = "info"
-	// CVSSLow represents a CVSS of 0.1-3.9
-	CVSSLow IssueSeverity = "low"
-	// CVSSMedium represents a CVSS of 4.0-6.9
-	CVSSMedium IssueSeverity = "medium"
-	// CVSSHigh represents a CVSS of 7.0-8.9
-	CVSSHigh IssueSeverity = "high"
-	// CVSSCritical represents a CVSS of 9.0-10.0
-	CVSSCritical IssueSeverity = "critical"
+	FamedLabelKey = "famed"
 )
 
 func Load() (*Config, error) {
@@ -180,38 +168,38 @@ func verifyConfig(cfg Config) error {
 		return errors.New("config.json famed.updateFrequency must be set")
 	}
 
-	if err := verifyLabel(cfg, FamedLabel); err != nil {
+	if err := verifyLabel(cfg, FamedLabelKey); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSInfo)); err != nil {
+	if err := verifyLabel(cfg, string(github.Info)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSLow)); err != nil {
+	if err := verifyLabel(cfg, string(github.Low)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSMedium)); err != nil {
+	if err := verifyLabel(cfg, string(github.Medium)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSHigh)); err != nil {
+	if err := verifyLabel(cfg, string(github.High)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(CVSSCritical)); err != nil {
+	if err := verifyLabel(cfg, string(github.Critical)); err != nil {
 		return err
 	}
 
-	if err := verifyReward(cfg, CVSSInfo); err != nil {
+	if err := verifyReward(cfg, github.Info); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, CVSSLow); err != nil {
+	if err := verifyReward(cfg, github.Low); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, CVSSMedium); err != nil {
+	if err := verifyReward(cfg, github.Medium); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, CVSSHigh); err != nil {
+	if err := verifyReward(cfg, github.High); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, CVSSCritical); err != nil {
+	if err := verifyReward(cfg, github.Critical); err != nil {
 		return err
 	}
 
@@ -226,7 +214,7 @@ func verifyLabel(cfg Config, label string) error {
 	return nil
 }
 
-func verifyReward(cfg Config, cvss IssueSeverity) error {
+func verifyReward(cfg Config, cvss github.IssueSeverity) error {
 	if _, ok := cfg.Famed.Rewards[cvss]; !ok {
 		return fmt.Errorf("config.json app.famed.rewards.%s must be set", cvss)
 	}

@@ -2,6 +2,7 @@ package famed
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -34,7 +35,7 @@ func (gH *githubHandler) generateRedTeamFromIssues(ctx context.Context, owner st
 		return nil, ErrAppNotInstalled
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabel]
+	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := github.All
 	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, []string{famedLabel.Name}, &issueState)
 	if err != nil {
@@ -64,8 +65,9 @@ func (cs Contributors) mapIssue(issue github.Issue, currency string) {
 		cs.mapAssigneeIfMissing(teamer, currency)
 		contributor := cs[teamer.Login]
 
-		severity, err := severity(issue.Labels)
+		severity, err := issue.Severity()
 		if err != nil {
+			log.Printf("[MapIssue] error while reading severity from with id: %d: %v", issue.ID, err)
 			return
 		}
 
@@ -74,7 +76,7 @@ func (cs Contributors) mapIssue(issue github.Issue, currency string) {
 }
 
 // mapIssue maps a bug to a contributor
-func (c *Contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity config.IssueSeverity) {
+func (c *Contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity github.IssueSeverity) {
 	// Set reward
 	c.Rewards = append(c.Rewards, Reward{
 		Date:   publishedDate,

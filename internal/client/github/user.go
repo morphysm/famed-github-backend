@@ -13,7 +13,7 @@ type User struct {
 	HTMLURL   string
 }
 
-// getUser gets a GitHub user.
+// GetUser returns a GitHub user for a given login.
 func (c *githubInstallationClient) GetUser(ctx context.Context, owner string, login string) (User, error) {
 	client, _ := c.clients.get(owner)
 

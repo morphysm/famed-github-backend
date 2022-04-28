@@ -22,12 +22,12 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 	t.Parallel()
 
 	labels := map[string]gitLib.Label{
-		config.FamedLabel:           {Name: config.FamedLabel, Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSInfo):     {Name: string(config.CVSSInfo), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSLow):      {Name: string(config.CVSSLow), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSMedium):   {Name: string(config.CVSSMedium), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSHigh):     {Name: string(config.CVSSHigh), Color: "TestColor", Description: "TestDescription"},
-		string(config.CVSSCritical): {Name: string(config.CVSSCritical), Color: "TestColor", Description: "TestDescription"},
+		config.FamedLabelKey:    {Name: config.FamedLabelKey, Color: "TestColor", Description: "TestDescription"},
+		string(gitLib.Info):     {Name: string(gitLib.Info), Color: "TestColor", Description: "TestDescription"},
+		string(gitLib.Low):      {Name: string(gitLib.Low), Color: "TestColor", Description: "TestDescription"},
+		string(gitLib.Medium):   {Name: string(gitLib.Medium), Color: "TestColor", Description: "TestDescription"},
+		string(gitLib.High):     {Name: string(gitLib.High), Color: "TestColor", Description: "TestDescription"},
+		string(gitLib.Critical): {Name: string(gitLib.Critical), Color: "TestColor", Description: "TestDescription"},
 	}
 	famedConfig := famed.Config{
 		Labels: labels,
@@ -74,7 +74,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
-			cl, _ := gitLib.NewInstallationClient("", nil, nil, "", nil)
+			cl, _ := gitLib.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
