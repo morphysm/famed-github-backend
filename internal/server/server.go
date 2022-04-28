@@ -58,13 +58,13 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create a new github client to fetch repo data
-	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret)
+	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.RedTeamers)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create the famed handler handling most of the business logic
-	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Famed.DaysToFix, cfg.Github.BotLogin, cfg.RedTeamers)
+	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Famed.DaysToFix, cfg.Github.BotLogin)
 	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig)
 
 	// Start comment update interval

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/google/go-github/v41/github"
 	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
@@ -75,21 +76,50 @@ func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
 	return client, ok
 }
 
+type safeUserMap struct {
+	sync.RWMutex
+	wrappedUsers map[string]User
+}
+
+func newSafeUserMap() *safeUserMap {
+	return &safeUserMap{
+		wrappedUsers: make(map[string]User),
+	}
+}
+
+func (s *safeUserMap) Add(user User) {
+	s.Lock()
+	defer s.Unlock()
+	s.wrappedUsers[user.Login] = user
+}
+
+func (s *safeUserMap) Get(login string) (User, bool) {
+	s.Lock()
+	defer s.Unlock()
+	user, ok := s.wrappedUsers[login]
+	return user, ok
+}
+
 // githubInstallationClient represents all GitHub github clients
 type githubInstallationClient struct {
 	baseURL       string
 	webhookSecret string
 	appClient     AppClient
 	clients       safeClientMap
+	// TODO replace by cache eg. redis
+	redTeamLogins map[string]string
+	cachedRedTeam *safeUserMap
 }
 
 // NewInstallationClient returns a new instance of the GitHub client
-func NewInstallationClient(baseURL string, appClient AppClient, installations map[string]int64, webhookSecret string) (InstallationClient, error) {
+func NewInstallationClient(baseURL string, appClient AppClient, installations map[string]int64, webhookSecret string, redTeamLogins map[string]string) (InstallationClient, error) {
 	client := &githubInstallationClient{
 		baseURL:       baseURL,
 		webhookSecret: webhookSecret,
 		appClient:     appClient,
 		clients:       newSafeClientMap(),
+		redTeamLogins: redTeamLogins,
+		cachedRedTeam: newSafeUserMap(),
 	}
 
 	for owner, installationID := range installations {
@@ -102,7 +132,7 @@ func NewInstallationClient(baseURL string, appClient AppClient, installations ma
 	return client, nil
 }
 
-// AddInstallation adds a new github to the githubInstallationClient.
+// AddInstallation adds a new GitHub to the githubInstallationClient.
 func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
 	ts := NewGithubTokenSource(c.appClient, installationID)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)

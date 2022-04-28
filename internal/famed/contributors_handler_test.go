@@ -57,28 +57,28 @@ func TestGetContributors(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("testUser"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("testUser")}},
 					CreatedAt: &open,
 					ClosedAt:  &closed,
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("testUser")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("testUser"),
+					Owner: &github.User{Login: pointer.String("testUser")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "testUser"},
 			Events: []gitlib.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test"},
+					Assignee:  &gitlib.User{Login: "testUser"},
 				},
 			},
-			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
+			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
 		},
 		{
 			Name:         "Valid - Two Issues",
@@ -113,28 +113,28 @@ func TestGetContributors(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("testUser"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("testUser")}},
 					CreatedAt: &open,
 					ClosedAt:  &closed,
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("testUser")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("testUser"),
+					Owner: &github.User{Login: pointer.String("testUser")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "testUser"},
 			Events: []gitlib.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test"},
+					Assignee:  &gitlib.User{Login: "testUser"},
 				},
 			},
-			ExpectedResponse: "[{\"login\":\"test\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":2,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"},{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":1950,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":1950},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440,1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":2},\"meanSeverity\":2}]\n",
+			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":2,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"},{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":1950,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":1950},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440,1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":2},\"meanSeverity\":2}]\n",
 		},
 	}
 
@@ -157,7 +157,7 @@ func TestGetContributors(t *testing.T) {
 
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.CheckInstallationReturns(testCase.AppInstalled)
-			// TODO test for error
+			// TODO testUser for error
 			fakeInstallationClient.GetIssuesByRepoReturns(testCase.Issues, nil)
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)

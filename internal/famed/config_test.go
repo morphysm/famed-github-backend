@@ -53,6 +53,5 @@ func NewTestConfig() famed.Config {
 		labels,
 		40,
 		"b",
-		map[string]string{"testUser": "testUser"},
 	)
 }

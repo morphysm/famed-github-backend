@@ -139,18 +139,24 @@ func (c *githubInstallationClient) ValidateWebHookEvent(request *http.Request) (
 		if err != nil {
 			return event, err
 		}
+
+		if isMigratedIssue(event.Issue, issuesEvent.Issue, issuesEvent.Repo.Owner.Login, issuesEvent.Repo.Name) {
+			issuesEvent.Issue = c.parseMigrationIssue(request.Context(), issuesEvent.Repo.Owner.Login, issuesEvent.Issue, *event.Issue.Body)
+		}
 		return issuesEvent, err
 	case *github.InstallationRepositoriesEvent:
 		installationRepositoriesEvent, err := validateInstallationRepositoriesEvent(event)
 		if err != nil {
 			return event, err
 		}
+
 		return installationRepositoriesEvent, err
 	case *github.InstallationEvent:
 		installationEvent, err := validateInstallationEvent(event)
 		if err != nil {
 			return event, err
 		}
+
 		return installationEvent, err
 	default:
 		log.Println("[ValidateWebHookEvent] unhandled event")
@@ -174,6 +180,7 @@ type Repository struct {
 // this is done because of a suspected bug in the GitHub API.
 func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 	if event.Action == nil ||
+		event.Issue == nil ||
 		event.Repo == nil ||
 		event.Repo.Name == nil {
 		return IssuesEvent{}, ErrEventMissingData
@@ -193,8 +200,7 @@ func validateIssuesEvent(event *github.IssuesEvent) (IssuesEvent, error) {
 		fallthrough
 
 	case string(Unlabeled):
-		// TODO add check
-		issue, err := validateIssue(event.Issue, *event.Repo.Owner.Login, *event.Repo.Name)
+		issue, err := validateIssue(event.Issue)
 		if err != nil {
 			return IssuesEvent{}, err
 		}

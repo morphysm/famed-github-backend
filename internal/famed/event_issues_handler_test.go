@@ -43,7 +43,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Number:    pointer.Int(0),
@@ -52,11 +52,11 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 				Label: &github.Label{Name: pointer.String("famed")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing an assignee.",
 		},
 		{
@@ -65,22 +65,22 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Label:    &github.Label{Name: pointer.String("famed")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a severity label.",
 		},
 		{
@@ -89,21 +89,21 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}, {Name: pointer.String("low")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue has more than one severity label.",
 		},
 		{
@@ -112,21 +112,21 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 					CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.",
 		},
 		// Commented out for DevConnect
@@ -136,17 +136,17 @@ func TestPostIssuesEvent(t *testing.T) {
 		//		Action: pointer.String("closed"),
 		//		Issue: &github.Issue{
 		//			ID:        pointer.Int64(0),
-		//			Title:     pointer.String("test"),
+		//			Title:     pointer.String("regex"),
 		//			Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 		//			Number:    pointer.Int(0),
-		//			Assignees: []*github.User{{Login: pointer.String("test")}},
+		//			Assignees: []*github.User{{Login: pointer.String("regex")}},
 		//			CreatedAt: pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 		//			ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 		//		},
-		//		Assignee: &github.User{Login: pointer.String("test")},
+		//		Assignee: &github.User{Login: pointer.String("regex")},
 		//		Repo: &github.Repository{
-		//			Name:  pointer.String("test"),
-		//			Owner: &github.User{Login: pointer.String("test")},
+		//			Name:  pointer.String("regex"),
+		//			Owner: &github.User{Login: pointer.String("regex")},
 		//		},
 		//	},
 		//	ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a pull request.",
@@ -157,29 +157,29 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "regex"},
 			Events: []gitlib.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test"},
+					Assignee:  &gitlib.User{Login: "regex"},
 				},
 			},
-			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
+			ExpectedComment: "@regex - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/regex/regex\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|regex|744h0m0s|674 POINTS|",
 		},
 		{
 			Name: "Close - Valid - Multiple Assignees",
@@ -187,7 +187,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 				Issue: &github.Issue{
 					ID:        pointer.Int64(0),
-					Title:     pointer.String("test"),
+					Title:     pointer.String("regex"),
 					HTMLURL:   pointer.String("TestURL"),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
 					Number:    pointer.Int(0),
@@ -196,11 +196,11 @@ func TestPostIssuesEvent(t *testing.T) {
 					ClosedAt:  pointer.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
 				},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
+					Name:  pointer.String("regex"),
 					Owner: &github.User{Login: pointer.String("testOwner")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "regex"},
 			Events: []gitlib.IssueEvent{
 				{
 					Event:     "assigned",
@@ -213,7 +213,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "test2"},
 				},
 			},
-			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
+			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/regex\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
 		},
 		// Eligible comment
 		{
@@ -223,7 +223,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Issue: &github.Issue{
 					Labels: []*github.Label{{Name: pointer.String("famed")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 			},
 			ExpectedErr: famed.ErrEventMissingData,
 		},
@@ -239,10 +239,10 @@ func TestPostIssuesEvent(t *testing.T) {
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
@@ -263,12 +263,12 @@ func TestPostIssuesEvent(t *testing.T) {
 					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
@@ -289,12 +289,12 @@ func TestPostIssuesEvent(t *testing.T) {
 					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
@@ -315,15 +315,15 @@ func TestPostIssuesEvent(t *testing.T) {
 					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}},
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -342,15 +342,15 @@ func TestPostIssuesEvent(t *testing.T) {
 					HTMLURL:   pointer.String("TestURL"),
 					CreatedAt: pointer.Time(time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC)),
 					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Assignees: []*github.User{{Login: pointer.String("test")}},
+					Assignees: []*github.User{{Login: pointer.String("regex")}},
 				},
-				Assignee: &github.User{Login: pointer.String("test")},
+				Assignee: &github.User{Login: pointer.String("regex")},
 				Repo: &github.Repository{
-					Name:  pointer.String("test"),
-					Owner: &github.User{Login: pointer.String("test")},
+					Name:  pointer.String("regex"),
+					Owner: &github.User{Login: pointer.String("regex")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: &gitlib.PullRequest{URL: "regex"},
 			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -378,7 +378,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
-			cl, _ := gitlib.NewInstallationClient("", nil, nil, "")
+			cl, _ := gitlib.NewInstallationClient("", nil, nil, "", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)

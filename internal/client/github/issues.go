@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v41/github"
+	"github.com/morphysm/famed-github-backend/pkg/regex"
 )
 
 type IssueState string
@@ -36,10 +37,11 @@ type Issue struct {
 	Assignees    []User
 	Labels       []Label
 	Migrated     bool
-	RedTeamer    *User
+	RedTeam      []User
 	BountyPoints *int
 }
 
+// GetIssuesByRepo returns all issues from a given repository.
 func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error) {
 	var (
 		client, _           = c.clients.get(owner)
@@ -56,9 +58,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 
 	if state != nil {
 		listOptions.State = string(*state)
-	}
-
-	if state == nil {
+	} else {
 		listOptions.State = string(All)
 	}
 
@@ -75,9 +75,15 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	}
 
 	for _, issue := range allIssues {
-		compressedIssue, err := validateIssue(issue, owner, repoName)
+		compressedIssue, err := validateIssue(issue)
 		if err != nil {
-			log.Printf("validation error for issue with number %d: %v", issue.Number, err)
+			log.Printf("[GetIssuesByRepo] validation error for issue with number %d: %v", issue.Number, err)
+		}
+
+		// TODO refactor this code and functions
+		// Detecting migrated ethereum issues
+		if isMigratedIssue(issue, compressedIssue, owner, repoName) {
+			compressedIssue = c.parseMigrationIssue(ctx, owner, compressedIssue, *issue.Body)
 		}
 
 		allCompressedIssues = append(allCompressedIssues, compressedIssue)
@@ -86,7 +92,14 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	return allCompressedIssues, nil
 }
 
-func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, error) {
+func isMigratedIssue(issue *github.Issue, compressedIssue Issue, owner string, repoName string) bool {
+	return issue.Body != nil &&
+		(strings.Contains(compressedIssue.Title, "Famed Retroactive Rewards") ||
+			(owner == "ethereum" &&
+				repoName == "public-disclosures"))
+}
+
+func validateIssue(issue *github.Issue) (Issue, error) {
 	var compressedIssue Issue
 	if issue == nil ||
 		issue.ID == nil ||
@@ -124,19 +137,11 @@ func validateIssue(issue *github.Issue, owner string, repoName string) (Issue, e
 		}
 	}
 
-	// TODO refactor this code and functions
-	// Detecting migrated ethereum issues
-	if issue.Body != nil &&
-		(strings.Contains(compressedIssue.Title, "Famed Retroactive Rewards") ||
-			(owner == "ethereum" &&
-				repoName == "public-disclosures")) {
-		compressedIssue = parseMigrationIssue(compressedIssue, *issue.Body)
-	}
-
 	return compressedIssue, nil
 }
 
-func parseMigrationIssue(issue Issue, body string) Issue {
+// parseMigrationIssue returns an updated issue with migration info parsed from a GitHub issue body.
+func (c *githubInstallationClient) parseMigrationIssue(ctx context.Context, owner string, issue Issue, body string) Issue {
 	issue.Migrated = true
 
 	createdAt, err := parseReportedTime(body)
@@ -153,12 +158,11 @@ func parseMigrationIssue(issue Issue, body string) Issue {
 		issue.ClosedAt = &closedAt
 	}
 
-	redTeamer, err := parseRedTeamer(body)
+	redTeam, err := c.parseRedTeam(ctx, owner, body)
 	if err != nil {
 		log.Printf("[parseMigrationIssue] error while parsing red teamer: %v", err)
 	} else {
-		// TODO: add icon and link to GitHub
-		issue.RedTeamer = &User{Login: redTeamer}
+		issue.RedTeam = redTeam
 	}
 
 	bountyPoints, err := parseBountyPoints(body)
@@ -171,18 +175,58 @@ func parseMigrationIssue(issue Issue, body string) Issue {
 	return issue
 }
 
+// parseRedTeam returns a red team parsed from a GitHub issue body.
+func (c *githubInstallationClient) parseRedTeam(ctx context.Context, owner string, body string) ([]User, error) {
+	var users []User
+
+	// Parse red team from issue body
+	redTeam, err := regex.FindRightOfKey(body, "Bounty Hunter:")
+	if err != nil {
+		return nil, err
+	}
+
+	// Split bounty hunters if two are present separated by ", "
+	splitTeam := strings.Split(redTeam, ", ")
+	for _, teamer := range splitTeam {
+		// Read from known GitHub logins
+		login := c.redTeamLogins[teamer]
+		if login == "" {
+			log.Printf("[parseRedTeam] no GitHub login found for red teamer %s", teamer)
+			users = append(users, User{Login: teamer})
+			continue
+		}
+
+		// Check if red teamer is in cache
+		cachedTeamer, ok := c.cachedRedTeam.Get(login)
+		if ok {
+			users = append(users, cachedTeamer)
+			continue
+		}
+
+		// Fetch user info
+		user, err := c.GetUser(ctx, owner, login)
+		if err != nil {
+			log.Printf("[parseRedTeam] error while retrieving user icon for login: %s: %v", login, err)
+			users = append(users, User{Login: teamer})
+			continue
+		}
+
+		// Add user info to cache
+		c.cachedRedTeam.Add(user)
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// parseReportedTime returns the report time parsed from a GitHub issue body.
 func parseReportedTime(body string) (time.Time, error) {
-	r, err := regexp.Compile(`\*\*Reported:\*\*\s*([^\n\r]*)`)
+	value, err := regex.FindRightOfKey(body, "Reported:")
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	matches := r.FindStringSubmatch(body)
-	if err != nil {
-		return time.Time{}, errors.New("no matches found for reported time")
-	}
-
-	createdAt, err := parseDate(matches[1])
+	createdAt, err := parseDate(value)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -190,39 +234,22 @@ func parseReportedTime(body string) (time.Time, error) {
 	return createdAt, nil
 }
 
+// parseFixTime returns the fix time parsed from a GitHub issue body.
 func parseFixTime(body string) (time.Time, error) {
-	r, err := regexp.Compile(`\*\*Fixed:\*\*\s*([^\n\r]*)`)
+	value, err := regex.FindRightOfKey(body, "Fixed:")
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	matches := r.FindStringSubmatch(body)
-	if err != nil {
-		return time.Time{}, errors.New("no matches found for fix time")
-	}
-
-	createdAt, err := parseDate(matches[1])
+	closedAt, err := parseDate(value)
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	return createdAt, nil
+	return closedAt, nil
 }
 
-func parseRedTeamer(body string) (string, error) {
-	r, err := regexp.Compile(`\*\*Bounty Hunter:\*\*\s*([^\n\r]*)`)
-	if err != nil {
-		return "", err
-	}
-
-	matches := r.FindStringSubmatch(body)
-	if err != nil {
-		return "", errors.New("no matches found for red teamer")
-	}
-
-	return matches[1], nil
-}
-
+// parseBountyPoints returns the bounty points parsed from a GitHub issue body.
 func parseBountyPoints(body string) (int, error) {
 	r, err := regexp.Compile(`\*\*Bounty Points:\*\*\s*([^\n\r]*)`)
 	if err != nil {
@@ -242,6 +269,7 @@ func parseBountyPoints(body string) (int, error) {
 	return int(bountyPoints), nil
 }
 
+// parseDate returns a date string parsed with "YYYY-MM-DD" format to time.Time.
 func parseDate(data string) (time.Time, error) {
 	const layout = "2006-01-02"
 

@@ -57,7 +57,7 @@ func TestPostInstallationEvent(t *testing.T) {
 
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.AddInstallationReturns(nil)
-			cl, _ := gitLib.NewInstallationClient("", nil, nil, "")
+			cl, _ := gitLib.NewInstallationClient("", nil, nil, "", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig())
