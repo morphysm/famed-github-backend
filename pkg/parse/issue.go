@@ -1,4 +1,4 @@
-package regex
+package parse
 
 import (
 	"fmt"

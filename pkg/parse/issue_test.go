@@ -1,9 +1,9 @@
-package regex_test
+package parse_test
 
 import (
 	"testing"
 
-	"github.com/morphysm/famed-github-backend/pkg/regex"
+	"github.com/morphysm/famed-github-backend/pkg/parse"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ const testIssue = "UID: CL-2020-06\n\n" +
 func TestFindRightOfKey_Valid(t *testing.T) {
 	t.Parallel()
 
-	value, err := regex.FindRightOfKey(testIssue, "Bounty Hunter:")
+	value, err := parse.FindRightOfKey(testIssue, "Bounty Hunter:")
 	assert.NoError(t, err)
 	assert.Equal(t, "Test Hunter", value)
 }
@@ -31,7 +31,7 @@ func TestFindRightOfKey_Valid(t *testing.T) {
 func TestFindRightOfKey_ValueNotFound(t *testing.T) {
 	t.Parallel()
 
-	value, err := regex.FindRightOfKey(testIssue, "Links:")
+	value, err := parse.FindRightOfKey(testIssue, "Links:")
 	assert.Error(t, err)
 	assert.Equal(t, "", value)
 }
@@ -39,7 +39,7 @@ func TestFindRightOfKey_ValueNotFound(t *testing.T) {
 func TestFindRightOfKey_KeyNotFound(t *testing.T) {
 	t.Parallel()
 
-	value, err := regex.FindRightOfKey(testIssue, "Unknown:")
+	value, err := parse.FindRightOfKey(testIssue, "Unknown:")
 	assert.Error(t, err)
 	assert.Equal(t, "", value)
 }

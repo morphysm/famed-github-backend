@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/pkg/regex"
+	"github.com/morphysm/famed-github-backend/pkg/parse"
 )
 
 type IssueState string
@@ -180,7 +180,7 @@ func (c *githubInstallationClient) parseRedTeam(ctx context.Context, owner strin
 	var users []User
 
 	// Parse red team from issue body
-	redTeam, err := regex.FindRightOfKey(body, "Bounty Hunter:")
+	redTeam, err := parse.FindRightOfKey(body, "Bounty Hunter:")
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (c *githubInstallationClient) parseRedTeam(ctx context.Context, owner strin
 
 // parseReportedTime returns the report time parsed from a GitHub issue body.
 func parseReportedTime(body string) (time.Time, error) {
-	value, err := regex.FindRightOfKey(body, "Reported:")
+	value, err := parse.FindRightOfKey(body, "Reported:")
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -236,7 +236,7 @@ func parseReportedTime(body string) (time.Time, error) {
 
 // parseFixTime returns the fix time parsed from a GitHub issue body.
 func parseFixTime(body string) (time.Time, error) {
-	value, err := regex.FindRightOfKey(body, "Fixed:")
+	value, err := parse.FindRightOfKey(body, "Fixed:")
 	if err != nil {
 		return time.Time{}, err
 	}
