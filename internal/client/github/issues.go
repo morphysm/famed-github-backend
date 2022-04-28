@@ -2,9 +2,7 @@ package github
 
 import (
 	"context"
-	"errors"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -292,17 +290,12 @@ func parseFixTime(body string) (time.Time, error) {
 
 // parseBountyPoints returns the bounty points parsed from a GitHub issue body.
 func parseBountyPoints(body string) (int, error) {
-	r, err := regexp.Compile(`\*\*Bounty Points:\*\*\s*([^\n\r]*)`)
+	value, err := parse.FindRightOfKey(body, "Bounty Points:")
 	if err != nil {
 		return -1, err
 	}
 
-	matches := r.FindStringSubmatch(body)
-	if err != nil {
-		return -1, errors.New("no matches found for bounty points")
-	}
-
-	bountyPoints, err := strconv.ParseInt(matches[1], 10, 32)
+	bountyPoints, err := strconv.ParseInt(value, 10, 32)
 	if err != nil {
 		return -1, err
 	}
