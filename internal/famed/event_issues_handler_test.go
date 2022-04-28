@@ -179,7 +179,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "parse"},
 				},
 			},
-			ExpectedComment: "@parse - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/regex/regex\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|parse|744h0m0s|674 POINTS|",
+			ExpectedComment: "@parse - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|parse|744h0m0s|674 POINTS|",
 		},
 		{
 			Name: "Close - Valid - Multiple Assignees",
@@ -213,7 +213,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &gitlib.User{Login: "test2"},
 				},
 			},
-			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/regex\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
+			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
 		},
 		// Eligible comment
 		{
