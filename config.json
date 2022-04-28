@@ -29,7 +29,7 @@
     "daysToFix": 90,
     "updateFrequency": 120
   },
-  "redTeamers": {
+  "redTeamLogins": {
     "Jonny Rhea":                 "jrhea",
     "Alexander Sadovskyi":        "AlexSSD7",
     "Martin Holst Swende":        "holiman",

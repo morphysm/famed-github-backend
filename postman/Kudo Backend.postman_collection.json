@@ -194,6 +194,39 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Tracked Issues",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "HansPeter",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "B?tuf9\",pT5@LU_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/admin/ratelimits",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"admin",
+						"ratelimits"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

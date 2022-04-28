@@ -39,7 +39,7 @@ type Config struct {
 	}
 
 	// TODO this should probably not be in memory
-	RedTeamers map[string]string
+	RedTeamLogins map[string]string
 
 	Admin struct {
 		Username string
