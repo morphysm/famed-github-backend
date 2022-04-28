@@ -16,11 +16,11 @@ import (
 type IssueState string
 
 const (
-	All        IssueState = "all"
-	Opened     IssueState = "opened"
-	Closed     IssueState = "closed"
-	Reopened   IssueState = "reopened"
-	Edited     IssueState = "edited"
+	All IssueState = "all"
+	//Opened     IssueState = "opened"
+	Closed IssueState = "closed"
+	//Reopened   IssueState = "reopened"
+	//Edited     IssueState = "edited"
 	Assigned   IssueState = "assigned"
 	Unassigned IssueState = "unassigned"
 	Labeled    IssueState = "labeled"

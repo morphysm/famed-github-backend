@@ -8,7 +8,7 @@ import (
 // FindRightOfKey returns the string that in line right of the given key.
 // If the key is not found or no string is in line right of the given key an empty string is returned.
 func FindRightOfKey(text string, key string) (string, error) {
-	r, err := regexp.Compile(fmt.Sprintf("\\**%s\\**[ \t]*([^\n\r]*)", key))
+	r, err := regexp.Compile(fmt.Sprintf("\\**%s\\**[ \t]*([^\\s][^\n\r]+)", key))
 	if err != nil {
 		return "", err
 	}

@@ -12,7 +12,8 @@ const testIssue = "UID: CL-2020-06\n\n" +
 	"Type: DoS\n\n" +
 	"Affected Clients: All clients\n\n" +
 	"Summary: A DoS attack that exploits an RLP ecoding error (and lack of packet size validation) that eventually causes client crash and reply with a flood of WHOAREYOU messages that are larger than the attackers message.\n\n" +
-	"Links:\n\n" +
+	"Test:\n\n" +
+	"Test2: \n\n" +
 	"Reported: 2020-08-25\n\n" +
 	"Fixed: 2020-10-07\n\n" +
 	"Published: 2021-12-01\n\n" +
@@ -31,7 +32,15 @@ func TestFindRightOfKey_Valid(t *testing.T) {
 func TestFindRightOfKey_ValueNotFound(t *testing.T) {
 	t.Parallel()
 
-	value, err := parse.FindRightOfKey(testIssue, "Links:")
+	value, err := parse.FindRightOfKey(testIssue, "Test:")
+	assert.Error(t, err)
+	assert.Equal(t, "", value)
+}
+
+func TestFindRightOfKey_ValueNotFound_Space(t *testing.T) {
+	t.Parallel()
+
+	value, err := parse.FindRightOfKey(testIssue, "Test2:")
 	assert.Error(t, err)
 	assert.Equal(t, "", value)
 }
