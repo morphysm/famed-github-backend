@@ -39,19 +39,24 @@ func (cs Contributors) updateRewards(url string, workLogs WorkLogs, open time.Ti
 		}
 
 		// Updated reward sum
-		contributor.RewardSum += reward
+		contributor.updateReward(url, close, reward)
+	}
+}
 
-		// Add rewards list
-		contributor.Rewards = append(contributor.Rewards, Reward{
-			Date:   close,
-			Reward: reward,
-			URL:    url,
-		})
+func (c *Contributor) updateReward(url string, date time.Time, reward float64) {
+	// Append reward to reward slice
+	c.Rewards = append(c.Rewards, Reward{
+		Date:   date,
+		Reward: reward,
+		URL:    url,
+	})
 
-		// Add reward by month
-		if month, ok := isInTheLast12Months(time.Now(), close); ok {
-			contributor.RewardsLastYear[month].Reward += reward
-		}
+	// Updated reward sum
+	c.RewardSum += reward
+
+	// Add reward by month
+	if month, ok := isInTheLast12Months(time.Now(), date); ok {
+		c.RewardsLastYear[month].Reward += reward
 	}
 }
 

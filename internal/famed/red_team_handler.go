@@ -1,7 +1,6 @@
 package famed
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -22,7 +21,18 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
 	}
 
-	redTeam, err := gH.generateRedTeamFromIssues(c.Request().Context(), owner, repoName)
+	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
+		return ErrAppNotInstalled
+	}
+
+	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
+	issueState := github.All
+	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, &issueState)
+	if err != nil {
+		return err
+	}
+
+	redTeam, err := generateRedTeamFromIssues(issues, gH.famedConfig.Currency)
 	if err != nil {
 		return err
 	}
@@ -30,35 +40,27 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 	return c.JSON(http.StatusOK, redTeam)
 }
 
-func (gH *githubHandler) generateRedTeamFromIssues(ctx context.Context, owner string, repo string) ([]*Contributor, error) {
-	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
-		return nil, ErrAppNotInstalled
+func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*Contributor, error) {
+	contributors := Contributors{}
+	if len(issues) == 0 {
+		return []*Contributor{}, nil
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-	issueState := github.All
-	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, []string{famedLabel.Name}, &issueState)
-	if err != nil {
-		return nil, err
-	}
-
-	contributors := make(Contributors)
 	for _, issue := range issues {
 		if issue.RedTeam == nil || issue.BountyPoints == nil || issue.ClosedAt == nil {
 			continue
 		}
 
-		contributors.mapIssue(issue, gH.famedConfig.Currency)
+		contributors.mapIssue(issue, currency)
 	}
 
 	contributors.updateMeanAndDeviationOfDisclosure()
 	contributors.updateAverageSeverity()
-	contributors.updateMonthlyRewards()
 
 	return contributors.toSortedSlice(), nil
 }
 
-// mapIssue maps a bug to the contributors map.
+// mapIssue maps an issue to the contributors map.
 func (cs Contributors) mapIssue(issue github.Issue, currency string) {
 	// Get red team contributor from map
 	for _, teamer := range issue.RedTeam {
@@ -75,24 +77,11 @@ func (cs Contributors) mapIssue(issue github.Issue, currency string) {
 	}
 }
 
-// mapIssue maps a bug to a contributor
+// mapIssue maps an issue to a contributor.
 func (c *Contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity github.IssueSeverity) {
 	// Set reward
-	c.Rewards = append(c.Rewards, Reward{
-		Date:   publishedDate,
-		Reward: reward,
-		URL:    url,
-	})
-
-	// Updated reward sum
-	c.RewardSum += reward
+	c.updateReward(url, publishedDate, reward)
 
 	// Increment fix count
-	c.FixCount++
-	severityCount := c.Severities[severity]
-	severityCount++
-	c.Severities[severity] = severityCount
-
-	// Update times to disclosure
-	c.TimeToDisclosure.Time = append(c.TimeToDisclosure.Time, publishedDate.Sub(reportedDate).Minutes())
+	c.incrementFixCounters(publishedDate.Sub(reportedDate).Minutes(), severity)
 }

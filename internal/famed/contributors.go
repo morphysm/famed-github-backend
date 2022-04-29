@@ -209,14 +209,18 @@ func (cs Contributors) mapAssigneeIfMissing(assignee github.User, currency strin
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
 func (cs Contributors) incrementFixCounters(login string, timeToDisclosure float64, severity github.IssueSeverity) {
 	contributor := cs[login]
+	contributor.incrementFixCounters(timeToDisclosure, severity)
+}
 
+// updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
+func (c *Contributor) incrementFixCounters(timeToDisclosure float64, severity github.IssueSeverity) {
 	// Increment fix count
-	contributor.FixCount++
+	c.FixCount++
 	// Increment severity counter
-	counterSeverities := contributor.Severities[severity]
-	contributor.Severities[severity] = counterSeverities + 1
+	counterSeverities := c.Severities[severity]
+	c.Severities[severity] = counterSeverities + 1
 	// Append time to disclosure
-	contributor.TimeToDisclosure.Time = append(contributor.TimeToDisclosure.Time, timeToDisclosure)
+	c.TimeToDisclosure.Time = append(c.TimeToDisclosure.Time, timeToDisclosure)
 }
 
 // updateMeanAndDeviationOfDisclosure updates the mean and deviation of the time to disclosure of all contributors.
@@ -282,18 +286,4 @@ func sortContributors(contributors []*Contributor) {
 		}
 		return contributors[i].RewardSum > contributors[j].RewardSum
 	})
-}
-
-// updateMonthlyRewards maps the rewards of each contributor to a monthly timeframe for the past year.
-func (cs Contributors) updateMonthlyRewards() {
-	now := time.Now()
-	for _, contributor := range cs {
-		contributor.RewardsLastYear = newRewardsLastYear(now)
-
-		for _, reward := range contributor.Rewards {
-			if month, ok := isInTheLast12Months(now, reward.Date); ok {
-				contributor.RewardsLastYear[month].Reward += reward.Reward
-			}
-		}
-	}
 }
