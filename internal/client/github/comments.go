@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/v41/github"
 )
 
+// PostComment posts a comment to a given GitHub issue.
 func (c *githubInstallationClient) PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error {
 	client, _ := c.clients.get(owner)
 
@@ -13,6 +14,7 @@ func (c *githubInstallationClient) PostComment(ctx context.Context, owner string
 	return err
 }
 
+// UpdateComment updates a given GitHub comment.
 func (c *githubInstallationClient) UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error {
 	client, _ := c.clients.get(owner)
 
@@ -20,12 +22,14 @@ func (c *githubInstallationClient) UpdateComment(ctx context.Context, owner stri
 	return err
 }
 
+// IssueComment represents a GitHub comment.
 type IssueComment struct {
 	ID int64
 	User
 	Body string
 }
 
+// GetComments returns all GitHub comments of a given GitHub issue.
 func (c *githubInstallationClient) GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)
 	var (
@@ -63,6 +67,8 @@ func (c *githubInstallationClient) GetComments(ctx context.Context, owner string
 	return allCompressedComments, nil
 }
 
+// GetComments returns a compressed IssueComment.
+// If expected data is not available an error is returned.
 func validateComment(comment *github.IssueComment) (IssueComment, error) {
 	if comment == nil ||
 		comment.Body == nil {

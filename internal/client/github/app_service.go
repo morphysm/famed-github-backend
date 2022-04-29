@@ -17,6 +17,7 @@ type AppClient interface {
 	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
 }
 
+// githubAppClient represents a GitHub app client.
 type githubAppClient struct {
 	appID  int64
 	client *github.Client
