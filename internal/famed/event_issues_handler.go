@@ -81,22 +81,18 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
 
-	// TODO removed for DevConnect add rule
-	//pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
-	//if err != nil {
-	//	return "", err
-	//}
-	//
-	//if pullRequest == nil {
-	//	return rewardCommentFromError(ErrIssueMissingPullRequest), nil
-	//}
+	issue := newEnrichIssue(event.Issue)
 
-	issue, err := gH.loadIssueEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
-	if err != nil {
-		return "", err
+	issue.loadPullRequest(ctx, gH, event.Repo.Owner.Login, event.Repo.Name)
+	if issue.PullRequest == nil {
+		return rewardCommentFromError(ErrIssueMissingPullRequest), nil
 	}
 
-	contributors, err := ContributorsFromIssue(issue, BoardOptions{
+	if !issue.Migrated {
+		issue.loadEvents(ctx, gH, event.Repo.Owner.Login, event.Repo.Name)
+	}
+
+	contributors, err := ContributorsFromIssue(issue, boardOptions{
 		currency:  gH.famedConfig.Currency,
 		rewards:   gH.famedConfig.Rewards,
 		daysToFix: gH.famedConfig.DaysToFix,

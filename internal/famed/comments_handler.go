@@ -105,7 +105,7 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 	i := 0
 	for issueNumber, issue := range wrappedIssues {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue WrappedIssue) {
+		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue enrichedIssue) {
 			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
 			if updates != nil {
 				updates.Add(issueNumber, update, commentReward)
@@ -119,12 +119,12 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue WrappedIssue) commentUpdate {
+func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue enrichedIssue) commentUpdate {
 	defer wg.Done()
 
 	update := commentUpdate{}
 	comment := ""
-	contributors, err := ContributorsFromIssue(issue, BoardOptions{
+	contributors, err := ContributorsFromIssue(issue, boardOptions{
 		currency:  gH.famedConfig.Currency,
 		rewards:   gH.famedConfig.Rewards,
 		daysToFix: gH.famedConfig.DaysToFix,
@@ -136,7 +136,7 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 		comment = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Issue.Number, comment, commentReward)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentReward)
 	if err != nil {
 		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
 		update.Error = err.Error()

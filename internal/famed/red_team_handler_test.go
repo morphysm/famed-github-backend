@@ -35,7 +35,7 @@ func TestRedTeam(t *testing.T) {
 		ExpectedErr      error
 	}{
 		{
-			Name:         "Valid - One Issue",
+			Name:         "Valid - One issue",
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
@@ -51,7 +51,7 @@ func TestRedTeam(t *testing.T) {
 			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
 		},
 		{
-			Name:         "Valid - One Issue - Two in RedTeam",
+			Name:         "Valid - One issue - Two in RedTeam",
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,

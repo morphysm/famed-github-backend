@@ -41,10 +41,10 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 	return c.JSON(http.StatusOK, redTeam)
 }
 
-func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*Contributor, error) {
-	contributors := Contributors{}
+func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*contributor, error) {
+	contributors := contributors{}
 	if len(issues) == 0 {
-		return []*Contributor{}, nil
+		return []*contributor{}, nil
 	}
 
 	for _, issue := range issues {
@@ -62,7 +62,7 @@ func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*Contr
 }
 
 // mapIssue maps an issue to the contributors map.
-func (cs Contributors) mapIssue(issue github.Issue, currency string) {
+func (cs contributors) mapIssue(issue github.Issue, currency string) {
 	// Get red team contributor from map
 	for _, teamer := range issue.RedTeam {
 		cs.mapAssigneeIfMissing(teamer, currency)
@@ -79,7 +79,7 @@ func (cs Contributors) mapIssue(issue github.Issue, currency string) {
 }
 
 // mapIssue maps an issue to a contributor.
-func (c *Contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity github.IssueSeverity) {
+func (c *contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity github.IssueSeverity) {
 	// Set reward
 	c.updateReward(url, publishedDate, reward)
 

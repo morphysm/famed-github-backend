@@ -39,7 +39,7 @@ func TestGetContributors(t *testing.T) {
 		ExpectedErr      error
 	}{
 		{
-			Name:         "Valid - One Issue",
+			Name:         "Valid - One issue",
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,

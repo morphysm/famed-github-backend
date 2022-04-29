@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-type RewardsLastYear []MonthlyReward
+type rewardsLastYear []monthlyReward
 
-type MonthlyReward struct {
+type monthlyReward struct {
 	Month  string  `json:"month"`
 	Reward float64 `json:"reward"`
 }
 
 const monthsInAYear = 12
 
-// newRewardsLastYear returns RewardsLastYear with instantiated months starting at the current month and going back 11 months.
-func newRewardsLastYear(timeStart time.Time) RewardsLastYear {
-	rewardsLastYear := make([]MonthlyReward, monthsInAYear)
+// newRewardsLastYear returns rewardsLastYear with instantiated months starting at the current month and going back 11 months.
+func newRewardsLastYear(timeStart time.Time) rewardsLastYear {
+	rewardsLastYear := make([]monthlyReward, monthsInAYear)
 	year, month, _ := timeStart.Date()
 	for i := 0; i < 12; i++ {
 		rewardsLastYear[i].Month = fmt.Sprintf("%d.%d", month, year)

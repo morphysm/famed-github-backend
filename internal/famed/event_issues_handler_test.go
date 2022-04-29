@@ -135,7 +135,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		//	Name: "Close - No pull request",
 		//	Event: &github.IssuesEvent{
 		//		Action: pointer.String("closed"),
-		//		Issue: &github.Issue{
+		//		enrichedIssue: &github.enrichedIssue{
 		//			ID:        pointer.Int64(0),
 		//			Title:     pointer.String("test"),
 		//			Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
@@ -277,7 +277,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -303,7 +303,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -329,7 +329,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -356,7 +356,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -383,7 +383,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
-			ExpectedComment: "🤖 Assignees for Issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +

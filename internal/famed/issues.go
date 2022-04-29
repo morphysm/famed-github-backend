@@ -9,24 +9,46 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/config"
 )
 
-type WrappedIssue struct {
-	Issue       github.Issue
-	PullRequest *github.PullRequest
+type enrichedIssue struct {
+	github.Issue
+	PullRequest *string
 	Events      []github.IssueEvent
+}
+
+func newEnrichIssue(issue github.Issue) enrichedIssue {
+	return enrichedIssue{Issue: issue}
+}
+
+func (i *enrichedIssue) loadPullRequest(ctx context.Context, gH *githubHandler, owner, repoName string) {
+	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, i.Number)
+	if pullRequest == nil || err != nil {
+		log.Printf("[loadPullRequest] error while requesting pull request for issue with number %d: %v", i.Number, err)
+		return
+	}
+	i.PullRequest = &pullRequest.URL
+}
+
+func (i *enrichedIssue) loadEvents(ctx context.Context, gH *githubHandler, owner, repoName string) {
+	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, i.Number)
+	if err != nil {
+		log.Printf("[loadEvents] error while requesting events for issue with number %d: %v", i.Number, err)
+		return
+	}
+	i.Events = events
 }
 
 type safeWrappedIssue struct {
 	sync.RWMutex
-	wrappedIssues map[int]WrappedIssue
+	enrichedIssue map[int]enrichedIssue
 }
 
-func (sWI *safeWrappedIssue) Add(wI WrappedIssue) {
+func (sWI *safeWrappedIssue) Add(wI enrichedIssue) {
 	sWI.Lock()
 	defer sWI.Unlock()
-	sWI.wrappedIssues[wI.Issue.Number] = wI
+	sWI.enrichedIssue[wI.Number] = wI
 }
 
-func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]WrappedIssue, error) {
+func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]enrichedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := github.Closed
@@ -36,49 +58,22 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 	}
 
 	wg := sync.WaitGroup{}
-	safeIssues := safeWrappedIssue{wrappedIssues: make(map[int]WrappedIssue, len(issuesResponse))}
+	safeIssues := safeWrappedIssue{enrichedIssue: make(map[int]enrichedIssue, len(issuesResponse))}
 	for _, issue := range issuesResponse {
-		// TODO Skip event loading for migrated issues because information is already present
-		//if issue.Migrated {
-		//	issues[issue.Number] = WrappedIssue{Issue: issue}
-		//	continue
-		//}
-
-		// TODO refactor
-		// TODO commented out for DevConnect
-		pullRequest, _ := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
-		//if pullRequest == nil || err != nil {
-		//	safeIssues.Add(WrappedIssue{Issue: issue, PullRequest: nil})
-		//	continue
-		//}
-
 		wg.Add(1)
-
-		go func(ctx context.Context, issue github.Issue, pullRequest *github.PullRequest) {
+		go func(ctx context.Context, issue github.Issue) {
 			defer wg.Done()
 
-			wrappedIssue, err := gH.loadIssueEvents(ctx, owner, repoName, issue)
-			if err != nil {
-				log.Printf("[loadIssues] error while requesting events for issue with number %d: %v", issue.Number, err)
+			enrichedIssue := newEnrichIssue(issue)
+			enrichedIssue.loadPullRequest(ctx, gH, owner, repoName)
+			if !issue.Migrated {
+				enrichedIssue.loadEvents(ctx, gH, owner, repoName)
 			}
 
-			wrappedIssue.PullRequest = pullRequest
-			safeIssues.Add(wrappedIssue)
-		}(ctx, issue, pullRequest)
+			safeIssues.Add(enrichedIssue)
+		}(ctx, issue)
 	}
 
 	wg.Wait()
-	return safeIssues.wrappedIssues, nil
-}
-
-func (gH *githubHandler) loadIssueEvents(ctx context.Context, owner string, repoName string, issue github.Issue) (WrappedIssue, error) {
-	events, err := gH.githubInstallationClient.GetIssueEvents(ctx, owner, repoName, issue.Number)
-	if err != nil {
-		return WrappedIssue{}, err
-	}
-
-	return WrappedIssue{
-		Issue:  issue,
-		Events: events,
-	}, nil
+	return safeIssues.enrichedIssue, nil
 }

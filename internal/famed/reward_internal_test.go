@@ -14,12 +14,12 @@ func TestUpdateReward(t *testing.T) {
 	exampleTime := time.Date(2022, 4, 4, 0, 0, 0, 0, time.UTC)
 	testCases := []struct {
 		Name         string
-		Contributors Contributors
+		Contributors contributors
 		WorkLogs     map[string][]WorkLog
 		Open         time.Time
 		Close        time.Time
 		K            int
-		Expected     Contributors
+		Expected     contributors
 	}{
 		{
 			Name:         "ContributorsFromIssues nil",
@@ -28,17 +28,17 @@ func TestUpdateReward(t *testing.T) {
 		},
 		{
 			Name:         "ContributorsFromIssues empty",
-			Contributors: Contributors{},
-			Expected:     Contributors{},
+			Contributors: contributors{},
+			Expected:     contributors{},
 		},
 		{
-			Name:         "Contributor empty",
-			Contributors: Contributors{"TestUser": {}},
-			Expected:     Contributors{"TestUser": {}},
+			Name:         "contributor empty",
+			Contributors: contributors{"TestUser": {}},
+			Expected:     contributors{"TestUser": {}},
 		},
 		{
-			Name: "Contributor without work log",
-			Contributors: Contributors{"TestUser": {
+			Name: "contributor without work log",
+			Contributors: contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        "nil",
 				HTMLURL:          "nil",
@@ -46,11 +46,11 @@ func TestUpdateReward(t *testing.T) {
 				RewardsLastYear:  nil,
 				Rewards:          nil,
 				RewardSum:        0,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
-			Expected: Contributors{"TestUser": {
+			Expected: contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        "nil",
 				HTMLURL:          "nil",
@@ -58,14 +58,14 @@ func TestUpdateReward(t *testing.T) {
 				RewardsLastYear:  nil,
 				Rewards:          nil,
 				RewardSum:        0,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
 		},
 		{
-			Name: "Contributor with 0 duration work log",
-			Contributors: Contributors{"TestUser": {
+			Name: "contributor with 0 duration work log",
+			Contributors: contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        "nil",
 				HTMLURL:          "nil",
@@ -73,27 +73,27 @@ func TestUpdateReward(t *testing.T) {
 				RewardsLastYear:  nil,
 				Rewards:          nil,
 				RewardSum:        0,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
 			WorkLogs: map[string][]WorkLog{"TestUser": {{exampleTime, exampleTime}}},
-			Expected: Contributors{"TestUser": {
+			Expected: contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        "nil",
 				HTMLURL:          "nil",
 				FixCount:         0,
 				RewardsLastYear:  nil,
-				Rewards:          []Reward{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
+				Rewards:          []rewardEvent{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
 				RewardSum:        1,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
 		},
 		{
 			Name: "Two contributor with 0 duration work log",
-			Contributors: Contributors{
+			Contributors: contributors{
 				"TestUser1": {
 					Login:            "TestUser1",
 					AvatarURL:        "nil",
@@ -102,7 +102,7 @@ func TestUpdateReward(t *testing.T) {
 					RewardsLastYear:  nil,
 					Rewards:          nil,
 					RewardSum:        0,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
@@ -114,22 +114,22 @@ func TestUpdateReward(t *testing.T) {
 					RewardsLastYear:  nil,
 					Rewards:          nil,
 					RewardSum:        0,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
 			},
 			WorkLogs: map[string][]WorkLog{"TestUser1": {{exampleTime, exampleTime}}, "TestUser2": {{exampleTime, exampleTime}}},
-			Expected: Contributors{
+			Expected: contributors{
 				"TestUser1": {
 					Login:            "TestUser1",
 					AvatarURL:        "nil",
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
+					Rewards:          []rewardEvent{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
 					RewardSum:        0.5,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
@@ -139,9 +139,9 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
+					Rewards:          []rewardEvent{{Date: time.Time{}, Reward: 0.5, URL: "TestURL"}},
 					RewardSum:        0.5,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
@@ -149,7 +149,7 @@ func TestUpdateReward(t *testing.T) {
 		},
 		{
 			Name: "Two contributor with 0 and 1 day duration work log",
-			Contributors: Contributors{
+			Contributors: contributors{
 				"TestUser1": {
 					Login:            "TestUser1",
 					AvatarURL:        "nil",
@@ -158,7 +158,7 @@ func TestUpdateReward(t *testing.T) {
 					RewardsLastYear:  nil,
 					Rewards:          nil,
 					RewardSum:        0,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
@@ -170,22 +170,22 @@ func TestUpdateReward(t *testing.T) {
 					RewardsLastYear:  nil,
 					Rewards:          nil,
 					RewardSum:        0,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
 			},
 			WorkLogs: map[string][]WorkLog{"TestUser1": {{exampleTime, exampleTime}}, "TestUser2": {{exampleTime, exampleTime.Add(24 * time.Hour)}}},
-			Expected: Contributors{
+			Expected: contributors{
 				"TestUser1": {
 					Login:            "TestUser1",
 					AvatarURL:        "nil",
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 0, URL: "TestURL"}},
+					Rewards:          []rewardEvent{{Date: time.Time{}, Reward: 0, URL: "TestURL"}},
 					RewardSum:        0,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 				},
@@ -195,9 +195,9 @@ func TestUpdateReward(t *testing.T) {
 					HTMLURL:          "nil",
 					FixCount:         0,
 					RewardsLastYear:  nil,
-					Rewards:          []Reward{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
+					Rewards:          []rewardEvent{{Date: time.Time{}, Reward: 1, URL: "TestURL"}},
 					RewardSum:        1,
-					TimeToDisclosure: TimeToDisclosure{},
+					TimeToDisclosure: timeToDisclosure{},
 					Severities:       nil,
 					MeanSeverity:     0,
 					TotalWorkTime:    24 * time.Hour,
@@ -205,8 +205,8 @@ func TestUpdateReward(t *testing.T) {
 			},
 		},
 		{
-			Name: "Contributor with 1 day duration work log",
-			Contributors: Contributors{"TestUser": {
+			Name: "contributor with 1 day duration work log",
+			Contributors: contributors{"TestUser": {
 				Login:            "TestUser",
 				AvatarURL:        "nil",
 				HTMLURL:          "nil",
@@ -214,19 +214,19 @@ func TestUpdateReward(t *testing.T) {
 				RewardsLastYear:  newRewardsLastYear(exampleTime.Add(time.Hour * 24)),
 				Rewards:          nil,
 				RewardSum:        0,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 			}},
 			WorkLogs: map[string][]WorkLog{"TestUser": {{exampleTime, exampleTime.Add(time.Hour * 24)}}},
 			Open:     exampleTime,
 			Close:    exampleTime.Add(time.Hour * 24),
-			Expected: Contributors{"TestUser": {
+			Expected: contributors{"TestUser": {
 				Login:     "TestUser",
 				AvatarURL: "nil",
 				HTMLURL:   "nil",
 				FixCount:  0,
-				RewardsLastYear: RewardsLastYear{
+				RewardsLastYear: rewardsLastYear{
 					{Month: "4.2022", Reward: 0.975},
 					{Month: "3.2022", Reward: 0},
 					{Month: "2.2022", Reward: 0},
@@ -240,9 +240,9 @@ func TestUpdateReward(t *testing.T) {
 					{Month: "6.2021", Reward: 0},
 					{Month: "5.2021", Reward: 0},
 				},
-				Rewards:          []Reward{{Date: exampleTime.Add(time.Hour * 24), Reward: 0.975, URL: "TestURL"}},
+				Rewards:          []rewardEvent{{Date: exampleTime.Add(time.Hour * 24), Reward: 0.975, URL: "TestURL"}},
 				RewardSum:        0.975,
-				TimeToDisclosure: TimeToDisclosure{},
+				TimeToDisclosure: timeToDisclosure{},
 				Severities:       nil,
 				MeanSeverity:     0,
 				TotalWorkTime:    86400000000000,

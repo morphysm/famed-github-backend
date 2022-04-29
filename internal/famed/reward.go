@@ -11,7 +11,7 @@ import (
 // close (time issue was closed)
 // k (number of times the issue was reopened)
 // workLogs (time each contributor worked on the issue)
-func (cs Contributors) updateRewards(url string, workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
+func (cs contributors) updateRewards(url string, workLogs WorkLogs, open time.Time, close time.Time, k int, daysToFix int, severityReward float64) {
 	baseReward := reward(close.Sub(open), k, daysToFix)
 	points := rewardToPoints(baseReward, severityReward)
 	// Get the sum of work per contributor and the total sum of work
@@ -43,9 +43,9 @@ func (cs Contributors) updateRewards(url string, workLogs WorkLogs, open time.Ti
 	}
 }
 
-func (c *Contributor) updateReward(url string, date time.Time, reward float64) {
+func (c *contributor) updateReward(url string, date time.Time, reward float64) {
 	// Append reward to reward slice
-	c.Rewards = append(c.Rewards, Reward{
+	c.Rewards = append(c.Rewards, rewardEvent{
 		Date:   date,
 		Reward: reward,
 		URL:    url,

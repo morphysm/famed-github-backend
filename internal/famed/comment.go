@@ -10,8 +10,14 @@ import (
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
 
+const (
+	rewardCommentErrorHeader       = "### Famed could not generate a reward suggestion."
+	rewardCommentTableHeader       = "| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |"
+	eligibleCommentHeaderBeginning = "🤖 Assignees for issue"
+)
+
 // rewardComment generates a reward comment.
-func rewardComment(contributors Contributors, currency string, owner string, repoName string) string {
+func rewardComment(contributors contributors, currency string, owner string, repoName string) string {
 	if len(contributors) == 0 {
 		return rewardCommentFromError(ErrNoContributors)
 	}
@@ -24,7 +30,7 @@ func rewardComment(contributors Contributors, currency string, owner string, rep
 	}
 
 	comment = fmt.Sprintf("%s- you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/%s/%s", comment, owner, repoName)
-	comment = fmt.Sprintf("%s\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |", comment)
+	comment = fmt.Sprintf("%s\n%s", comment, rewardCommentTableHeader)
 
 	for _, contributor := range sortedContributors {
 		comment = fmt.Sprintf("%s\n|%s|%s|%d %s|", comment, contributor.Login, contributor.TotalWorkTime, int(contributor.RewardSum), currency)
@@ -33,9 +39,9 @@ func rewardComment(contributors Contributors, currency string, owner string, rep
 	return comment
 }
 
-// rewardComment generates a reward from an error.
+// rewardComment generates a rewar from an error.
 func rewardCommentFromError(err error) string {
-	comment := "### Famed could not generate a reward suggestion." +
+	comment := rewardCommentErrorHeader +
 		"\nReason: "
 
 	switch err {
@@ -62,7 +68,7 @@ func rewardCommentFromError(err error) string {
 
 // issueEligibleComment generate an issue eligible comment.
 func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) string {
-	comment := fmt.Sprintf("🤖 Assignees for Issue **%s #%d** are now eligible to Get Famed.\n", issue.Title, issue.Number)
+	comment := fmt.Sprintf("%s **%s #%d** are now eligible to Get Famed.\n", eligibleCommentHeaderBeginning, issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
 	comment = fmt.Sprintf("%s\n%s️", comment, assigneeComment(issue.Assignees))
@@ -125,13 +131,12 @@ func verifyCommentType(str string, commentType commentType) bool {
 	var substr string
 	switch commentType {
 	case commentEligible:
-		substr = "are now eligible to Get Famed."
+		substr = eligibleCommentHeaderBeginning
 	case commentReward:
-		substr = "| Contributor | Time | Reward |"
-		if strings.Contains(str, substr) {
+		if strings.Contains(str, rewardCommentTableHeader) {
 			return true
 		}
-		substr = "Famed could not generate a reward suggestion."
+		substr = rewardCommentErrorHeader
 	}
 
 	return strings.Contains(str, substr)

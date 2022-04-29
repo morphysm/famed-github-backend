@@ -28,11 +28,11 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	}
 
 	if len(issues) == 0 {
-		return c.JSON(http.StatusOK, []*Contributor{})
+		return c.JSON(http.StatusOK, []*contributor{})
 	}
 
 	// Use issues with events to generate contributor list
-	contributors := contributorsArray(issues, BoardOptions{
+	contributors := contributorsArray(issues, boardOptions{
 		currency:  gH.famedConfig.Currency,
 		rewards:   gH.famedConfig.Rewards,
 		daysToFix: gH.famedConfig.DaysToFix,
