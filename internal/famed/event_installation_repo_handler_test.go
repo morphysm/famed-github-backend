@@ -37,12 +37,12 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 		Name          string
 		Event         *github.InstallationRepositoriesEvent
 		ExpectedRepos []string
-		ExpectedErr   error
+		ExpectedErr   *echo.HTTPError
 	}{
 		{
 			Name:        "Empty github event",
 			Event:       &github.InstallationRepositoriesEvent{},
-			ExpectedErr: famed.ErrEventMissingData,
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Valid",
@@ -91,8 +91,9 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 					assert.Equal(t, testCase.ExpectedRepos, repos)
 					assert.Equal(t, famedConfig.Labels, labels)
 				}
+			} else {
+				assert.Equal(t, testCase.ExpectedErr, err)
 			}
-			assert.Equal(t, testCase.ExpectedErr, err)
 		})
 	}
 }

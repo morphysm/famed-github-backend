@@ -27,7 +27,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		Events          []gitlib.IssueEvent
 		PullRequest     *gitlib.PullRequest
 		ExpectedComment string
-		ExpectedErr     error
+		ExpectedErr     *echo.HTTPError
 	}{
 		{
 			Name: "Close - Empty event",
@@ -35,7 +35,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 			},
 			ExpectedComment: "",
-			ExpectedErr:     famed.ErrEventMissingData,
+			ExpectedErr:     &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Close - No Assignee",
@@ -256,7 +256,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 			},
-			ExpectedErr: famed.ErrEventMissingData,
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Unassigned - Valid - Non present",
@@ -424,8 +424,9 @@ func TestPostIssuesEvent(t *testing.T) {
 					_, _, _, _, comment := fakeInstallationClient.PostCommentArgsForCall(0)
 					assert.Equal(t, testCase.ExpectedComment, comment)
 				}
+			} else {
+				assert.Equal(t, testCase.ExpectedErr, err)
 			}
-			assert.Equal(t, testCase.ExpectedErr, err)
 		})
 	}
 }

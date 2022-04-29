@@ -22,12 +22,12 @@ func TestPostInstallationEvent(t *testing.T) {
 	testCases := []struct {
 		Name        string
 		Event       *github.InstallationEvent
-		ExpectedErr error
+		ExpectedErr *echo.HTTPError
 	}{
 		{
 			Name:        "Empty github repository event",
 			Event:       &github.InstallationEvent{},
-			ExpectedErr: famed.ErrEventMissingData,
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Valid",
@@ -74,7 +74,9 @@ func TestPostInstallationEvent(t *testing.T) {
 					assert.Equal(t, *testCase.Event.Installation.ID, installationID)
 				}
 			}
-			assert.Equal(t, testCase.ExpectedErr, err)
+			if testCase.ExpectedErr != nil {
+				assert.Equal(t, testCase.ExpectedErr, err)
+			}
 		})
 	}
 }

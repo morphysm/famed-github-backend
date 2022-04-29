@@ -1,17 +1,9 @@
 package famed
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-)
-
-var (
-	ErrMissingRepoPathParameter  = errors.New("missing name name path parameter")
-	ErrMissingOwnerPathParameter = errors.New("missing owner path parameter")
-
-	ErrAppNotInstalled = errors.New("GitHub app not installed for given repository")
 )
 
 // GetContributors returns a list of contributors for the famed board.

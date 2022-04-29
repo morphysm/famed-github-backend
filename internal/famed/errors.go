@@ -5,6 +5,10 @@ import (
 )
 
 var (
+	ErrMissingRepoPathParameter  = errors.New("missing name name path parameter")
+	ErrMissingOwnerPathParameter = errors.New("missing owner path parameter")
+	ErrAppNotInstalled           = errors.New("GitHub app not installed for given repository")
+
 	ErrIssueMissingAssignee = errors.New("the issue is missing an assignee")
 	ErrIssueMissingClosedAt = errors.New("the issue is missing the closed at timestamp")
 
