@@ -3,9 +3,10 @@ package famed_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConfig(t *testing.T) {

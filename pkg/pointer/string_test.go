@@ -3,8 +3,9 @@ package pointer_test
 import (
 	"testing"
 
-	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 func TestString(t *testing.T) {

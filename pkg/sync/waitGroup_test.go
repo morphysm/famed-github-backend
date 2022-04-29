@@ -4,8 +4,9 @@ import (
 	"sync"
 	"testing"
 
-	libSync "github.com/morphysm/famed-github-backend/pkg/sync"
 	"github.com/stretchr/testify/assert"
+
+	libSync "github.com/morphysm/famed-github-backend/pkg/sync"
 )
 
 func TestWaitGroups(t *testing.T) {

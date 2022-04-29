@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v41/github"
-	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 func TestIssueToSeverity(t *testing.T) {

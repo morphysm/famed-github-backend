@@ -3,8 +3,9 @@ package parse_test
 import (
 	"testing"
 
-	"github.com/morphysm/famed-github-backend/pkg/parse"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/morphysm/famed-github-backend/pkg/parse"
 )
 
 const testIssue = "UID: CL-2020-06\n\n" +

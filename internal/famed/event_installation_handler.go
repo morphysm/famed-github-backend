@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 

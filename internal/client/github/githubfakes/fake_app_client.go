@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	githuba "github.com/google/go-github/v41/github"
+
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 

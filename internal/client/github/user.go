@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
+
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 

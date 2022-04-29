@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 

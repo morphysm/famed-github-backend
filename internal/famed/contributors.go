@@ -6,9 +6,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
+
+	"github.com/morphysm/famed-github-backend/internal/client/github"
 )
 
 type Contributors map[string]*Contributor

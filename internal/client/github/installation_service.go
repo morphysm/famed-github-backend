@@ -7,9 +7,10 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v41/github"
-	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
+
+	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

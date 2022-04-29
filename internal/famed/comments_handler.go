@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"

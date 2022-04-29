@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
 func TestTime(t *testing.T) {
