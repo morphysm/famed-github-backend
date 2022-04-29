@@ -57,17 +57,16 @@ type updateCommentsResponse struct {
 func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
+		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
 	}
 
 	repoName := c.Param("repo_name")
 	if repoName == "" {
-		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
+		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingRepoPathParameter.Error())
 	}
 
-	if installed := gH.githubInstallationClient.CheckInstallation(owner); !installed {
-		log.Printf("[GetUpdateComments] error on request for contributors: %v", ErrAppNotInstalled)
-		return ErrAppNotInstalled
+	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, ErrAppNotInstalled.Error())
 	}
 
 	var wg sync.WaitGroup

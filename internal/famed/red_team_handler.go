@@ -13,28 +13,28 @@ import (
 func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
+		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
 	}
 
 	repoName := c.Param("repo_name")
 	if repoName == "" {
-		return echo.ErrBadRequest.SetInternal(ErrMissingRepoPathParameter)
+		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingRepoPathParameter.Error())
 	}
 
 	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
-		return ErrAppNotInstalled
+		return echo.NewHTTPError(http.StatusBadRequest, ErrAppNotInstalled.Error())
 	}
 
 	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := github.All
 	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}
 
 	redTeam, err := generateRedTeamFromIssues(issues, gH.famedConfig.Currency)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, redTeam)

@@ -30,6 +30,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 
 	e := newServer()
 
+	// Middleware
 	e.Use(
 		nrecho.Middleware(nrApp),
 		middleware.CORSWithConfig(middleware.CORSConfig{

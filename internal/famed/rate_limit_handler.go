@@ -9,7 +9,7 @@ import (
 func (gH *githubHandler) GetRateLimit(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.ErrBadRequest.SetInternal(ErrMissingOwnerPathParameter)
+		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
 	}
 
 	installations, err := gH.githubInstallationClient.GetRateLimit(c.Request().Context(), owner)

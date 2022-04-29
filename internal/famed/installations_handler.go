@@ -15,7 +15,7 @@ type installation struct {
 func (gH *githubHandler) GetInstallations(c echo.Context) error {
 	installations, err := gH.githubAppClient.GetInstallations(c.Request().Context())
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}
 
 	resp := make([]installation, len(installations))

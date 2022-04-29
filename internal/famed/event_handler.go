@@ -14,7 +14,7 @@ import (
 func (gH *githubHandler) PostEvent(c echo.Context) error {
 	event, err := gH.githubInstallationClient.ValidateWebHookEvent(c.Request())
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	switch event := event.(type) {

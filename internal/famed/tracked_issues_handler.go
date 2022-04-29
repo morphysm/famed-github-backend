@@ -14,7 +14,7 @@ func (gH *githubHandler) GetTrackedIssues(c echo.Context) error {
 
 	installations, err := gH.githubAppClient.GetInstallations(ctx)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}
 
 	trackedIssues := make(map[string][]github.Issue)
