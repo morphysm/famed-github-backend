@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 func TestConfig(t *testing.T) {
@@ -15,14 +15,14 @@ func TestConfig(t *testing.T) {
 	cfg := NewTestConfig()
 
 	assert.Equal(t, cfg.Currency, "POINTS")
-	assert.Equal(t, cfg.Rewards, map[github.IssueSeverity]float64{
-		github.Info:     0,
-		github.Low:      1000,
-		github.Medium:   2000,
-		github.High:     3000,
-		github.Critical: 4000,
+	assert.Equal(t, cfg.Rewards, map[model.IssueSeverity]float64{
+		model.Info:     0,
+		model.Low:      1000,
+		model.Medium:   2000,
+		model.High:     3000,
+		model.Critical: 4000,
 	})
-	assert.Equal(t, cfg.Labels, map[string]github.Label{
+	assert.Equal(t, cfg.Labels, map[string]model.Label{
 		"famed": {
 			Name:        "famed",
 			Color:       "testColor",
@@ -33,14 +33,14 @@ func TestConfig(t *testing.T) {
 }
 
 func NewTestConfig() famed.Config {
-	rewards := map[github.IssueSeverity]float64{
-		github.Info:     0,
-		github.Low:      1000,
-		github.Medium:   2000,
-		github.High:     3000,
-		github.Critical: 4000,
+	rewards := map[model.IssueSeverity]float64{
+		model.Info:     0,
+		model.Low:      1000,
+		model.Medium:   2000,
+		model.High:     3000,
+		model.Critical: 4000,
 	}
-	labels := map[string]github.Label{
+	labels := map[string]model.Label{
 		"famed": {
 			Name:        "famed",
 			Color:       "testColor",

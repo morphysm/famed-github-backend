@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
-	gitLib "github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -56,9 +56,9 @@ func TestPostInstallationEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
+			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.AddInstallationReturns(nil)
-			cl, _ := gitLib.NewInstallationClient("", nil, nil, "", "famed", nil)
+			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig())

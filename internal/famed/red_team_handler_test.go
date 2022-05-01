@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	gitlib "github.com/morphysm/famed-github-backend/internal/respositories/github"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -30,7 +30,7 @@ func TestRedTeam(t *testing.T) {
 		Owner            string
 		RepoName         string
 		AppInstalled     bool
-		Issues           []gitlib.Issue
+		Issues           []model.Issue
 		ExpectedResponse string
 		ExpectedErr      error
 	}{
@@ -39,13 +39,13 @@ func TestRedTeam(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{{
+			Issues: []model.Issue{{
 				HTMLURL:      "TestURL",
-				Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+				Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 				CreatedAt:    open,
 				ClosedAt:     &closed,
 				Migrated:     true,
-				RedTeam:      []gitlib.User{{Login: "testUser"}},
+				RedTeam:      []model.User{{Login: "testUser"}},
 				BountyPoints: pointer.Int(975),
 			}},
 			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
@@ -55,13 +55,13 @@ func TestRedTeam(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{{
+			Issues: []model.Issue{{
 				HTMLURL:      "TestURL",
-				Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+				Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 				CreatedAt:    open,
 				ClosedAt:     &closed,
 				Migrated:     true,
-				RedTeam:      []gitlib.User{{Login: "testUser1"}, {Login: "testUser2"}},
+				RedTeam:      []model.User{{Login: "testUser1"}, {Login: "testUser2"}},
 				BountyPoints: pointer.Int(1000),
 			}},
 			ExpectedResponse: "[{\"login\":\"testUser1\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":500,\"url\":\"TestURL\"}],\"rewardSum\":500,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":500},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2},{\"login\":\"testUser2\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":500,\"url\":\"TestURL\"}],\"rewardSum\":500,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":500},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
@@ -71,23 +71,23 @@ func TestRedTeam(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{
+			Issues: []model.Issue{
 				{
 					HTMLURL:      "TestURL",
 					CreatedAt:    open,
 					ClosedAt:     &closed,
-					Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:     true,
-					RedTeam:      []gitlib.User{{Login: "testUser"}},
+					RedTeam:      []model.User{{Login: "testUser"}},
 					BountyPoints: pointer.Int(975),
 				},
 				{
 					HTMLURL:      "TestURL",
 					CreatedAt:    open,
 					ClosedAt:     &closed,
-					Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:     true,
-					RedTeam:      []gitlib.User{{Login: "testUser"}},
+					RedTeam:      []model.User{{Login: "testUser"}},
 					BountyPoints: pointer.Int(975),
 				},
 			},
@@ -98,12 +98,12 @@ func TestRedTeam(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{
+			Issues: []model.Issue{
 				{
 					HTMLURL:      "TestURL",
 					CreatedAt:    open,
 					ClosedAt:     &closed,
-					Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:     true,
 					RedTeam:      nil,
 					BountyPoints: pointer.Int(975),
@@ -116,15 +116,15 @@ func TestRedTeam(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{
+			Issues: []model.Issue{
 				{
 					HTMLURL:      "TestURL",
 					CreatedAt:    open,
 					ClosedAt:     &closed,
 					Assignees:    nil,
-					Severities:   []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Severities:   []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:     true,
-					RedTeam:      []gitlib.User{{Login: "testUser"}},
+					RedTeam:      []model.User{{Login: "testUser"}},
 					BountyPoints: nil,
 				},
 			},
@@ -147,7 +147,7 @@ func TestRedTeam(t *testing.T) {
 			ctx.SetParamNames([]string{"owner", "repo_name"}...)
 			ctx.SetParamValues([]string{testCase.Owner, testCase.RepoName}...)
 
-			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
+			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.CheckInstallationReturns(testCase.AppInstalled)
 			// TODO testUser for error
 			fakeInstallationClient.GetIssuesByRepoReturns(testCase.Issues, nil)

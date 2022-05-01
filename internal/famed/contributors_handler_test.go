@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	gitlib "github.com/morphysm/famed-github-backend/internal/respositories/github"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -32,10 +31,10 @@ func TestGetContributors(t *testing.T) {
 		Owner            string
 		RepoName         string
 		AppInstalled     bool
-		Issues           []gitlib.Issue
+		Issues           []model.Issue
 		Event            *github.IssuesEvent
-		Events           []providers.IssueEvent
-		PullRequest      *gitlib.PullRequest
+		Events           []model.IssueEvent
+		PullRequest      *string
 		ExpectedResponse string
 		ExpectedErr      error
 	}{
@@ -44,15 +43,15 @@ func TestGetContributors(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{{
+			Issues: []model.Issue{{
 				ID:         0,
 				Number:     0,
 				HTMLURL:    "TestURL",
 				Title:      "TestIssue",
 				CreatedAt:  open,
 				ClosedAt:   &closed,
-				Assignees:  []gitlib.User{{Login: "testUser"}},
-				Severities: []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+				Assignees:  []model.User{{Login: "testUser"}},
+				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
 				Migrated:   false,
 			}},
 			Event: &github.IssuesEvent{
@@ -72,12 +71,12 @@ func TestGetContributors(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("testUser")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "testUser"},
-			Events: []providers.IssueEvent{
+			PullRequest: pointer.String("testUser"),
+			Events: []model.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "testUser"},
+					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
 			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":1,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":975,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":975},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":1},\"meanSeverity\":2}]\n",
@@ -87,7 +86,7 @@ func TestGetContributors(t *testing.T) {
 			Owner:        "testOwner",
 			RepoName:     "testRepo",
 			AppInstalled: true,
-			Issues: []gitlib.Issue{
+			Issues: []model.Issue{
 				{
 					ID:         0,
 					Number:     0,
@@ -95,8 +94,8 @@ func TestGetContributors(t *testing.T) {
 					Title:      "TestIssue",
 					CreatedAt:  open,
 					ClosedAt:   &closed,
-					Assignees:  []gitlib.User{{Login: "testUser"}},
-					Severities: []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:   false,
 				},
 				{
@@ -106,8 +105,8 @@ func TestGetContributors(t *testing.T) {
 					Title:      "TestIssue",
 					CreatedAt:  open,
 					ClosedAt:   &closed,
-					Assignees:  []gitlib.User{{Login: "testUser"}},
-					Severities: []gitlib.IssueSeverity{gitlib.IssueSeverity("low")},
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:   false,
 				},
 			},
@@ -128,12 +127,12 @@ func TestGetContributors(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("testUser")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "testUser"},
-			Events: []providers.IssueEvent{
+			PullRequest: pointer.String("testUser"),
+			Events: []model.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "testUser"},
+					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
 			ExpectedResponse: "[{\"login\":\"testUser\",\"avatarUrl\":\"\",\"htmlUrl\":\"\",\"fixCount\":2,\"rewards\":[{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"},{\"date\":\"2022-04-05T00:00:00Z\",\"reward\":975,\"url\":\"TestURL\"}],\"rewardSum\":1950,\"currency\":\"POINTS\",\"rewardsLastYear\":[{\"month\":\"4.2022\",\"reward\":1950},{\"month\":\"3.2022\",\"reward\":0},{\"month\":\"2.2022\",\"reward\":0},{\"month\":\"1.2022\",\"reward\":0},{\"month\":\"12.2021\",\"reward\":0},{\"month\":\"11.2021\",\"reward\":0},{\"month\":\"10.2021\",\"reward\":0},{\"month\":\"9.2021\",\"reward\":0},{\"month\":\"8.2021\",\"reward\":0},{\"month\":\"7.2021\",\"reward\":0},{\"month\":\"6.2021\",\"reward\":0},{\"month\":\"5.2021\",\"reward\":0}],\"timeToDisclosure\":{\"time\":[1440,1440],\"mean\":1440,\"standardDeviation\":0},\"severities\":{\"low\":2},\"meanSeverity\":2}]\n",
@@ -157,7 +156,7 @@ func TestGetContributors(t *testing.T) {
 			ctx.SetParamNames([]string{"owner", "repo_name"}...)
 			ctx.SetParamValues([]string{testCase.Owner, testCase.RepoName}...)
 
-			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
+			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.CheckInstallationReturns(testCase.AppInstalled)
 			// TODO testUser for error
 			fakeInstallationClient.GetIssuesByRepoReturns(testCase.Issues, nil)

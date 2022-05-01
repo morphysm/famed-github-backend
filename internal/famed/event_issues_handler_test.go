@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	gitlib "github.com/morphysm/famed-github-backend/internal/respositories/github"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -26,8 +26,8 @@ func TestPostIssuesEvent(t *testing.T) {
 	testCases := []struct {
 		Name            string
 		Event           *github.IssuesEvent
-		Events          []providers.IssueEvent
-		PullRequest     *gitlib.PullRequest
+		Events          []model.IssueEvent
+		PullRequest     *string
 		ExpectedComment string
 		ExpectedErr     *echo.HTTPError
 	}{
@@ -58,7 +58,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     pointer.String("test"),
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing an assignee.",
 		},
 		{
@@ -82,7 +82,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     pointer.String("test"),
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a severity label.",
 		},
 		{
@@ -105,7 +105,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     pointer.String("test"),
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue has more than one severity label.",
 		},
 		{
@@ -128,7 +128,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest:     &gitlib.PullRequest{URL: "test"},
+			PullRequest:     pointer.String("test"),
 			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.",
 		},
 		// Commented out for DevConnect
@@ -173,12 +173,12 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []providers.IssueEvent{
+			PullRequest: pointer.String("test"),
+			Events: []model.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test"},
+					Assignee:  &model.User{Login: "test"},
 				},
 			},
 			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
@@ -204,12 +204,12 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []providers.IssueEvent{
+			PullRequest: pointer.String("test"),
+			Events: []model.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test"},
+					Assignee:  &model.User{Login: "test"},
 				},
 			},
 			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|0s|3000 POINTS|",
@@ -233,17 +233,17 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("testOwner")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []providers.IssueEvent{
+			PullRequest: pointer.String("test"),
+			Events: []model.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test1"},
+					Assignee:  &model.User{Login: "test1"},
 				},
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
-					Assignee:  &gitlib.User{Login: "test2"},
+					Assignee:  &model.User{Login: "test2"},
 				},
 			},
 			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
@@ -356,7 +356,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: pointer.String("test"),
 			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -383,7 +383,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			PullRequest: &gitlib.PullRequest{URL: "test"},
+			PullRequest: pointer.String("test"),
 			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
@@ -408,7 +408,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
+			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)

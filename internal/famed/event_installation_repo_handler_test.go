@@ -13,9 +13,9 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	gitLib "github.com/morphysm/famed-github-backend/internal/respositories/github"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -23,13 +23,13 @@ import (
 func TestPostInstallationRepositoriesEvent(t *testing.T) {
 	t.Parallel()
 
-	labels := map[string]gitLib.Label{
-		config.FamedLabelKey:    {Name: config.FamedLabelKey, Color: "TestColor", Description: "TestDescription"},
-		string(gitLib.Info):     {Name: string(gitLib.Info), Color: "TestColor", Description: "TestDescription"},
-		string(gitLib.Low):      {Name: string(gitLib.Low), Color: "TestColor", Description: "TestDescription"},
-		string(gitLib.Medium):   {Name: string(gitLib.Medium), Color: "TestColor", Description: "TestDescription"},
-		string(gitLib.High):     {Name: string(gitLib.High), Color: "TestColor", Description: "TestDescription"},
-		string(gitLib.Critical): {Name: string(gitLib.Critical), Color: "TestColor", Description: "TestDescription"},
+	labels := map[string]model.Label{
+		config.FamedLabelKey:   {Name: config.FamedLabelKey, Color: "TestColor", Description: "TestDescription"},
+		string(model.Info):     {Name: string(model.Info), Color: "TestColor", Description: "TestDescription"},
+		string(model.Low):      {Name: string(model.Low), Color: "TestColor", Description: "TestDescription"},
+		string(model.Medium):   {Name: string(model.Medium), Color: "TestColor", Description: "TestDescription"},
+		string(model.High):     {Name: string(model.High), Color: "TestColor", Description: "TestDescription"},
+		string(model.Critical): {Name: string(model.Critical), Color: "TestColor", Description: "TestDescription"},
 	}
 	famedConfig := famed.Config{
 		Labels: labels,
@@ -74,7 +74,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
 
-			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
+			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
