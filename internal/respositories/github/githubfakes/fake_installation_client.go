@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 )
 
 type FakeInstallationClient struct {
@@ -49,7 +50,7 @@ type FakeInstallationClient struct {
 		result1 []github.IssueComment
 		result2 error
 	}
-	GetIssueEventsStub        func(context.Context, string, string, int) ([]github.IssueEvent, error)
+	GetIssueEventsStub        func(context.Context, string, string, int) ([]providers.IssueEvent, error)
 	getIssueEventsMutex       sync.RWMutex
 	getIssueEventsArgsForCall []struct {
 		arg1 context.Context
@@ -58,11 +59,11 @@ type FakeInstallationClient struct {
 		arg4 int
 	}
 	getIssueEventsReturns struct {
-		result1 []github.IssueEvent
+		result1 []providers.IssueEvent
 		result2 error
 	}
 	getIssueEventsReturnsOnCall map[int]struct {
-		result1 []github.IssueEvent
+		result1 []providers.IssueEvent
 		result2 error
 	}
 	GetIssuePullRequestStub        func(context.Context, string, string, int) (*github.PullRequest, error)
@@ -406,7 +407,7 @@ func (fake *FakeInstallationClient) GetCommentsReturnsOnCall(i int, result1 []gi
 	}{result1, result2}
 }
 
-func (fake *FakeInstallationClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]github.IssueEvent, error) {
+func (fake *FakeInstallationClient) GetIssueEvents(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]providers.IssueEvent, error) {
 	fake.getIssueEventsMutex.Lock()
 	ret, specificReturn := fake.getIssueEventsReturnsOnCall[len(fake.getIssueEventsArgsForCall)]
 	fake.getIssueEventsArgsForCall = append(fake.getIssueEventsArgsForCall, struct {
@@ -434,7 +435,7 @@ func (fake *FakeInstallationClient) GetIssueEventsCallCount() int {
 	return len(fake.getIssueEventsArgsForCall)
 }
 
-func (fake *FakeInstallationClient) GetIssueEventsCalls(stub func(context.Context, string, string, int) ([]github.IssueEvent, error)) {
+func (fake *FakeInstallationClient) GetIssueEventsCalls(stub func(context.Context, string, string, int) ([]providers.IssueEvent, error)) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = stub
@@ -447,28 +448,28 @@ func (fake *FakeInstallationClient) GetIssueEventsArgsForCall(i int) (context.Co
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeInstallationClient) GetIssueEventsReturns(result1 []github.IssueEvent, result2 error) {
+func (fake *FakeInstallationClient) GetIssueEventsReturns(result1 []providers.IssueEvent, result2 error) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = nil
 	fake.getIssueEventsReturns = struct {
-		result1 []github.IssueEvent
+		result1 []providers.IssueEvent
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeInstallationClient) GetIssueEventsReturnsOnCall(i int, result1 []github.IssueEvent, result2 error) {
+func (fake *FakeInstallationClient) GetIssueEventsReturnsOnCall(i int, result1 []providers.IssueEvent, result2 error) {
 	fake.getIssueEventsMutex.Lock()
 	defer fake.getIssueEventsMutex.Unlock()
 	fake.GetIssueEventsStub = nil
 	if fake.getIssueEventsReturnsOnCall == nil {
 		fake.getIssueEventsReturnsOnCall = make(map[int]struct {
-			result1 []github.IssueEvent
+			result1 []providers.IssueEvent
 			result2 error
 		})
 	}
 	fake.getIssueEventsReturnsOnCall[i] = struct {
-		result1 []github.IssueEvent
+		result1 []providers.IssueEvent
 		result2 error
 	}{result1, result2}
 }
@@ -1186,4 +1187,4 @@ func (fake *FakeInstallationClient) recordInvocation(key string, args []interfac
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ github.InstallationClient = new(FakeInstallationClient)
+var _ providers.InstallationClient = new(FakeInstallationClient)

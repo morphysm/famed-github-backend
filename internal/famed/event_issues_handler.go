@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 type commentType int
@@ -26,7 +26,7 @@ var (
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
-func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEvent) error {
+func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEvent) error {
 	var (
 		commentType commentType
 		comment     string
@@ -35,7 +35,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEv
 	)
 
 	switch event.Action {
-	case string(github.Closed):
+	case string(model.Closed):
 		comment, err = gH.handleClosedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating reward comment for closed event: %v", err)
@@ -43,16 +43,16 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEv
 		}
 		commentType = commentReward
 
-	case string(github.Assigned):
+	case string(model.Assigned):
 		fallthrough
 
-	case string(github.Unassigned):
+	case string(model.Unassigned):
 		fallthrough
 
-	case string(github.Labeled):
+	case string(model.Labeled):
 		fallthrough
 
-	case string(github.Unlabeled):
+	case string(model.Unlabeled):
 		comment, err = gH.handleUpdatedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
@@ -76,7 +76,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event github.IssuesEv
 }
 
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
-func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.IssuesEvent) (string, error) {
 	if len(event.Issue.Assignees) == 0 {
 		return rewardCommentFromError(ErrIssueMissingAssignee), nil
 	}
@@ -105,7 +105,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event github.Iss
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
-func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event github.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event model.IssuesEvent) (string, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if err != nil {
 		return "", err

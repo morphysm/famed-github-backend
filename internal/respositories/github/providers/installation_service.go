@@ -1,4 +1,4 @@
-package github
+package providers
 
 import (
 	"context"
@@ -10,31 +10,32 @@ import (
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . InstallationClient
 type InstallationClient interface {
-	GetRateLimit(ctx context.Context, owner string) (RateLimit, error)
+	GetRateLimit(ctx context.Context, owner string) (model.RateLimit, error)
 
-	GetUser(ctx context.Context, owner string, login string) (User, error)
+	GetUser(ctx context.Context, owner string, login string) (model.User, error)
 
-	GetRepos(ctx context.Context, owner string) ([]Repo, error)
+	GetRepos(ctx context.Context, owner string) ([]string, error)
 
-	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *IssueState) ([]Issue, error)
+	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *model.IssueState) ([]model.Issue, error)
 
-	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*PullRequest, error)
+	GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*string, error)
 
-	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueEvent, error)
+	GetIssueEvents(ctx context.Context, owner string, repoName string, issueNumber int) ([]model.IssueEvent, error)
 	ValidateWebHookEvent(request *http.Request) (interface{}, error)
 
-	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]IssueComment, error)
+	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]model.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
 
-	PostLabel(ctx context.Context, owner string, repoName string, label Label) error
-	PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]Label) []error
+	PostLabel(ctx context.Context, owner string, repoName string, label model.Label) error
+	PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]model.Label) []error
 
 	AddInstallation(owner string, installationID int64) error
 	CheckInstallation(owner string) bool
@@ -79,22 +80,22 @@ func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
 
 type safeUserMap struct {
 	sync.RWMutex
-	wrappedUsers map[string]User
+	wrappedUsers map[string]model.User
 }
 
 func newSafeUserMap() *safeUserMap {
 	return &safeUserMap{
-		wrappedUsers: make(map[string]User),
+		wrappedUsers: make(map[string]model.User),
 	}
 }
 
-func (s *safeUserMap) Add(user User) {
+func (s *safeUserMap) Add(user model.User) {
 	s.Lock()
 	defer s.Unlock()
 	s.wrappedUsers[user.Login] = user
 }
 
-func (s *safeUserMap) Get(login string) (User, bool) {
+func (s *safeUserMap) Get(login string) (model.User, bool) {
 	s.Lock()
 	defer s.Unlock()
 	user, ok := s.wrappedUsers[login]

@@ -12,9 +12,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	gitlib "github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	gitlib "github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -25,7 +26,7 @@ func TestPostIssuesEvent(t *testing.T) {
 	testCases := []struct {
 		Name            string
 		Event           *github.IssuesEvent
-		Events          []gitlib.IssueEvent
+		Events          []providers.IssueEvent
 		PullRequest     *gitlib.PullRequest
 		ExpectedComment string
 		ExpectedErr     *echo.HTTPError
@@ -173,7 +174,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []gitlib.IssueEvent{
+			Events: []providers.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
@@ -204,7 +205,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []gitlib.IssueEvent{
+			Events: []providers.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
@@ -233,7 +234,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "test"},
-			Events: []gitlib.IssueEvent{
+			Events: []providers.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
@@ -410,7 +411,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
-			cl, _ := gitlib.NewInstallationClient("", nil, nil, "", "famed", nil)
+			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)

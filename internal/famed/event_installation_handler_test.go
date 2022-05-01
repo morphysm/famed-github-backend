@@ -11,9 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	gitLib "github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	gitLib "github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 

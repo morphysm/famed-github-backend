@@ -1,4 +1,4 @@
-package github
+package providers
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v41/github"
 
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . AppClient
 type AppClient interface {
-	GetInstallations(ctx context.Context) ([]Installation, error)
+	GetInstallations(ctx context.Context) ([]model.Installation, error)
 	GetAccessToken(ctx context.Context, installationID int64) (*github.InstallationToken, error)
 }
 

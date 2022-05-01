@@ -5,17 +5,17 @@ import (
 	"log"
 	"sync"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 type enrichedIssue struct {
-	github.Issue
+	model.Issue
 	PullRequest *string
-	Events      []github.IssueEvent
+	Events      []model.IssueEvent
 }
 
-func newEnrichIssue(issue github.Issue) enrichedIssue {
+func newEnrichIssue(issue model.Issue) enrichedIssue {
 	return enrichedIssue{Issue: issue}
 }
 
@@ -25,7 +25,7 @@ func (i *enrichedIssue) loadPullRequest(ctx context.Context, gH *githubHandler, 
 		log.Printf("[loadPullRequest] error while requesting pull request for issue with number %d: %v", i.Number, err)
 		return
 	}
-	i.PullRequest = &pullRequest.URL
+	i.PullRequest = pullRequest
 }
 
 func (i *enrichedIssue) loadEvents(ctx context.Context, gH *githubHandler, owner, repoName string) {
@@ -51,7 +51,7 @@ func (sWI *safeWrappedIssue) Add(wI enrichedIssue) {
 func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName string) (map[int]enrichedIssue, error) {
 	// Get all issues filtered by label and closed state
 	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-	issueState := github.Closed
+	issueState := model.Closed
 	issuesResponse, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (gH *githubHandler) loadIssues(ctx context.Context, owner string, repoName 
 	safeIssues := safeWrappedIssue{enrichedIssue: make(map[int]enrichedIssue, len(issuesResponse))}
 	for _, issue := range issuesResponse {
 		wg.Add(1)
-		go func(ctx context.Context, issue github.Issue) {
+		go func(ctx context.Context, issue model.Issue) {
 			defer wg.Done()
 
 			enrichedIssue := newEnrichIssue(issue)

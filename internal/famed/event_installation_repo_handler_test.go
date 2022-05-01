@@ -11,10 +11,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	gitLib "github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	gitLib "github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -75,7 +76,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 
 			fakeInstallationClient := &githubfakes.FakeInstallationClient{}
 			fakeInstallationClient.PostLabelReturns(nil)
-			cl, _ := gitLib.NewInstallationClient("", nil, nil, "", "famed", nil)
+			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)

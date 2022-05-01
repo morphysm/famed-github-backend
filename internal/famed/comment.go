@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 var ErrNoContributors = errors.New("GitHub data incomplete")
@@ -51,10 +51,10 @@ func rewardCommentFromError(err error) string {
 	case ErrIssueMissingAssignee:
 		return fmt.Sprintf("%sThe issue is missing an assignee.", comment)
 
-	case github.ErrIssueMissingSeverityLabel:
+	case model.ErrIssueMissingSeverityLabel:
 		return fmt.Sprintf("%sThe issue is missing a severity label.", comment)
 
-	case github.ErrIssueMultipleSeverityLabels:
+	case model.ErrIssueMultipleSeverityLabels:
 		return fmt.Sprintf("%sThe issue has more than one severity label.", comment)
 
 	case ErrNoContributors:
@@ -67,7 +67,7 @@ func rewardCommentFromError(err error) string {
 }
 
 // issueEligibleComment generate an issue eligible comment.
-func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) string {
+func issueEligibleComment(issue model.Issue, pullRequest *string) string {
 	comment := fmt.Sprintf("%s **%s #%d** are now eligible to Get Famed.\n", eligibleCommentHeaderBeginning, issue.Title, issue.Number)
 
 	// Check that an assignee is assigned
@@ -86,7 +86,7 @@ func issueEligibleComment(issue github.Issue, pullRequest *github.PullRequest) s
 	return comment
 }
 
-func assigneeComment(assignees []github.User) string {
+func assigneeComment(assignees []model.User) string {
 	const msg = " Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9"
 	if len(assignees) > 0 {
 		return "✅" + msg
@@ -95,7 +95,7 @@ func assigneeComment(assignees []github.User) string {
 	return "❌" + msg
 }
 
-func severityComment(severities []github.IssueSeverity) string {
+func severityComment(severities []model.IssueSeverity) string {
 	const msg = " Add a single severity (CVSS) label to compute the score 🏷️"
 	if len(severities) == 1 {
 		return "✅" + msg
@@ -115,7 +115,7 @@ func severityComment(severities []github.IssueSeverity) string {
 //}
 
 // findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
-func findComment(comments []github.IssueComment, botLogin string, commentType commentType) (github.IssueComment, bool) {
+func findComment(comments []model.IssueComment, botLogin string, commentType commentType) (model.IssueComment, bool) {
 	for _, comment := range comments {
 		if comment.User.Login == botLogin &&
 			verifyCommentType(comment.Body, commentType) {
@@ -123,7 +123,7 @@ func findComment(comments []github.IssueComment, botLogin string, commentType co
 		}
 	}
 
-	return github.IssueComment{}, false
+	return model.IssueComment{}, false
 }
 
 // verifyCommentType checks if a given string is of a given commentType

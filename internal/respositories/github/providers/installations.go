@@ -1,20 +1,17 @@
-package github
+package providers
 
 import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
+
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
-type Installation struct {
-	ID      int64
-	Account User
-}
-
-func (c *githubAppClient) GetInstallations(ctx context.Context) ([]Installation, error) {
+func (c *githubAppClient) GetInstallations(ctx context.Context) ([]model.Installation, error) {
 	var (
 		allInstallations           []*github.Installation
-		allCompressedInstallations []Installation
+		allCompressedInstallations []model.Installation
 		listOptions                = &github.IssueListCommentsOptions{
 			ListOptions: github.ListOptions{
 				Page:    1,
@@ -36,7 +33,7 @@ func (c *githubAppClient) GetInstallations(ctx context.Context) ([]Installation,
 	}
 
 	for _, installation := range allInstallations {
-		compressedInstallation, err := validateInstallation(installation)
+		compressedInstallation, err := model.NewInstallation(installation)
 		if err != nil {
 			continue
 		}
@@ -45,18 +42,4 @@ func (c *githubAppClient) GetInstallations(ctx context.Context) ([]Installation,
 	}
 
 	return allCompressedInstallations, nil
-}
-
-func validateInstallation(installation *github.Installation) (Installation, error) {
-	if installation == nil ||
-		installation.ID == nil {
-		return Installation{}, ErrInstallationMissingData
-	}
-
-	account, err := validateUser(installation.Account)
-	if err != nil {
-		return Installation{}, err
-	}
-
-	return Installation{ID: *installation.ID, Account: account}, nil
 }

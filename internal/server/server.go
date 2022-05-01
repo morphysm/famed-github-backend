@@ -10,10 +10,10 @@ import (
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
 	"github.com/newrelic/go-agent/v3/newrelic"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/health"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/ticker"
 )
 
@@ -42,7 +42,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	)
 
 	// Create new app client to fetch installations and github tokens.
-	appClient, err := github.NewAppClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
+	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}
 
 	// Create a new github client to fetch repo data
-	installationClient, err := github.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamLogins)
+	installationClient, err := providers.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamLogins)
 	if err != nil {
 		return nil, err
 	}

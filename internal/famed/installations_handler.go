@@ -5,11 +5,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 type installation struct {
-	github.Installation
+	model.Installation
 	Repos []string `json:"repositories"`
 }
 
@@ -27,8 +27,8 @@ func (gH *githubHandler) GetInstallations(c echo.Context) error {
 		}
 
 		repos := make([]string, len(repositories))
-		for j, repo := range repositories {
-			repos[j] = repo.Name
+		for j, repoName := range repositories {
+			repos[j] = repoName
 		}
 
 		resp[i] = installation{Installation: instal, Repos: repos}

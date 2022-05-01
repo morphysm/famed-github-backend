@@ -1,4 +1,4 @@
-package github
+package providers
 
 import (
 	"context"
@@ -17,13 +17,54 @@ type issueTimelineConnectionItem struct {
 
 type connectedEvent struct {
 	Subject struct {
-		PullRequest PullRequest `graphql:"... on PullRequest"`
+		PullRequest pullRequest `graphql:"... on PullRequest"`
 	}
 	CreatedAt time.Time
 }
 
-type PullRequest struct {
+type pullRequest struct {
 	URL string
+}
+
+// GetIssuePullRequest returns a pull request if a linked pull request for the given issue can be found.
+// This is a workaround for the missing "pull_request" field in the event and issue objects provided by the REST GitHub API.
+// https://github.community/t/get-referenced-pull-request-from-issue/14027
+func (c *githubInstallationClient) GetIssuePullRequest(ctx context.Context, owner string, repoName string, issueNumber int) (*string, error) {
+	allTimelineItemsConnected, err := c.getConnectedEvents(ctx, owner, repoName, issueNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastConnectedEvent *issueTimelineConnectionItem
+	for _, node := range allTimelineItemsConnected {
+		if node.ConnectedEvent.Subject.PullRequest.URL != "" &&
+			(lastConnectedEvent == nil || lastConnectedEvent.ConnectedEvent.CreatedAt.Before(node.ConnectedEvent.CreatedAt)) {
+			// Last pull request connected event
+			tmpN := node
+			lastConnectedEvent = &tmpN
+		}
+	}
+
+	if lastConnectedEvent == nil {
+		return nil, nil
+	}
+
+	allTimelineItemsDisconnected, err := c.getDisconnectedEvents(ctx, owner, repoName, issueNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, node := range allTimelineItemsDisconnected {
+		if node.DisconnectedEvent.Subject.PullRequest.URL != "" &&
+			lastConnectedEvent.ConnectedEvent.CreatedAt.Before(node.DisconnectedEvent.CreatedAt) {
+			// Pull request disconnected after last connected event
+			return nil, nil
+		}
+	}
+
+	// TODO move this to pkg/pointer
+	pullRequest := lastConnectedEvent.ConnectedEvent.Subject.PullRequest.URL
+	return &pullRequest, nil
 }
 
 // getDisconnectedEvents returns all IssueTimelineDisconnectionItems for a given issue.

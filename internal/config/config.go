@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 type Config struct {
@@ -31,8 +31,8 @@ type Config struct {
 	}
 
 	Famed struct {
-		Labels          map[string]github.Label
-		Rewards         map[github.IssueSeverity]float64
+		Labels          map[string]model.Label
+		Rewards         map[model.IssueSeverity]float64
 		Currency        string
 		DaysToFix       int
 		UpdateFrequency int
@@ -171,35 +171,35 @@ func verifyConfig(cfg Config) error {
 	if err := verifyLabel(cfg, FamedLabelKey); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(github.Info)); err != nil {
+	if err := verifyLabel(cfg, string(model.Info)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(github.Low)); err != nil {
+	if err := verifyLabel(cfg, string(model.Low)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(github.Medium)); err != nil {
+	if err := verifyLabel(cfg, string(model.Medium)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(github.High)); err != nil {
+	if err := verifyLabel(cfg, string(model.High)); err != nil {
 		return err
 	}
-	if err := verifyLabel(cfg, string(github.Critical)); err != nil {
+	if err := verifyLabel(cfg, string(model.Critical)); err != nil {
 		return err
 	}
 
-	if err := verifyReward(cfg, github.Info); err != nil {
+	if err := verifyReward(cfg, model.Info); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, github.Low); err != nil {
+	if err := verifyReward(cfg, model.Low); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, github.Medium); err != nil {
+	if err := verifyReward(cfg, model.Medium); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, github.High); err != nil {
+	if err := verifyReward(cfg, model.High); err != nil {
 		return err
 	}
-	if err := verifyReward(cfg, github.Critical); err != nil {
+	if err := verifyReward(cfg, model.Critical); err != nil {
 		return err
 	}
 
@@ -214,7 +214,7 @@ func verifyLabel(cfg Config, label string) error {
 	return nil
 }
 
-func verifyReward(cfg Config, cvss github.IssueSeverity) error {
+func verifyReward(cfg Config, cvss model.IssueSeverity) error {
 	if _, ok := cfg.Famed.Rewards[cvss]; !ok {
 		return fmt.Errorf("config.json app.famed.rewards.%s must be set", cvss)
 	}

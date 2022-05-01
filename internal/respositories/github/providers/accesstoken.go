@@ -1,4 +1,4 @@
-package github
+package providers
 
 import (
 	"context"

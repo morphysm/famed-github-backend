@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 func (gH *githubHandler) GetRedTeam(c echo.Context) error {
@@ -27,7 +27,7 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 	}
 
 	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-	issueState := github.All
+	issueState := model.All
 	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, &issueState)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
@@ -41,7 +41,7 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 	return c.JSON(http.StatusOK, redTeam)
 }
 
-func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*contributor, error) {
+func generateRedTeamFromIssues(issues []model.Issue, currency string) ([]*contributor, error) {
 	contributors := contributors{}
 	if len(issues) == 0 {
 		return []*contributor{}, nil
@@ -62,7 +62,7 @@ func generateRedTeamFromIssues(issues []github.Issue, currency string) ([]*contr
 }
 
 // mapIssue maps an issue to the contributors map.
-func (cs contributors) mapIssue(issue github.Issue, currency string) {
+func (cs contributors) mapIssue(issue model.Issue, currency string) {
 	// Get red team contributor from map
 	for _, teamer := range issue.RedTeam {
 		cs.mapAssigneeIfMissing(teamer, currency)
@@ -79,7 +79,7 @@ func (cs contributors) mapIssue(issue github.Issue, currency string) {
 }
 
 // mapIssue maps an issue to a contributor.
-func (c *contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity github.IssueSeverity) {
+func (c *contributor) mapIssue(url string, reportedDate, publishedDate time.Time, reward float64, severity model.IssueSeverity) {
 	// Set reward
 	c.updateReward(url, publishedDate, reward)
 

@@ -7,7 +7,8 @@ import (
 
 	githuba "github.com/google/go-github/v41/github"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 )
 
 type FakeAppClient struct {
@@ -197,4 +198,4 @@ func (fake *FakeAppClient) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ github.AppClient = new(FakeAppClient)
+var _ providers.AppClient = new(FakeAppClient)

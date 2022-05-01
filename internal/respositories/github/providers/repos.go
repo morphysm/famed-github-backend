@@ -1,20 +1,18 @@
-package github
+package providers
 
 import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
+
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
-type Repo struct {
-	Name string
-}
-
-func (c *githubInstallationClient) GetRepos(ctx context.Context, owner string) ([]Repo, error) {
+func (c *githubInstallationClient) GetRepos(ctx context.Context, owner string) ([]string, error) {
 	var (
 		client, _          = c.clients.get(owner)
 		allRepos           []*github.Repository
-		allCompressedRepos []Repo
+		allCompressedRepos []string
 		listOptions        = &github.ListOptions{
 			Page:    1,
 			PerPage: 100,
@@ -34,7 +32,7 @@ func (c *githubInstallationClient) GetRepos(ctx context.Context, owner string) (
 	}
 
 	for _, repo := range allRepos {
-		compressedEvent, err := validateRepo(repo)
+		compressedEvent, err := model.NewRepo(repo)
 		if err != nil {
 			continue
 		}
@@ -42,15 +40,4 @@ func (c *githubInstallationClient) GetRepos(ctx context.Context, owner string) (
 	}
 
 	return allCompressedRepos, nil
-}
-
-func validateRepo(repo *github.Repository) (Repo, error) {
-	if repo == nil ||
-		repo.Name == nil {
-		return Repo{}, ErrRepoMissingData
-	}
-
-	return Repo{
-		Name: *repo.Name,
-	}, nil
 }

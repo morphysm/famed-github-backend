@@ -9,23 +9,23 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 type contributors map[string]*contributor
 
 type contributor struct {
-	Login            string                       `json:"login"`
-	AvatarURL        string                       `json:"avatarUrl"`
-	HTMLURL          string                       `json:"htmlUrl"`
-	FixCount         int                          `json:"fixCount"`
-	Rewards          []rewardEvent                `json:"rewards"`
-	RewardSum        float64                      `json:"rewardSum"`
-	Currency         string                       `json:"currency"`
-	RewardsLastYear  rewardsLastYear              `json:"rewardsLastYear"`
-	TimeToDisclosure timeToDisclosure             `json:"timeToDisclosure"`
-	Severities       map[github.IssueSeverity]int `json:"severities"`
-	MeanSeverity     float64                      `json:"meanSeverity"`
+	Login            string                      `json:"login"`
+	AvatarURL        string                      `json:"avatarUrl"`
+	HTMLURL          string                      `json:"htmlUrl"`
+	FixCount         int                         `json:"fixCount"`
+	Rewards          []rewardEvent               `json:"rewards"`
+	RewardSum        float64                     `json:"rewardSum"`
+	Currency         string                      `json:"currency"`
+	RewardsLastYear  rewardsLastYear             `json:"rewardsLastYear"`
+	TimeToDisclosure timeToDisclosure            `json:"timeToDisclosure"`
+	Severities       map[model.IssueSeverity]int `json:"severities"`
+	MeanSeverity     float64                     `json:"meanSeverity"`
 	// For issue rewardComment generation
 	TotalWorkTime time.Duration `json:"-"`
 }
@@ -44,7 +44,7 @@ type rewardEvent struct {
 
 type boardOptions struct {
 	currency  string
-	rewards   map[github.IssueSeverity]float64
+	rewards   map[model.IssueSeverity]float64
 	daysToFix int
 }
 
@@ -137,7 +137,7 @@ func (cs contributors) MapIssue(issue enrichedIssue, boardOptions boardOptions) 
 }
 
 // mapEvents maps issue events to the contributors
-func (cs contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.Time, severity github.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
+func (cs contributors) mapEvents(events []model.IssueEvent, issueClosedAt time.Time, severity model.IssueSeverity, timeToDisclosure float64, currency string) (WorkLogs, int) {
 	// areIncremented tracks contributors that have had their fix counters incremented
 	var (
 		workLogs       = WorkLogs{}
@@ -148,7 +148,7 @@ func (cs contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.
 	// Iterate through issue events and map events if event type is of interest
 	for _, event := range events {
 		switch event.Event {
-		case string(github.IssueEventActionAssigned):
+		case string(model.IssueEventActionAssigned):
 			if event.Assignee == nil {
 				log.Printf("[MapIssue] event assigned is missing for event with ID: %d", event.ID)
 				continue
@@ -164,9 +164,9 @@ func (cs contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.
 				cs.incrementFixCounters(event.Assignee.Login, timeToDisclosure, severity)
 				areIncremented[event.Assignee.Login] = true
 			}
-		case string(github.IssueEventActionUnassigned):
+		case string(model.IssueEventActionUnassigned):
 			mapEventUnassigned(event, workLogs)
-		case string(github.IssueEventActionReopened):
+		case string(model.IssueEventActionReopened):
 			reopenCount++
 		}
 	}
@@ -175,7 +175,7 @@ func (cs contributors) mapEvents(events []github.IssueEvent, issueClosedAt time.
 }
 
 // mapEventAssigned handles an assigned event, updating the contributor map.
-func (cs contributors) mapEventAssigned(event github.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
+func (cs contributors) mapEventAssigned(event model.IssueEvent, issueClosedAt time.Time, workLogs WorkLogs, currency string) {
 	cs.mapAssigneeIfMissing(*event.Assignee, currency)
 
 	// Append work log
@@ -183,7 +183,7 @@ func (cs contributors) mapEventAssigned(event github.IssueEvent, issueClosedAt t
 }
 
 // mapEventUnassigned handles an unassigned event, updating the work log of the unassigned contributor.
-func mapEventUnassigned(event github.IssueEvent, workLogs WorkLogs) {
+func mapEventUnassigned(event model.IssueEvent, workLogs WorkLogs) {
 	err := workLogs.UpdateEnd(event.Assignee.Login, event.CreatedAt)
 	if err != nil {
 		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
@@ -191,7 +191,7 @@ func mapEventUnassigned(event github.IssueEvent, workLogs WorkLogs) {
 }
 
 // mapAssigneeIfMissing adds a contributor to the contributors' map if the contributor is missing.
-func (cs contributors) mapAssigneeIfMissing(assignee github.User, currency string) {
+func (cs contributors) mapAssigneeIfMissing(assignee model.User, currency string) {
 	_, ok := cs[assignee.Login]
 	if !ok {
 		cs[assignee.Login] = &contributor{
@@ -201,20 +201,20 @@ func (cs contributors) mapAssigneeIfMissing(assignee github.User, currency strin
 			Rewards:          []rewardEvent{},
 			Currency:         currency,
 			TimeToDisclosure: timeToDisclosure{},
-			Severities:       map[github.IssueSeverity]int{},
+			Severities:       map[model.IssueSeverity]int{},
 			RewardsLastYear:  newRewardsLastYear(time.Now()),
 		}
 	}
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (cs contributors) incrementFixCounters(login string, timeToDisclosure float64, severity github.IssueSeverity) {
+func (cs contributors) incrementFixCounters(login string, timeToDisclosure float64, severity model.IssueSeverity) {
 	contributor := cs[login]
 	contributor.incrementFixCounters(timeToDisclosure, severity)
 }
 
 // updateFixCounters updates the fix counters of the contributor who is assigned to the issue in the contributors' map.
-func (c *contributor) incrementFixCounters(timeToDisclosure float64, severity github.IssueSeverity) {
+func (c *contributor) incrementFixCounters(timeToDisclosure float64, severity model.IssueSeverity) {
 	// Increment fix count
 	c.FixCount++
 	// Increment severity counter
@@ -255,10 +255,10 @@ func (cs contributors) updateAverageSeverity() {
 			continue
 		}
 
-		contributor.MeanSeverity = (2*float64(contributor.Severities[github.Low]) +
-			5.5*float64(contributor.Severities[github.Medium]) +
-			9*float64(contributor.Severities[github.High]) +
-			9.5*float64(contributor.Severities[github.Critical])) / float64(contributor.FixCount)
+		contributor.MeanSeverity = (2*float64(contributor.Severities[model.Low]) +
+			5.5*float64(contributor.Severities[model.Medium]) +
+			9*float64(contributor.Severities[model.High]) +
+			9.5*float64(contributor.Severities[model.Critical])) / float64(contributor.FixCount)
 	}
 }
 

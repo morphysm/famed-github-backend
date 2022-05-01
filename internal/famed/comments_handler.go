@@ -8,8 +8,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/famed-github-backend/internal/client/github"
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -158,7 +158,7 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 	var wg sync.WaitGroup
 	for _, issue := range issues {
 		wg.Add(1)
-		go func(issue github.Issue) {
+		go func(issue model.Issue) {
 			update := gH.updateEligibleComment(ctx, &wg, owner, repoName, issue)
 			if updates != nil {
 				updates.Add(issue.Number, update, commentEligible)
@@ -169,7 +169,7 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 	return nil
 }
 
-func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue github.Issue) commentUpdate {
+func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.Issue) commentUpdate {
 	defer wg.Done()
 
 	update := commentUpdate{}

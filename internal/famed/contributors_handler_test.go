@@ -13,9 +13,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	gitlib "github.com/morphysm/famed-github-backend/internal/client/github"
-	"github.com/morphysm/famed-github-backend/internal/client/github/githubfakes"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	gitlib "github.com/morphysm/famed-github-backend/internal/respositories/github"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/githubfakes"
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
 
@@ -33,7 +34,7 @@ func TestGetContributors(t *testing.T) {
 		AppInstalled     bool
 		Issues           []gitlib.Issue
 		Event            *github.IssuesEvent
-		Events           []gitlib.IssueEvent
+		Events           []providers.IssueEvent
 		PullRequest      *gitlib.PullRequest
 		ExpectedResponse string
 		ExpectedErr      error
@@ -72,7 +73,7 @@ func TestGetContributors(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "testUser"},
-			Events: []gitlib.IssueEvent{
+			Events: []providers.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),
@@ -128,7 +129,7 @@ func TestGetContributors(t *testing.T) {
 				},
 			},
 			PullRequest: &gitlib.PullRequest{URL: "testUser"},
-			Events: []gitlib.IssueEvent{
+			Events: []providers.IssueEvent{
 				{
 					Event:     "assigned",
 					CreatedAt: time.Date(2021, 12, 1, 0, 0, 0, 0, time.UTC),

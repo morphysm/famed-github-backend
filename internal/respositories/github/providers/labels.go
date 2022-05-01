@@ -1,18 +1,14 @@
-package github
+package providers
 
 import (
 	"context"
 
 	"github.com/google/go-github/v41/github"
+
+	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
-type Label struct {
-	Name        string
-	Color       string
-	Description string
-}
-
-func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, repoName string, label Label) error {
+func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, repoName string, label model.Label) error {
 	client, _ := c.clients.get(owner)
 
 	_, _, err := client.Issues.CreateLabel(ctx, owner, repoName, &github.Label{
@@ -23,7 +19,7 @@ func (c *githubInstallationClient) PostLabel(ctx context.Context, owner string, 
 	return err
 }
 
-func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]Label) []error {
+func (c *githubInstallationClient) PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]model.Label) []error {
 	var errors []error
 
 	for _, repo := range repoNames {
