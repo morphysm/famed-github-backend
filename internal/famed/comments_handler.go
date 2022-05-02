@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
@@ -58,16 +59,16 @@ type updateCommentsResponse struct {
 func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrMissingOwnerPathParameter.Error())
 	}
 
 	repoName := c.Param("repo_name")
 	if repoName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingRepoPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrMissingRepoPathParameter.Error())
 	}
 
 	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrAppNotInstalled.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrAppNotInstalled.Error())
 	}
 
 	var wg sync.WaitGroup
@@ -105,7 +106,7 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 	i := 0
 	for issueNumber, issue := range wrappedIssues {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue enrichedIssue) {
+		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) {
 			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
 			if updates != nil {
 				updates.Add(issueNumber, update, commentReward)
@@ -119,16 +120,13 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue enrichedIssue) commentUpdate {
+func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) commentUpdate {
 	defer wg.Done()
 
 	update := commentUpdate{}
 	comment := ""
-	contributors, err := ContributorsFromIssue(issue, boardOptions{
-		currency:  gH.famedConfig.Currency,
-		rewards:   gH.famedConfig.Rewards,
-		daysToFix: gH.famedConfig.DaysToFix,
-	})
+	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
+	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
 	if err != nil {
 		comment = rewardCommentFromError(err)
 	}

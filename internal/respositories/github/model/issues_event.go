@@ -21,7 +21,7 @@ func NewIssuesEvent(event *github.IssuesEvent, famedLabel string) (IssuesEvent, 
 		event.Repo == nil ||
 		event.Repo.Name == nil ||
 		event.Repo.Owner == nil ||
-		event.Repo.Owner.Name == nil {
+		event.Repo.Owner.Login == nil {
 		return IssuesEvent{}, ErrEventMissingData
 	}
 
@@ -44,7 +44,7 @@ func NewIssuesEvent(event *github.IssuesEvent, famedLabel string) (IssuesEvent, 
 
 	case string(Unlabeled):
 		// TODO check if this is necessary
-		issue, err := NewIssue(event.Issue, *event.Repo.Owner.Name, *event.Repo.Name)
+		issue, err := NewIssue(event.Issue, *event.Repo.Owner.Login, *event.Repo.Name)
 		if err != nil {
 			return IssuesEvent{}, err
 		}

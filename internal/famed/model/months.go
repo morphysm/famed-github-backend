@@ -1,11 +1,11 @@
-package famed
+package model
 
 import (
 	"fmt"
 	"time"
 )
 
-type rewardsLastYear []monthlyReward
+type RewardsLastYear []monthlyReward
 
 type monthlyReward struct {
 	Month  string  `json:"month"`
@@ -14,8 +14,8 @@ type monthlyReward struct {
 
 const monthsInAYear = 12
 
-// newRewardsLastYear returns rewardsLastYear with instantiated months starting at the current month and going back 11 months.
-func newRewardsLastYear(timeStart time.Time) rewardsLastYear {
+// NewRewardsLastYear returns rewardsLastYear with instantiated months starting at the current month and going back 11 months.
+func NewRewardsLastYear(timeStart time.Time) RewardsLastYear {
 	rewardsLastYear := make([]monthlyReward, monthsInAYear)
 	year, month, _ := timeStart.Date()
 	for i := 0; i < 12; i++ {

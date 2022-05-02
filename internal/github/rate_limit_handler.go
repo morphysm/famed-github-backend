@@ -1,15 +1,16 @@
-package famed
+package github
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/morphysm/famed-github-backend/internal/famed/model"
 )
 
 func (gH *githubHandler) GetRateLimit(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model.ErrMissingOwnerPathParameter.Error())
 	}
 
 	installations, err := gH.githubInstallationClient.GetRateLimit(c.Request().Context(), owner)

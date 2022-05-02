@@ -4,22 +4,24 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/morphysm/famed-github-backend/internal/famed/model"
 )
 
-// GetContributors returns a list of contributors for the famed board.
-func (gH *githubHandler) GetContributors(c echo.Context) error {
+// GetBlueTeam returns a list of contributors for the famed board.
+func (gH *githubHandler) GetBlueTeam(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingOwnerPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model.ErrMissingOwnerPathParameter.Error())
 	}
 
 	repoName := c.Param("repo_name")
 	if repoName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrMissingRepoPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model.ErrMissingRepoPathParameter.Error())
 	}
 
 	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrAppNotInstalled.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, model.ErrAppNotInstalled.Error())
 	}
 
 	issues, err := gH.loadIssues(c.Request().Context(), owner, repoName)
@@ -28,15 +30,13 @@ func (gH *githubHandler) GetContributors(c echo.Context) error {
 	}
 
 	if len(issues) == 0 {
-		return c.JSON(http.StatusOK, []*contributor{})
+		return c.JSON(http.StatusOK, []*model.Contributor{})
 	}
 
 	// Use issues with events to generate contributor list
-	contributors := contributorsArray(issues, boardOptions{
-		currency:  gH.famedConfig.Currency,
-		rewards:   gH.famedConfig.Rewards,
-		daysToFix: gH.famedConfig.DaysToFix,
-	})
+	rewardStructure := model.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
+	boardOptions := model.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
+	contributors := model.NewBlueTeamFromIssues(issues, boardOptions)
 
 	return c.JSON(http.StatusOK, contributors)
 }

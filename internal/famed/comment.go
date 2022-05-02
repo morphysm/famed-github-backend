@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -17,22 +18,20 @@ const (
 )
 
 // rewardComment generates a reward comment.
-func rewardComment(contributors contributors, currency string, owner string, repoName string) string {
+func rewardComment(contributors []*model2.Contributor, currency string, owner string, repoName string) string {
 	if len(contributors) == 0 {
 		return rewardCommentFromError(ErrNoContributors)
 	}
 
-	sortedContributors := contributors.toSortedSlice()
-
 	comment := ""
-	for _, contributor := range sortedContributors {
+	for _, contributor := range contributors {
 		comment = fmt.Sprintf("%s@%s ", comment, contributor.Login)
 	}
 
 	comment = fmt.Sprintf("%s- you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/%s/%s", comment, owner, repoName)
 	comment = fmt.Sprintf("%s\n%s", comment, rewardCommentTableHeader)
 
-	for _, contributor := range sortedContributors {
+	for _, contributor := range contributors {
 		comment = fmt.Sprintf("%s\n|%s|%s|%d %s|", comment, contributor.Login, contributor.TotalWorkTime, int(contributor.RewardSum), currency)
 	}
 
@@ -48,7 +47,7 @@ func rewardCommentFromError(err error) string {
 	case ErrIssueMissingPullRequest:
 		return fmt.Sprintf("%sThe issue is missing a pull request.", comment)
 
-	case ErrIssueMissingAssignee:
+	case model2.ErrIssueMissingAssignee:
 		return fmt.Sprintf("%sThe issue is missing an assignee.", comment)
 
 	case model.ErrIssueMissingSeverityLabel:

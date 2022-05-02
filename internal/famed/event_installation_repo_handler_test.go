@@ -13,6 +13,7 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
@@ -31,7 +32,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 		string(model.High):     {Name: string(model.High), Color: "TestColor", Description: "TestDescription"},
 		string(model.Critical): {Name: string(model.Critical), Color: "TestColor", Description: "TestDescription"},
 	}
-	famedConfig := famed.Config{
+	famedConfig := model2.Config{
 		Labels: labels,
 	}
 
@@ -44,7 +45,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 		{
 			Name:        "Empty github event",
 			Event:       &github.InstallationRepositoriesEvent{},
-			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: model2.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Valid",
@@ -79,7 +80,7 @@ func TestPostInstallationRepositoriesEvent(t *testing.T) {
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig, Now)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

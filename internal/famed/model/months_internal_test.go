@@ -1,4 +1,4 @@
-package famed
+package model
 
 import (
 	"testing"
@@ -74,12 +74,12 @@ func TestNewRewardsLastYear(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Date     time.Time
-		Expected rewardsLastYear
+		Expected RewardsLastYear
 	}{
 		{
 			Name: "Start on first of 2021",
 			Date: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-			Expected: rewardsLastYear{
+			Expected: RewardsLastYear{
 				{Month: "1.2021", Reward: 0},
 				{Month: "12.2020", Reward: 0},
 				{Month: "11.2020", Reward: 0},
@@ -97,7 +97,7 @@ func TestNewRewardsLastYear(t *testing.T) {
 		{
 			Name: "Start mid first of 2020",
 			Date: time.Date(2020, 6, 1, 0, 0, 0, 0, time.UTC),
-			Expected: rewardsLastYear{
+			Expected: RewardsLastYear{
 				{Month: "6.2020", Reward: 0},
 				{Month: "5.2020", Reward: 0},
 				{Month: "4.2020", Reward: 0},
@@ -115,7 +115,7 @@ func TestNewRewardsLastYear(t *testing.T) {
 		{
 			Name: "Start 31.03.2020",
 			Date: time.Date(2020, 3, 31, 0, 0, 0, 0, time.UTC),
-			Expected: rewardsLastYear{
+			Expected: RewardsLastYear{
 				{Month: "3.2020", Reward: 0},
 				{Month: "2.2020", Reward: 0},
 				{Month: "1.2020", Reward: 0},
@@ -137,7 +137,7 @@ func TestNewRewardsLastYear(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			t.Parallel()
 			// WHEN
-			rewardsLastYear := newRewardsLastYear(testCase.Date)
+			rewardsLastYear := NewRewardsLastYear(testCase.Date)
 
 			// THEN
 			assert.Equal(t, testCase.Expected, rewardsLastYear)

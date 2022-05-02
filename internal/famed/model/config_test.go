@@ -1,11 +1,11 @@
-package famed_test
+package model_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/morphysm/famed-github-backend/internal/famed"
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -32,7 +32,7 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, cfg.BotLogin, "b")
 }
 
-func NewTestConfig() famed.Config {
+func NewTestConfig() model2.Config {
 	rewards := map[model.IssueSeverity]float64{
 		model.Info:     0,
 		model.Low:      1000,
@@ -48,7 +48,7 @@ func NewTestConfig() famed.Config {
 		},
 	}
 
-	return famed.NewFamedConfig("POINTS",
+	return model2.NewFamedConfig("POINTS",
 		rewards,
 		labels,
 		40,

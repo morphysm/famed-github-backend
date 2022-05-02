@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -78,25 +79,23 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
 func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.IssuesEvent) (string, error) {
 	if len(event.Issue.Assignees) == 0 {
-		return rewardCommentFromError(ErrIssueMissingAssignee), nil
+		return rewardCommentFromError(model2.ErrIssueMissingAssignee), nil
 	}
 
-	issue := newEnrichIssue(event.Issue)
-
-	issue.loadPullRequest(ctx, gH, event.Repo.Owner.Login, event.Repo.Name)
-	if issue.PullRequest == nil {
+	pullRequest := gH.loadPullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
+	if pullRequest == nil {
 		return rewardCommentFromError(ErrIssueMissingPullRequest), nil
 	}
 
-	if !issue.Migrated {
-		issue.loadEvents(ctx, gH, event.Repo.Owner.Login, event.Repo.Name)
+	var events []model.IssueEvent
+	if !event.Issue.Migrated {
+		events = gH.loadEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	}
 
-	contributors, err := ContributorsFromIssue(issue, boardOptions{
-		currency:  gH.famedConfig.Currency,
-		rewards:   gH.famedConfig.Rewards,
-		daysToFix: gH.famedConfig.DaysToFix,
-	})
+	issue := model2.NewEnrichIssue(event.Issue, pullRequest, events)
+	rewardStructure := model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
+	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
+	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
 	if err != nil {
 		return rewardCommentFromError(err), nil
 	}

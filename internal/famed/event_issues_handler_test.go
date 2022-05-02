@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
@@ -37,7 +38,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				Action: pointer.String("closed"),
 			},
 			ExpectedComment: "",
-			ExpectedErr:     &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
+			ExpectedErr:     &echo.HTTPError{Code: 400, Message: model2.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Close - No Assignee",
@@ -258,7 +259,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 				Assignee: &github.User{Login: pointer.String("test")},
 			},
-			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: model2.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Unassigned - Valid - Non present",
@@ -414,7 +415,7 @@ func TestPostIssuesEvent(t *testing.T) {
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig, Now)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)
@@ -427,7 +428,11 @@ func TestPostIssuesEvent(t *testing.T) {
 					assert.Equal(t, testCase.ExpectedComment, comment)
 				}
 			} else {
-				assert.Equal(t, testCase.ExpectedErr, err)
+				echoErr, ok := err.(*echo.HTTPError)
+				if ok {
+					assert.Equal(t, testCase.ExpectedErr.Code, echoErr.Code)
+					assert.Equal(t, testCase.ExpectedErr.Message, echoErr.Message)
+				}
 			}
 		})
 	}

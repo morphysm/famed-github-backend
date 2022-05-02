@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -13,7 +14,7 @@ import (
 func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, event model.InstallationRepositoriesEvent) error {
 	if event.Action != "added" {
 		log.Printf("[handleInstallationRepositoriesEvent] error is not valid repo added event")
-		return ErrEventNotRepoAdded
+		return model2.ErrEventNotRepoAdded
 	}
 
 	repoNames := make([]string, len(event.RepositoriesAdded))

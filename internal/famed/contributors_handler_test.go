@@ -14,10 +14,40 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
+
+func Now() time.Time {
+	var nowTime = time.Date(2022, 4, 20, 0, 0, 0, 0, time.UTC)
+	return nowTime
+}
+
+func NewTestConfig() model2.Config {
+	rewards := map[model.IssueSeverity]float64{
+		model.Info:     0,
+		model.Low:      1000,
+		model.Medium:   2000,
+		model.High:     3000,
+		model.Critical: 4000,
+	}
+	labels := map[string]model.Label{
+		"famed": {
+			Name:        "famed",
+			Color:       "testColor",
+			Description: "testDescription",
+		},
+	}
+
+	return model2.NewFamedConfig("POINTS",
+		rewards,
+		labels,
+		40,
+		"b",
+	)
+}
 
 func TestGetContributors(t *testing.T) {
 	t.Parallel()
@@ -163,10 +193,10 @@ func TestGetContributors(t *testing.T) {
 			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
 			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig)
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig, Now)
 
 			// WHEN
-			err = githubHandler.GetContributors(ctx)
+			err = githubHandler.GetBlueTeam(ctx)
 
 			// THEN
 			assert.Equal(t, testCase.ExpectedErr, err)

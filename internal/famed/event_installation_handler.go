@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -13,7 +14,7 @@ import (
 func (gH *githubHandler) handleInstallationEvent(c echo.Context, event model.InstallationEvent) error {
 	if event.Action != "created" {
 		log.Printf("[handleInstallationEvent] error is not valid insatllation created event")
-		return ErrEventNotInstallationCreated
+		return model2.ErrEventNotInstallationCreated
 	}
 
 	err := gH.githubInstallationClient.AddInstallation(event.Installation.Account.Login, event.Installation.ID)

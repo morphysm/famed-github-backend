@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
@@ -28,7 +29,7 @@ func TestPostInstallationEvent(t *testing.T) {
 		{
 			Name:        "Empty github repository event",
 			Event:       &github.InstallationEvent{},
-			ExpectedErr: &echo.HTTPError{Code: 400, Message: famed.ErrEventMissingData.Error()},
+			ExpectedErr: &echo.HTTPError{Code: 400, Message: model.ErrEventMissingData.Error()},
 		},
 		{
 			Name: "Valid",
@@ -61,7 +62,7 @@ func TestPostInstallationEvent(t *testing.T) {
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
-			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig())
+			githubHandler := famed.NewHandler(nil, fakeInstallationClient, NewTestConfig(), Now)
 
 			// WHEN
 			err = githubHandler.PostEvent(ctx)

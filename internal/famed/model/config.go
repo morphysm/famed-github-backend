@@ -1,4 +1,4 @@
-package famed
+package model
 
 import (
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"

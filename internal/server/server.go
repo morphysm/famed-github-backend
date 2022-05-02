@@ -12,6 +12,8 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/famed"
+	"github.com/morphysm/famed-github-backend/internal/famed/model"
+	"github.com/morphysm/famed-github-backend/internal/github"
 	"github.com/morphysm/famed-github-backend/internal/health"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/ticker"
@@ -65,9 +67,12 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 		return nil, err
 	}
 
-	// Create the famed handler handling most of the business logic
-	famedConfig := famed.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Famed.DaysToFix, cfg.Github.BotLogin)
-	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig)
+	// Create a new GitHub handler handling gateway calls to GitHub
+	githubHandler := github.NewHandler(installationClient)
+
+	// Create the famed handler handling the famed business logic
+	famedConfig := model.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Famed.DaysToFix, cfg.Github.BotLogin)
+	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig, time.Now)
 
 	// Start comment update interval
 	ticker.NewTicker(time.Duration(cfg.Famed.UpdateFrequency)*time.Second, famedHandler.CleanState)
@@ -91,7 +96,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	}))
 	{
 		FamedAdminRoutes(
-			famedAdminGroup, famedHandler,
+			famedAdminGroup, famedHandler, githubHandler,
 		)
 	}
 

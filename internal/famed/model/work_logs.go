@@ -1,4 +1,4 @@
-package famed
+package model
 
 import (
 	"errors"
