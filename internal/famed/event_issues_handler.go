@@ -105,18 +105,18 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event model.Iss
 // if so, the handleClosedEvent body is checked for equality against the new handleClosedEvent,
 // if the comments are not equal the handleClosedEvent is updated,
 // if no handleClosedEvent was found a new handleClosedEvent is posted.
-func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment comment.Comment) (bool, error) {
+func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, updatedComment comment.Comment) (bool, error) {
 	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
 		return false, err
 	}
 
-	body, err := comment.String()
+	body, err := updatedComment.String()
 	if err != nil {
 		return false, err
 	}
 
-	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, comment.Type())
+	foundComment, found := comment.Comments(comments).FindComment(gH.famedConfig.BotLogin, updatedComment.Type())
 	if !found {
 		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, body)
 		if err != nil {
@@ -135,32 +135,4 @@ func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, 
 	}
 
 	return false, nil
-}
-
-// findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
-func findComment(comments []model.IssueComment, botLogin string, commentType comment.Type) (model.IssueComment, bool) {
-	for _, comment := range comments {
-		if comment.User.Login == botLogin &&
-			verifyCommentType(comment.Body, commentType) {
-			return comment, true
-		}
-	}
-
-	return model.IssueComment{}, false
-}
-
-// verifyCommentType checks if a given string is of a given commentType
-func verifyCommentType(str string, commentType comment.Type) bool {
-	var substr string
-	switch commentType {
-	case comment.EligibleCommentType:
-		substr = comment.EligibleCommentHeaderBeginning
-	case comment.RewardCommentType:
-		if strings.Contains(str, comment.RewardCommentTableHeader) {
-			return true
-		}
-		substr = comment.ErrorRewardCommentHeader
-	}
-
-	return strings.Contains(str, substr)
 }

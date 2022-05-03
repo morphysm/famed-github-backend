@@ -137,7 +137,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		//	Name: "Close - No pull request",
 		//	Event: &github.IssuesEvent{
 		//		Action: pointer.String("closed"),
-		//		enrichedIssue: &github.enrichedIssue{
+		//		enrichedIssues: &github.enrichedIssues{
 		//			ID:        pointer.Int64(0),
 		//			Title:     pointer.String("test"),
 		//			Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
