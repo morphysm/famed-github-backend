@@ -96,30 +96,6 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
-	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx, owner, repoName)
-	if err != nil {
-		return err
-	}
-
-	var wg sync.WaitGroup
-	i := 0
-	for issueNumber, issue := range issues {
-		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) {
-			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
-			if updates != nil {
-				updates.Add(issueNumber, update, comment.RewardCommentType)
-			}
-		}(ctx, &wg, owner, repoName, issue)
-		i++
-	}
-	wg.Wait()
-
-	return nil
-}
-
-// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) {
 	enrichedIssues := gH.githubInstallationClient.EnrichIssues(ctx, owner, repoName, issues)
 
