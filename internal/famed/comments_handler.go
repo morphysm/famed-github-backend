@@ -25,8 +25,8 @@ type issueCommentUpdate struct {
 }
 
 type commentUpdate struct {
-	Updated bool   `json:"updated"`
-	Error   string `json:"error"`
+	Action string `json:"action"`
+	Error  string `json:"error"`
 }
 
 func NewSafeIssueCommentsUpdates() *safeIssueCommentsUpdates {
@@ -50,9 +50,7 @@ func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate comment
 }
 
 type updateCommentsResponse struct {
-	RewardCommentsError   *string                    `json:"rewardCommentError,omitempty"`
-	EligibleCommentsError *string                    `json:"eligibleCommentError,omitempty"`
-	Updates               map[int]issueCommentUpdate `json:"updates"`
+	Updates map[int]issueCommentUpdate `json:"updates"`
 }
 
 // GetUpdateComments updates the comments in a GitHub repo.
@@ -77,9 +75,10 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 		return err
 	}
 
-	var wg sync.WaitGroup
 	updates := NewSafeIssueCommentsUpdates()
-	response := updateCommentsResponse{}
+	gH.deleteDuplicateComments(c.Request().Context(), owner, repoName, issues, updates)
+
+	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
@@ -91,8 +90,7 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	}()
 
 	wg.Wait()
-	response.Updates = updates.m
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, updateCommentsResponse{Updates: updates.m})
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
@@ -120,7 +118,7 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) commentUpdate {
 	defer wg.Done()
 
-	update := commentUpdate{}
+	update := commentUpdate{Action: "update"}
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
 	var newComment comment.Comment
@@ -134,14 +132,13 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 		newComment = comment.NewRewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
+	_, err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
 	if err != nil {
 		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
 		update.Error = err.Error()
 		return update
 	}
 
-	update.Updated = updated
 	return update
 }
 
@@ -163,7 +160,7 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.Issue) commentUpdate {
 	defer wg.Done()
 
-	update := commentUpdate{}
+	update := commentUpdate{Action: "update"}
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		log.Printf("[updateEligibleComment] error while fetching pull request: %v", err)
@@ -173,13 +170,55 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.Wai
 
 	comment := comment.NewEligibleComment(issue, pullRequest)
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment)
+	_, err = gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment)
 	if err != nil {
 		log.Printf("[updateEligibleComment] error while posting eligable comment: %v", err)
 		update.Error = err.Error()
 		return update
 	}
 
-	update.Updated = updated
 	return update
+}
+
+// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
+func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) error {
+	for _, issue := range issues {
+		comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issue.Number)
+		if err != nil {
+			return err
+		}
+
+		eligibleCommentFound := false
+		rewardCommentFound := false
+		for _, com := range comments {
+			if comment.VerifyCommentType(com.Body, comment.EligibleCommentType) {
+				if !eligibleCommentFound {
+					eligibleCommentFound = true
+				} else {
+					commentUpdate := commentUpdate{Action: "update"}
+					err := gH.githubInstallationClient.DeleteComment(ctx, owner, repoName, com.ID)
+					if err != nil {
+						log.Printf("[deleteDuplicateComments] error while deleting comment with id: %d: %v", com.ID, err)
+						commentUpdate.Error = err.Error()
+					}
+					updates.Add(issue.Number, commentUpdate, comment.EligibleCommentType)
+				}
+			}
+			if comment.VerifyCommentType(com.Body, comment.RewardCommentType) {
+				if !rewardCommentFound {
+					rewardCommentFound = true
+				} else {
+					commentUpdate := commentUpdate{Action: "update"}
+					err := gH.githubInstallationClient.DeleteComment(ctx, owner, repoName, com.ID)
+					if err != nil {
+						log.Printf("[deleteDuplicateComments] error while deleting comment with id: %d: %v", com.ID, err)
+						commentUpdate.Error = err.Error()
+					}
+					updates.Add(issue.Number, commentUpdate, comment.RewardCommentType)
+				}
+			}
+		}
+	}
+
+	return nil
 }

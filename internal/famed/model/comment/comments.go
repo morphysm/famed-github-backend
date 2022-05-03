@@ -12,7 +12,7 @@ type Comments []model.IssueComment
 func (cs Comments) FindComment(botLogin string, commentType Type) (model.IssueComment, bool) {
 	for _, comment := range cs {
 		if comment.User.Login == botLogin &&
-			verifyCommentType(comment.Body, commentType) {
+			VerifyCommentType(comment.Body, commentType) {
 			return comment, true
 		}
 	}
@@ -20,8 +20,8 @@ func (cs Comments) FindComment(botLogin string, commentType Type) (model.IssueCo
 	return model.IssueComment{}, false
 }
 
-// verifyCommentType checks if a given string is of a given commentType
-func verifyCommentType(body string, commentType Type) bool {
+// VerifyCommentType checks if a given string is of a given commentType
+func VerifyCommentType(body string, commentType Type) bool {
 	var substrs []string
 	switch commentType {
 	case EligibleCommentType:
