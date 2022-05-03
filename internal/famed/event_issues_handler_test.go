@@ -2,6 +2,7 @@ package famed_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -137,7 +138,7 @@ func TestPostIssuesEvent(t *testing.T) {
 		//	Name: "Close - No pull request",
 		//	Event: &github.IssuesEvent{
 		//		Action: pointer.String("closed"),
-		//		enrichedIssue: &github.enrichedIssue{
+		//		enrichedIssues: &github.enrichedIssues{
 		//			ID:        pointer.Int64(0),
 		//			Title:     pointer.String("test"),
 		//			Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
@@ -415,8 +416,9 @@ func TestPostIssuesEvent(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
-			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
-			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
+			fakeInstallationClient.EnrichIssueStub = func(ctx context.Context, owner string, repoName string, issue model.Issue) model.EnrichedIssue {
+				return model.NewEnrichIssue(issue, testCase.PullRequest, testCase.Events)
+			}
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 

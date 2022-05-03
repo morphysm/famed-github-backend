@@ -8,7 +8,7 @@ import (
 )
 
 // NewBlueTeamFromIssues generates a blue team from a given slice of enriched issues.
-func NewBlueTeamFromIssues(issues map[int]EnrichedIssue, options BoardOptions) []*Contributor {
+func NewBlueTeamFromIssues(issues map[int]model.EnrichedIssue, options BoardOptions) []*Contributor {
 	// Map issues and events to contributors
 	contributors := issuesToBlueTeam(issues, options)
 	// Calculate mean and deviation of time to disclosure
@@ -22,7 +22,7 @@ func NewBlueTeamFromIssues(issues map[int]EnrichedIssue, options BoardOptions) [
 
 // NewBlueTeamFromIssue returns a contributors map generated from the repo's internal issue with issueID
 // and its corresponding events.
-func NewBlueTeamFromIssue(issue EnrichedIssue, options BoardOptions) ([]*Contributor, error) {
+func NewBlueTeamFromIssue(issue model.EnrichedIssue, options BoardOptions) ([]*Contributor, error) {
 	contributors := Contributors{}
 	// Map issue to contributors
 	err := contributors.mapBlueTeamIssue(issue, options)
@@ -35,7 +35,7 @@ func NewBlueTeamFromIssue(issue EnrichedIssue, options BoardOptions) ([]*Contrib
 	return contributorsArray, nil
 }
 
-func issuesToBlueTeam(issues map[int]EnrichedIssue, options BoardOptions) Contributors {
+func issuesToBlueTeam(issues map[int]model.EnrichedIssue, options BoardOptions) Contributors {
 	contributors := Contributors{}
 	for issueID, issue := range issues {
 		// Map issue to contributors
@@ -50,7 +50,7 @@ func issuesToBlueTeam(issues map[int]EnrichedIssue, options BoardOptions) Contri
 }
 
 // mapBlueTeamIssue updates the contributors map based on a set of events and an issue.
-func (cs Contributors) mapBlueTeamIssue(issue EnrichedIssue, boardOptions BoardOptions) error {
+func (cs Contributors) mapBlueTeamIssue(issue model.EnrichedIssue, boardOptions BoardOptions) error {
 	// Check if issue has closed at timestamp
 	if issue.ClosedAt == nil {
 		return ErrIssueMissingClosedAt

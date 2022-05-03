@@ -3,6 +3,9 @@ package famed
 import (
 	"context"
 	"log"
+
+	"github.com/morphysm/famed-github-backend/internal/config"
+	model2 "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
 // CleanState iterates over all issues and updates their comments if necessary.
@@ -32,18 +35,18 @@ func (gH *githubHandler) CleanState() {
 		}
 
 		for _, repoName := range repos {
-			go func(owner string, repoName string) {
-				err := gH.updateRewardComments(ctx, owner, repoName, nil)
-				if err != nil {
-					log.Printf("[CleanState] error while updating reward comments: %v", err)
-				}
-			}(installation.Account.Login, repoName)
-			go func(owner string, repoName string) {
-				err := gH.updateEligibleComments(ctx, owner, repoName, nil)
-				if err != nil {
-					log.Printf("[CleanState] error while updating reward comments: %v", err)
-				}
-			}(installation.Account.Login, repoName)
+			famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
+			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{famedLabel.Name}, nil)
+			if err != nil {
+				log.Printf("[CleanState] error while fetching issues for %s/%s: %v", installation.Account.Login, repoName, err)
+			}
+
+			go func(owner string, repoName string, issues []model2.Issue) {
+				gH.updateRewardComments(ctx, owner, repoName, issues, nil)
+			}(installation.Account.Login, repoName, issues)
+			go func(owner string, repoName string, issues []model2.Issue) {
+				gH.updateEligibleComments(ctx, owner, repoName, issues, nil)
+			}(installation.Account.Login, repoName, issues)
 		}
 	}
 }

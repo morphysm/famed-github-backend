@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	EligibleCommentHeaderLegacy    = "🤖 Assignees for Issue"
 	EligibleCommentHeaderBeginning = "🤖 Assignees for issue"
 )
 
