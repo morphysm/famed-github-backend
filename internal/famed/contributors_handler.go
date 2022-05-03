@@ -24,7 +24,7 @@ func (gH *githubHandler) GetBlueTeam(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, model.ErrAppNotInstalled.Error())
 	}
 
-	issues, err := gH.loadEnrichedIssues(c.Request().Context(), owner, repoName)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(c.Request().Context(), owner, repoName)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}

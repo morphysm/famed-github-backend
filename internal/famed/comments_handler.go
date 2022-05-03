@@ -97,16 +97,16 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner string, repoName string, updates *safeIssueCommentsUpdates) error {
-	wrappedIssues, err := gH.loadEnrichedIssues(ctx, owner, repoName)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx, owner, repoName)
 	if err != nil {
 		return err
 	}
 
 	var wg sync.WaitGroup
 	i := 0
-	for issueNumber, issue := range wrappedIssues {
+	for issueNumber, issue := range issues {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) {
+		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) {
 			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
 			if updates != nil {
 				updates.Add(issueNumber, update, comment.RewardCommentType)
@@ -121,13 +121,13 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
 func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) {
-	wrappedIssues := gH.enrichIssues(ctx, owner, repoName, issues)
+	enrichedIssues := gH.githubInstallationClient.EnrichIssues(ctx, owner, repoName, issues)
 
 	var wg sync.WaitGroup
 	i := 0
-	for issueNumber, issue := range wrappedIssues {
+	for issueNumber, issue := range enrichedIssues {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) {
+		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) {
 			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
 			if updates != nil {
 				updates.Add(issueNumber, update, comment.RewardCommentType)
@@ -141,7 +141,7 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) commentUpdate {
+func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) commentUpdate {
 	defer wg.Done()
 
 	update := commentUpdate{}

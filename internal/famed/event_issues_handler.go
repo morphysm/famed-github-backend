@@ -67,17 +67,11 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.Issu
 		return comment.NewErrorRewardComment(model2.ErrIssueMissingAssignee)
 	}
 
-	pullRequest := gH.loadPullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
-	if pullRequest == nil {
+	issue := gH.githubInstallationClient.EnrichIssue(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
+	if issue.PullRequest == nil {
 		return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
 	}
 
-	var events []model.IssueEvent
-	if !event.Issue.Migrated {
-		events = gH.loadEvents(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
-	}
-
-	issue := model2.NewEnrichIssue(event.Issue, pullRequest, events)
 	rewardStructure := model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)

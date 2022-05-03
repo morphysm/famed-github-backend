@@ -34,6 +34,34 @@ type FakeInstallationClient struct {
 	checkInstallationReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	EnrichIssueStub        func(context.Context, string, string, model.Issue) model.EnrichedIssue
+	enrichIssueMutex       sync.RWMutex
+	enrichIssueArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 model.Issue
+	}
+	enrichIssueReturns struct {
+		result1 model.EnrichedIssue
+	}
+	enrichIssueReturnsOnCall map[int]struct {
+		result1 model.EnrichedIssue
+	}
+	EnrichIssuesStub        func(context.Context, string, string, []model.Issue) map[int]model.EnrichedIssue
+	enrichIssuesMutex       sync.RWMutex
+	enrichIssuesArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 []model.Issue
+	}
+	enrichIssuesReturns struct {
+		result1 map[int]model.EnrichedIssue
+	}
+	enrichIssuesReturnsOnCall map[int]struct {
+		result1 map[int]model.EnrichedIssue
+	}
 	GetCommentsStub        func(context.Context, string, string, int) ([]model.IssueComment, error)
 	getCommentsMutex       sync.RWMutex
 	getCommentsArgsForCall []struct {
@@ -48,6 +76,21 @@ type FakeInstallationClient struct {
 	}
 	getCommentsReturnsOnCall map[int]struct {
 		result1 []model.IssueComment
+		result2 error
+	}
+	GetEnrichedIssuesStub        func(context.Context, string, string) (map[int]model.EnrichedIssue, error)
+	getEnrichedIssuesMutex       sync.RWMutex
+	getEnrichedIssuesArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	getEnrichedIssuesReturns struct {
+		result1 map[int]model.EnrichedIssue
+		result2 error
+	}
+	getEnrichedIssuesReturnsOnCall map[int]struct {
+		result1 map[int]model.EnrichedIssue
 		result2 error
 	}
 	GetIssueEventsStub        func(context.Context, string, string, int) ([]model.IssueEvent, error)
@@ -340,6 +383,139 @@ func (fake *FakeInstallationClient) CheckInstallationReturnsOnCall(i int, result
 	}{result1}
 }
 
+func (fake *FakeInstallationClient) EnrichIssue(arg1 context.Context, arg2 string, arg3 string, arg4 model.Issue) model.EnrichedIssue {
+	fake.enrichIssueMutex.Lock()
+	ret, specificReturn := fake.enrichIssueReturnsOnCall[len(fake.enrichIssueArgsForCall)]
+	fake.enrichIssueArgsForCall = append(fake.enrichIssueArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 model.Issue
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.EnrichIssueStub
+	fakeReturns := fake.enrichIssueReturns
+	fake.recordInvocation("EnrichIssue", []interface{}{arg1, arg2, arg3, arg4})
+	fake.enrichIssueMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeInstallationClient) EnrichIssueCallCount() int {
+	fake.enrichIssueMutex.RLock()
+	defer fake.enrichIssueMutex.RUnlock()
+	return len(fake.enrichIssueArgsForCall)
+}
+
+func (fake *FakeInstallationClient) EnrichIssueCalls(stub func(context.Context, string, string, model.Issue) model.EnrichedIssue) {
+	fake.enrichIssueMutex.Lock()
+	defer fake.enrichIssueMutex.Unlock()
+	fake.EnrichIssueStub = stub
+}
+
+func (fake *FakeInstallationClient) EnrichIssueArgsForCall(i int) (context.Context, string, string, model.Issue) {
+	fake.enrichIssueMutex.RLock()
+	defer fake.enrichIssueMutex.RUnlock()
+	argsForCall := fake.enrichIssueArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeInstallationClient) EnrichIssueReturns(result1 model.EnrichedIssue) {
+	fake.enrichIssueMutex.Lock()
+	defer fake.enrichIssueMutex.Unlock()
+	fake.EnrichIssueStub = nil
+	fake.enrichIssueReturns = struct {
+		result1 model.EnrichedIssue
+	}{result1}
+}
+
+func (fake *FakeInstallationClient) EnrichIssueReturnsOnCall(i int, result1 model.EnrichedIssue) {
+	fake.enrichIssueMutex.Lock()
+	defer fake.enrichIssueMutex.Unlock()
+	fake.EnrichIssueStub = nil
+	if fake.enrichIssueReturnsOnCall == nil {
+		fake.enrichIssueReturnsOnCall = make(map[int]struct {
+			result1 model.EnrichedIssue
+		})
+	}
+	fake.enrichIssueReturnsOnCall[i] = struct {
+		result1 model.EnrichedIssue
+	}{result1}
+}
+
+func (fake *FakeInstallationClient) EnrichIssues(arg1 context.Context, arg2 string, arg3 string, arg4 []model.Issue) map[int]model.EnrichedIssue {
+	var arg4Copy []model.Issue
+	if arg4 != nil {
+		arg4Copy = make([]model.Issue, len(arg4))
+		copy(arg4Copy, arg4)
+	}
+	fake.enrichIssuesMutex.Lock()
+	ret, specificReturn := fake.enrichIssuesReturnsOnCall[len(fake.enrichIssuesArgsForCall)]
+	fake.enrichIssuesArgsForCall = append(fake.enrichIssuesArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 []model.Issue
+	}{arg1, arg2, arg3, arg4Copy})
+	stub := fake.EnrichIssuesStub
+	fakeReturns := fake.enrichIssuesReturns
+	fake.recordInvocation("EnrichIssues", []interface{}{arg1, arg2, arg3, arg4Copy})
+	fake.enrichIssuesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeInstallationClient) EnrichIssuesCallCount() int {
+	fake.enrichIssuesMutex.RLock()
+	defer fake.enrichIssuesMutex.RUnlock()
+	return len(fake.enrichIssuesArgsForCall)
+}
+
+func (fake *FakeInstallationClient) EnrichIssuesCalls(stub func(context.Context, string, string, []model.Issue) map[int]model.EnrichedIssue) {
+	fake.enrichIssuesMutex.Lock()
+	defer fake.enrichIssuesMutex.Unlock()
+	fake.EnrichIssuesStub = stub
+}
+
+func (fake *FakeInstallationClient) EnrichIssuesArgsForCall(i int) (context.Context, string, string, []model.Issue) {
+	fake.enrichIssuesMutex.RLock()
+	defer fake.enrichIssuesMutex.RUnlock()
+	argsForCall := fake.enrichIssuesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeInstallationClient) EnrichIssuesReturns(result1 map[int]model.EnrichedIssue) {
+	fake.enrichIssuesMutex.Lock()
+	defer fake.enrichIssuesMutex.Unlock()
+	fake.EnrichIssuesStub = nil
+	fake.enrichIssuesReturns = struct {
+		result1 map[int]model.EnrichedIssue
+	}{result1}
+}
+
+func (fake *FakeInstallationClient) EnrichIssuesReturnsOnCall(i int, result1 map[int]model.EnrichedIssue) {
+	fake.enrichIssuesMutex.Lock()
+	defer fake.enrichIssuesMutex.Unlock()
+	fake.EnrichIssuesStub = nil
+	if fake.enrichIssuesReturnsOnCall == nil {
+		fake.enrichIssuesReturnsOnCall = make(map[int]struct {
+			result1 map[int]model.EnrichedIssue
+		})
+	}
+	fake.enrichIssuesReturnsOnCall[i] = struct {
+		result1 map[int]model.EnrichedIssue
+	}{result1}
+}
+
 func (fake *FakeInstallationClient) GetComments(arg1 context.Context, arg2 string, arg3 string, arg4 int) ([]model.IssueComment, error) {
 	fake.getCommentsMutex.Lock()
 	ret, specificReturn := fake.getCommentsReturnsOnCall[len(fake.getCommentsArgsForCall)]
@@ -403,6 +579,72 @@ func (fake *FakeInstallationClient) GetCommentsReturnsOnCall(i int, result1 []mo
 	}
 	fake.getCommentsReturnsOnCall[i] = struct {
 		result1 []model.IssueComment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssues(arg1 context.Context, arg2 string, arg3 string) (map[int]model.EnrichedIssue, error) {
+	fake.getEnrichedIssuesMutex.Lock()
+	ret, specificReturn := fake.getEnrichedIssuesReturnsOnCall[len(fake.getEnrichedIssuesArgsForCall)]
+	fake.getEnrichedIssuesArgsForCall = append(fake.getEnrichedIssuesArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.GetEnrichedIssuesStub
+	fakeReturns := fake.getEnrichedIssuesReturns
+	fake.recordInvocation("GetEnrichedIssues", []interface{}{arg1, arg2, arg3})
+	fake.getEnrichedIssuesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssuesCallCount() int {
+	fake.getEnrichedIssuesMutex.RLock()
+	defer fake.getEnrichedIssuesMutex.RUnlock()
+	return len(fake.getEnrichedIssuesArgsForCall)
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssuesCalls(stub func(context.Context, string, string) (map[int]model.EnrichedIssue, error)) {
+	fake.getEnrichedIssuesMutex.Lock()
+	defer fake.getEnrichedIssuesMutex.Unlock()
+	fake.GetEnrichedIssuesStub = stub
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssuesArgsForCall(i int) (context.Context, string, string) {
+	fake.getEnrichedIssuesMutex.RLock()
+	defer fake.getEnrichedIssuesMutex.RUnlock()
+	argsForCall := fake.getEnrichedIssuesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssuesReturns(result1 map[int]model.EnrichedIssue, result2 error) {
+	fake.getEnrichedIssuesMutex.Lock()
+	defer fake.getEnrichedIssuesMutex.Unlock()
+	fake.GetEnrichedIssuesStub = nil
+	fake.getEnrichedIssuesReturns = struct {
+		result1 map[int]model.EnrichedIssue
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInstallationClient) GetEnrichedIssuesReturnsOnCall(i int, result1 map[int]model.EnrichedIssue, result2 error) {
+	fake.getEnrichedIssuesMutex.Lock()
+	defer fake.getEnrichedIssuesMutex.Unlock()
+	fake.GetEnrichedIssuesStub = nil
+	if fake.getEnrichedIssuesReturnsOnCall == nil {
+		fake.getEnrichedIssuesReturnsOnCall = make(map[int]struct {
+			result1 map[int]model.EnrichedIssue
+			result2 error
+		})
+	}
+	fake.getEnrichedIssuesReturnsOnCall[i] = struct {
+		result1 map[int]model.EnrichedIssue
 		result2 error
 	}{result1, result2}
 }
@@ -1144,8 +1386,14 @@ func (fake *FakeInstallationClient) Invocations() map[string][][]interface{} {
 	defer fake.addInstallationMutex.RUnlock()
 	fake.checkInstallationMutex.RLock()
 	defer fake.checkInstallationMutex.RUnlock()
+	fake.enrichIssueMutex.RLock()
+	defer fake.enrichIssueMutex.RUnlock()
+	fake.enrichIssuesMutex.RLock()
+	defer fake.enrichIssuesMutex.RUnlock()
 	fake.getCommentsMutex.RLock()
 	defer fake.getCommentsMutex.RUnlock()
+	fake.getEnrichedIssuesMutex.RLock()
+	defer fake.getEnrichedIssuesMutex.RUnlock()
 	fake.getIssueEventsMutex.RLock()
 	defer fake.getIssueEventsMutex.RUnlock()
 	fake.getIssuePullRequestMutex.RLock()

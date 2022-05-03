@@ -188,10 +188,11 @@ func TestGetContributors(t *testing.T) {
 
 			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.CheckInstallationReturns(testCase.AppInstalled)
-			// TODO testUser for error
-			fakeInstallationClient.GetIssuesByRepoReturns(testCase.Issues, nil)
-			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
-			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
+			enrichedIssues := make(map[int]model.EnrichedIssue, len(testCase.Issues))
+			for _, issue := range testCase.Issues {
+				enrichedIssues[issue.Number] = model.NewEnrichIssue(issue, testCase.PullRequest, testCase.Events)
+			}
+			fakeInstallationClient.GetEnrichedIssuesReturns(enrichedIssues, nil)
 
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig, Now)
 
@@ -202,9 +203,7 @@ func TestGetContributors(t *testing.T) {
 			assert.Equal(t, testCase.ExpectedErr, err)
 
 			if testCase.ExpectedResponse != "" {
-				assert.Equal(t, 1, fakeInstallationClient.CheckInstallationCallCount())
-				assert.Equal(t, 1, fakeInstallationClient.GetIssuesByRepoCallCount())
-				assert.Equal(t, len(testCase.Issues), fakeInstallationClient.GetIssuePullRequestCallCount())
+				assert.Equal(t, 1, fakeInstallationClient.GetEnrichedIssuesCallCount())
 				assert.Equal(t, testCase.ExpectedResponse, rec.Body.String())
 			}
 		})

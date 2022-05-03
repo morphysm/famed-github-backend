@@ -2,6 +2,7 @@ package famed_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -415,8 +416,9 @@ func TestPostIssuesEvent(t *testing.T) {
 			ctx := e.NewContext(req, rec)
 
 			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
-			fakeInstallationClient.GetIssueEventsReturns(testCase.Events, nil)
-			fakeInstallationClient.GetIssuePullRequestReturns(testCase.PullRequest, nil)
+			fakeInstallationClient.EnrichIssueStub = func(ctx context.Context, owner string, repoName string, issue model.Issue) model.EnrichedIssue {
+				return model.NewEnrichIssue(issue, testCase.PullRequest, testCase.Events)
+			}
 			cl, _ := providers.NewInstallationClient("", nil, nil, "", "famed", nil)
 			fakeInstallationClient.ValidateWebHookEventStub = cl.ValidateWebHookEvent
 
