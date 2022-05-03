@@ -10,6 +10,7 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
+	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )
@@ -35,15 +36,15 @@ func NewSafeIssueCommentsUpdates() *safeIssueCommentsUpdates {
 	}
 }
 
-func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate commentUpdate, commentType commentType) {
+func (sICU *safeIssueCommentsUpdates) Add(issueNumber int, commentUpdate commentUpdate, commentType comment.Type) {
 	sICU.Lock()
 	defer sICU.Unlock()
 
 	elmt := sICU.m[issueNumber]
-	if commentType != commentEligible {
+	if commentType != comment.EligibleCommentType {
 		elmt.EligibleComment = commentUpdate
 	}
-	if commentType != commentReward {
+	if commentType != comment.RewardCommentType {
 		elmt.RewardComment = commentUpdate
 	}
 	sICU.m[issueNumber] = elmt
@@ -109,7 +110,7 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model2.EnrichedIssue) {
 			update := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
 			if updates != nil {
-				updates.Add(issueNumber, update, commentReward)
+				updates.Add(issueNumber, update, comment.RewardCommentType)
 			}
 		}(ctx, &wg, owner, repoName, issue)
 		i++
@@ -124,17 +125,20 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 	defer wg.Done()
 
 	update := commentUpdate{}
-	comment := ""
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
+	var newComment comment.Comment
 	if err != nil {
-		comment = rewardCommentFromError(err)
+		newComment = comment.NewErrorRewardComment(err)
 	}
-	if err == nil {
-		comment = rewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
+	if len(contributors) == 0 {
+		newComment = comment.NewErrorRewardComment(comment.ErrNoContributors)
+	}
+	if err == nil && len(contributors) > 0 {
+		newComment = comment.NewRewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentReward)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
 	if err != nil {
 		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
 		update.Error = err.Error()
@@ -159,7 +163,7 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 		go func(issue model.Issue) {
 			update := gH.updateEligibleComment(ctx, &wg, owner, repoName, issue)
 			if updates != nil {
-				updates.Add(issue.Number, update, commentEligible)
+				updates.Add(issue.Number, update, comment.EligibleCommentType)
 			}
 		}(issue)
 	}
@@ -178,9 +182,9 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.Wai
 		return update
 	}
 
-	comment := issueEligibleComment(issue, pullRequest)
+	comment := comment.NewEligibleComment(issue, pullRequest)
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment, commentEligible)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment)
 	if err != nil {
 		log.Printf("[updateEligibleComment] error while posting eligable comment: %v", err)
 		update.Error = err.Error()

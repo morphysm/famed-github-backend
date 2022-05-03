@@ -2,7 +2,6 @@ package famed
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 
@@ -10,39 +9,26 @@ import (
 	"github.com/labstack/gommon/log"
 
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
+	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
-)
-
-type commentType int
-
-const (
-	commentEligible commentType = iota
-	commentReward
-)
-
-var (
-	ErrEventNotHandled         = errors.New("the event is not handled")
-	ErrIssueMissingPullRequest = errors.New("the issue is missing a pull request")
 )
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,
 // if the famed label is set and the issue is closed.
 func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEvent) error {
 	var (
-		commentType commentType
-		comment     string
-		err         error
-		ctx         = c.Request().Context()
+		comment comment.Comment
+		err     error
+		ctx     = c.Request().Context()
 	)
 
 	switch event.Action {
 	case string(model.Closed):
-		comment, err = gH.handleClosedEvent(ctx, event)
+		comment = gH.handleClosedEvent(ctx, event)
 		if err != nil {
 			log.Printf("[handleIssuesEvent] error while generating reward comment for closed event: %v", err)
 			return err
 		}
-		commentType = commentReward
 
 	case string(model.Assigned):
 		fallthrough
@@ -59,15 +45,14 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
 			return err
 		}
-		commentType = commentEligible
 
 	default:
-		log.Printf("[handleIssueEvent] error: %v", ErrEventNotHandled)
-		return ErrEventNotHandled
+		log.Printf("[handleIssueEvent] error: %v", model2.ErrEventNotHandled)
+		return model2.ErrEventNotHandled
 	}
 
 	// Post comment to GitHub
-	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, commentType)
+	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment)
 	if err != nil {
 		log.Printf("[handleIssueEvent] error while posting rewardComment: %v", err)
 		return err
@@ -77,14 +62,14 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 }
 
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
-func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.IssuesEvent) comment.Comment {
 	if len(event.Issue.Assignees) == 0 {
-		return rewardCommentFromError(model2.ErrIssueMissingAssignee), nil
+		return comment.NewErrorRewardComment(model2.ErrIssueMissingAssignee)
 	}
 
 	pullRequest := gH.loadPullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if pullRequest == nil {
-		return rewardCommentFromError(ErrIssueMissingPullRequest), nil
+		return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
 	}
 
 	var events []model.IssueEvent
@@ -97,35 +82,43 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.Issu
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
 	if err != nil {
-		return rewardCommentFromError(err), nil
+		return comment.NewErrorRewardComment(err)
+	}
+	if len(contributors) == 0 {
+		return comment.NewErrorRewardComment(comment.ErrNoContributors)
 	}
 
-	return rewardComment(contributors, gH.famedConfig.Currency, event.Repo.Owner.Login, event.Repo.Name), nil
+	return comment.NewRewardComment(contributors, gH.famedConfig.Currency, event.Repo.Owner.Login, event.Repo.Name)
 }
 
 // handleUpdatedEvent returns an eligible comment if event and issue qualifies
-func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event model.IssuesEvent) (string, error) {
+func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event model.IssuesEvent) (comment.Comment, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return issueEligibleComment(event.Issue, pullRequest), nil
+	return comment.NewEligibleComment(event.Issue, pullRequest), nil
 }
 
 // postOrUpdateComment checks if a handleClosedEvent of a type is present,
 // if so, the handleClosedEvent body is checked for equality against the new handleClosedEvent,
 // if the comments are not equal the handleClosedEvent is updated,
 // if no handleClosedEvent was found a new handleClosedEvent is posted.
-func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string, commentType commentType) (bool, error) {
+func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, comment comment.Comment) (bool, error) {
 	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
 	if err != nil {
 		return false, err
 	}
 
-	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, commentType)
+	body, err := comment.String()
+	if err != nil {
+		return false, err
+	}
+
+	foundComment, found := findComment(comments, gH.famedConfig.BotLogin, comment.Type())
 	if !found {
-		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, comment)
+		err := gH.githubInstallationClient.PostComment(ctx, owner, repoName, issueNumber, body)
 		if err != nil {
 			return false, err
 		}
@@ -133,8 +126,8 @@ func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, 
 	}
 
 	// Case-insensitive compare because the board url gets transformed to upper case.
-	if !strings.EqualFold(foundComment.Body, comment) {
-		err := gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, foundComment.ID, comment)
+	if !strings.EqualFold(foundComment.Body, body) {
+		err := gH.githubInstallationClient.UpdateComment(ctx, owner, repoName, foundComment.ID, body)
 		if err != nil {
 			return false, err
 		}
@@ -142,4 +135,32 @@ func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, 
 	}
 
 	return false, nil
+}
+
+// findComment finds the last of with the commentType and posted by the user with a login equal to botLogin
+func findComment(comments []model.IssueComment, botLogin string, commentType comment.Type) (model.IssueComment, bool) {
+	for _, comment := range comments {
+		if comment.User.Login == botLogin &&
+			verifyCommentType(comment.Body, commentType) {
+			return comment, true
+		}
+	}
+
+	return model.IssueComment{}, false
+}
+
+// verifyCommentType checks if a given string is of a given commentType
+func verifyCommentType(str string, commentType comment.Type) bool {
+	var substr string
+	switch commentType {
+	case comment.EligibleCommentType:
+		substr = comment.EligibleCommentHeaderBeginning
+	case comment.RewardCommentType:
+		if strings.Contains(str, comment.RewardCommentTableHeader) {
+			return true
+		}
+		substr = comment.ErrorRewardCommentHeader
+	}
+
+	return strings.Contains(str, substr)
 }

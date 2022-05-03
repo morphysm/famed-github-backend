@@ -60,7 +60,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     pointer.String("test"),
-			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing an assignee.",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n### Famed could not generate a reward suggestion.\nReason: The issue is missing an assignee.",
 		},
 		{
 			Name: "Close - No Label",
@@ -84,7 +84,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     pointer.String("test"),
-			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue is missing a severity label.",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n### Famed could not generate a reward suggestion.\nReason: The issue is missing a severity label.",
 		},
 		{
 			Name: "Close - Multiple Labels",
@@ -107,7 +107,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     pointer.String("test"),
-			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The issue has more than one severity label.",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n### Famed could not generate a reward suggestion.\nReason: The issue has more than one severity label.",
 		},
 		{
 			Name: "Close - No events",
@@ -130,7 +130,7 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest:     pointer.String("test"),
-			ExpectedComment: "### Famed could not generate a reward suggestion.\nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n### Famed could not generate a reward suggestion.\nReason: The data provided by GitHub is not sufficient to generate a reward suggestion.\nThis might be due to an assignment after the issue has been closed. Please assign assignees in the open state.",
 		},
 		// Commented out for DevConnect
 		//{
@@ -182,7 +182,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &model.User{Login: "test"},
 				},
 			},
-			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|744h0m0s|674 POINTS|",
 		},
 		{
 			Name: "Close - Valid - Migrated",
@@ -213,7 +213,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &model.User{Login: "test"},
 				},
 			},
-			ExpectedComment: "@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|0s|3000 POINTS|",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n@test - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/test/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test|0s|3000 POINTS|",
 		},
 		{
 			Name: "Close - Valid - Multiple Assignees",
@@ -247,7 +247,7 @@ func TestPostIssuesEvent(t *testing.T) {
 					Assignee:  &model.User{Login: "test2"},
 				},
 			},
-			ExpectedComment: "@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
+			ExpectedComment: "<!--{\"type\":\"reward\",\"version\":\"TODO\"}-->\n@test1 @test2 - you Got Famed! 💎 Check out your new score here: https://www.famed.morphysm.com/teams/testOwner/test\n| Contributor | Time | Reward |\n| ----------- | ----------- | ----------- |\n|test1|744h0m0s|337 POINTS|\n|test2|744h0m0s|337 POINTS|",
 		},
 		// Eligible comment
 		{
@@ -279,7 +279,8 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "<!--{\"type\":\"eligible\",\"version\":\"TODO\"}-->" +
+				"\n🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n❌ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -305,7 +306,8 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "<!--{\"type\":\"eligible\",\"version\":\"TODO\"}-->" +
+				"\n🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -331,7 +333,8 @@ func TestPostIssuesEvent(t *testing.T) {
 					Owner: &github.User{Login: pointer.String("test")},
 				},
 			},
-			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "<!--{\"type\":\"eligible\",\"version\":\"TODO\"}-->" +
+				"\n🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n❌ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -358,7 +361,8 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: pointer.String("test"),
-			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "<!--{\"type\":\"eligible\",\"version\":\"TODO\"}-->" +
+				"\n🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n❌ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
@@ -385,7 +389,8 @@ func TestPostIssuesEvent(t *testing.T) {
 				},
 			},
 			PullRequest: pointer.String("test"),
-			ExpectedComment: "🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
+			ExpectedComment: "<!--{\"type\":\"eligible\",\"version\":\"TODO\"}-->" +
+				"\n🤖 Assignees for issue **Test #0** are now eligible to Get Famed." +
 				"\n\n✅ Add assignees to track contribution times of the issue \U0001F9B8\u200d♀️\U0001F9B9️" +
 				"\n✅ Add a single severity (CVSS) label to compute the score 🏷️️" +
 				//"\n✅ Link a PR when closing the issue ♻️ \U0001F9B8\u200d♀️\U0001F9B9" +
