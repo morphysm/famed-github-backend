@@ -62,9 +62,7 @@ func (c *githubInstallationClient) GetIssuePullRequest(ctx context.Context, owne
 		}
 	}
 
-	// TODO move this to pkg/pointer
-	pullRequest := lastConnectedEvent.ConnectedEvent.Subject.PullRequest.URL
-	return &pullRequest, nil
+	return &lastConnectedEvent.ConnectedEvent.Subject.PullRequest.URL, nil
 }
 
 // getDisconnectedEvents returns all IssueTimelineDisconnectionItems for a given issue.
