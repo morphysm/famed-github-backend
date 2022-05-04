@@ -34,6 +34,20 @@ type FakeInstallationClient struct {
 	checkInstallationReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	DeleteCommentStub        func(context.Context, string, string, int64) error
+	deleteCommentMutex       sync.RWMutex
+	deleteCommentArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int64
+	}
+	deleteCommentReturns struct {
+		result1 error
+	}
+	deleteCommentReturnsOnCall map[int]struct {
+		result1 error
+	}
 	EnrichIssueStub        func(context.Context, string, string, model.Issue) model.EnrichedIssue
 	enrichIssueMutex       sync.RWMutex
 	enrichIssueArgsForCall []struct {
@@ -380,6 +394,70 @@ func (fake *FakeInstallationClient) CheckInstallationReturnsOnCall(i int, result
 	}
 	fake.checkInstallationReturnsOnCall[i] = struct {
 		result1 bool
+	}{result1}
+}
+
+func (fake *FakeInstallationClient) DeleteComment(arg1 context.Context, arg2 string, arg3 string, arg4 int64) error {
+	fake.deleteCommentMutex.Lock()
+	ret, specificReturn := fake.deleteCommentReturnsOnCall[len(fake.deleteCommentArgsForCall)]
+	fake.deleteCommentArgsForCall = append(fake.deleteCommentArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int64
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.DeleteCommentStub
+	fakeReturns := fake.deleteCommentReturns
+	fake.recordInvocation("DeleteComment", []interface{}{arg1, arg2, arg3, arg4})
+	fake.deleteCommentMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeInstallationClient) DeleteCommentCallCount() int {
+	fake.deleteCommentMutex.RLock()
+	defer fake.deleteCommentMutex.RUnlock()
+	return len(fake.deleteCommentArgsForCall)
+}
+
+func (fake *FakeInstallationClient) DeleteCommentCalls(stub func(context.Context, string, string, int64) error) {
+	fake.deleteCommentMutex.Lock()
+	defer fake.deleteCommentMutex.Unlock()
+	fake.DeleteCommentStub = stub
+}
+
+func (fake *FakeInstallationClient) DeleteCommentArgsForCall(i int) (context.Context, string, string, int64) {
+	fake.deleteCommentMutex.RLock()
+	defer fake.deleteCommentMutex.RUnlock()
+	argsForCall := fake.deleteCommentArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeInstallationClient) DeleteCommentReturns(result1 error) {
+	fake.deleteCommentMutex.Lock()
+	defer fake.deleteCommentMutex.Unlock()
+	fake.DeleteCommentStub = nil
+	fake.deleteCommentReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeInstallationClient) DeleteCommentReturnsOnCall(i int, result1 error) {
+	fake.deleteCommentMutex.Lock()
+	defer fake.deleteCommentMutex.Unlock()
+	fake.DeleteCommentStub = nil
+	if fake.deleteCommentReturnsOnCall == nil {
+		fake.deleteCommentReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteCommentReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 
@@ -1386,6 +1464,8 @@ func (fake *FakeInstallationClient) Invocations() map[string][][]interface{} {
 	defer fake.addInstallationMutex.RUnlock()
 	fake.checkInstallationMutex.RLock()
 	defer fake.checkInstallationMutex.RUnlock()
+	fake.deleteCommentMutex.RLock()
+	defer fake.deleteCommentMutex.RUnlock()
 	fake.enrichIssueMutex.RLock()
 	defer fake.enrichIssueMutex.RUnlock()
 	fake.enrichIssuesMutex.RLock()

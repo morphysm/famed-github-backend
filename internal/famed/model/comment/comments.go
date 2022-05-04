@@ -11,8 +11,7 @@ type Comments []model.IssueComment
 // FindComment finds the last of with the commentType and posted by the user with a login equal to botLogin
 func (cs Comments) FindComment(botLogin string, commentType Type) (model.IssueComment, bool) {
 	for _, comment := range cs {
-		if comment.User.Login == botLogin &&
-			VerifyCommentType(comment.Body, commentType) {
+		if VerifyComment(comment, botLogin, commentType) {
 			return comment, true
 		}
 	}
@@ -20,8 +19,17 @@ func (cs Comments) FindComment(botLogin string, commentType Type) (model.IssueCo
 	return model.IssueComment{}, false
 }
 
-// VerifyCommentType checks if a given string is of a given commentType
-func VerifyCommentType(body string, commentType Type) bool {
+// VerifyComment return true if the given comment is of the given comment type and was authored by a user with the given login.
+func VerifyComment(comment model.IssueComment, login string, commentType Type) bool {
+	if comment.User.Login == login &&
+		verifyCommentType(comment.Body, commentType) {
+		return true
+	}
+	return false
+}
+
+// verifyCommentType checks if a given string is of a given commentType
+func verifyCommentType(body string, commentType Type) bool {
 	var substrs []string
 	switch commentType {
 	case EligibleCommentType:
