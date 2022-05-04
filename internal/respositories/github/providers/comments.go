@@ -24,6 +24,14 @@ func (c *githubInstallationClient) UpdateComment(ctx context.Context, owner stri
 	return err
 }
 
+// DeleteComment delets a given GitHub comment.
+func (c *githubInstallationClient) DeleteComment(ctx context.Context, owner string, repoName string, commentID int64) error {
+	client, _ := c.clients.get(owner)
+
+	_, err := client.Issues.DeleteComment(ctx, owner, repoName, commentID)
+	return err
+}
+
 // GetComments returns all GitHub comments of a given GitHub issue.
 func (c *githubInstallationClient) GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]model.IssueComment, error) {
 	// GitHub does not allow get comments in an order (https://docs.github.com/en/rest/reference/issues#list-issue-comments)

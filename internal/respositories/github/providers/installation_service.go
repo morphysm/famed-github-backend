@@ -36,6 +36,7 @@ type InstallationClient interface {
 	GetComments(ctx context.Context, owner string, repoName string, issueNumber int) ([]model.IssueComment, error)
 	PostComment(ctx context.Context, owner string, repoName string, issueNumber int, comment string) error
 	UpdateComment(ctx context.Context, owner string, repoName string, commentID int64, comment string) error
+	DeleteComment(ctx context.Context, owner string, repoName string, commentID int64) error
 
 	PostLabel(ctx context.Context, owner string, repoName string, label model.Label) error
 	PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]model.Label) []error

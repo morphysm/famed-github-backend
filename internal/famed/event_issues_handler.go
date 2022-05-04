@@ -68,9 +68,10 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.Issu
 	}
 
 	issue := gH.githubInstallationClient.EnrichIssue(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
-	if issue.PullRequest == nil {
-		return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
-	}
+	// TODO: Commented out for dev connect
+	//if issue.PullRequest == nil {
+	//	return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
+	//}
 
 	rewardStructure := model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
