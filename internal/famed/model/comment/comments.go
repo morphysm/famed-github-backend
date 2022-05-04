@@ -29,6 +29,7 @@ func VerifyComment(comment model.IssueComment, login string, commentType Type) b
 }
 
 // verifyCommentType checks if a given string is of a given commentType
+// TODO: add detection by matching meta json
 func verifyCommentType(body string, commentType Type) bool {
 	var substrs []string
 	switch commentType {

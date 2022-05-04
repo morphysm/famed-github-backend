@@ -1,15 +1,12 @@
 package famed_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v41/github"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
@@ -45,7 +42,7 @@ func NewTestConfig() model2.Config {
 		rewards,
 		labels,
 		40,
-		"b",
+		"bot-user[bot]",
 	)
 }
 
@@ -62,7 +59,6 @@ func TestGetContributors(t *testing.T) {
 		RepoName         string
 		AppInstalled     bool
 		Issues           []model.Issue
-		Event            *github.IssuesEvent
 		Events           []model.IssueEvent
 		PullRequest      *string
 		ExpectedResponse string
@@ -84,23 +80,6 @@ func TestGetContributors(t *testing.T) {
 				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
 				Migrated:   false,
 			}},
-			Event: &github.IssuesEvent{
-				Action: pointer.String("closed"),
-				Issue: &github.Issue{
-					ID:        pointer.Int64(0),
-					Title:     pointer.String("testUser"),
-					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("testUser")}},
-					CreatedAt: &open,
-					ClosedAt:  &closed,
-				},
-				Assignee: &github.User{Login: pointer.String("testUser")},
-				Repo: &github.Repository{
-					Name:  pointer.String("testUser"),
-					Owner: &github.User{Login: pointer.String("testUser")},
-				},
-			},
 			PullRequest: pointer.String("testUser"),
 			Events: []model.IssueEvent{
 				{
@@ -140,23 +119,6 @@ func TestGetContributors(t *testing.T) {
 					Migrated:   false,
 				},
 			},
-			Event: &github.IssuesEvent{
-				Action: pointer.String("closed"),
-				Issue: &github.Issue{
-					ID:        pointer.Int64(0),
-					Title:     pointer.String("testUser"),
-					Labels:    []*github.Label{{Name: pointer.String("famed")}, {Name: pointer.String("high")}},
-					Number:    pointer.Int(0),
-					Assignees: []*github.User{{Login: pointer.String("testUser")}},
-					CreatedAt: &open,
-					ClosedAt:  &closed,
-				},
-				Assignee: &github.User{Login: pointer.String("testUser")},
-				Repo: &github.Repository{
-					Name:  pointer.String("testUser"),
-					Owner: &github.User{Login: pointer.String("testUser")},
-				},
-			},
 			PullRequest: pointer.String("testUser"),
 			Events: []model.IssueEvent{
 				{
@@ -175,11 +137,8 @@ func TestGetContributors(t *testing.T) {
 			t.Parallel()
 			// GIVEN
 			e := echo.New()
-			b := new(bytes.Buffer)
-			err := json.NewEncoder(b).Encode(testCase.Event)
-			assert.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/github/repos/%s/%s/contributors", testCase.Owner, testCase.RepoName), b)
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/github/repos/%s/%s/contributors", testCase.Owner, testCase.RepoName), nil)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := e.NewContext(req, rec)
@@ -197,7 +156,7 @@ func TestGetContributors(t *testing.T) {
 			githubHandler := famed.NewHandler(nil, fakeInstallationClient, famedConfig, Now)
 
 			// WHEN
-			err = githubHandler.GetBlueTeam(ctx)
+			err := githubHandler.GetBlueTeam(ctx)
 
 			// THEN
 			assert.Equal(t, testCase.ExpectedErr, err)

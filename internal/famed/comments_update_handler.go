@@ -75,10 +75,10 @@ func (sICU *safeIssueCommentsUpdates) AddAction(issueNumber int, action action, 
 		update = NewIssueCommentUpdate()
 	}
 
-	if commentType != comment.EligibleCommentType {
+	if commentType == comment.EligibleCommentType {
 		update.EligibleComment.AddAction(action)
 	}
-	if commentType != comment.RewardCommentType {
+	if commentType == comment.RewardCommentType {
 		update.RewardComment.AddAction(action)
 	}
 
@@ -109,6 +109,7 @@ type updateCommentsResponse struct {
 }
 
 // GetUpdateComments updates the comments in a GitHub repo.
+// TODO improve efficiency. Multiple get comments calls could be avoided. Updates could be reduced to necessary.
 func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 	owner := c.Param("owner")
 	if owner == "" {
@@ -155,11 +156,13 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 	enrichedIssues := gH.githubInstallationClient.EnrichIssues(ctx, owner, repoName, issues)
 
 	var wg sync.WaitGroup
+	defer wg.Wait()
 	i := 0
 	for _, issue := range enrichedIssues {
 		wg.Add(1)
 		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) {
-			update, err := gH.updateRewardComment(ctx, wg, owner, repoName, issue)
+			defer wg.Done()
+			update, err := gH.updateRewardComment(ctx, owner, repoName, issue)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.RewardCommentType)
 			}
@@ -169,15 +172,10 @@ func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string,
 		}(ctx, &wg, owner, repoName, issue)
 		i++
 	}
-	wg.Wait()
-
-	return
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) (bool, error) {
-	defer wg.Done()
-
+func (gH *githubHandler) updateRewardComment(ctx context.Context, owner string, repoName string, issue model.EnrichedIssue) (bool, error) {
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
 	var newComment comment.Comment
@@ -202,10 +200,12 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, wg *sync.WaitG
 
 func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) {
 	var wg sync.WaitGroup
+	defer wg.Wait()
 	for _, issue := range issues {
 		wg.Add(1)
 		go func(issue model.Issue) {
-			update, err := gH.updateEligibleComment(ctx, &wg, owner, repoName, issue)
+			defer wg.Done()
+			update, err := gH.updateEligibleComment(ctx, owner, repoName, issue)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.EligibleCommentType)
 			}
@@ -218,9 +218,7 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 	return
 }
 
-func (gH *githubHandler) updateEligibleComment(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.Issue) (bool, error) {
-	defer wg.Done()
-
+func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner string, repoName string, issue model.Issue) (bool, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		log.Printf("[updateEligibleComment] error while fetching pull request: %v", err)
@@ -267,10 +265,10 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 				} else {
 					deleted, err := gH.deleteComment(ctx, owner, repoName, com)
 					if updates != nil && err != nil {
-						updates.AddError(issue.Number, err, comment.EligibleCommentType)
+						updates.AddError(issue.Number, err, comment.RewardCommentType)
 					}
 					if updates != nil && deleted {
-						updates.AddAction(issue.Number, deleteAction, comment.EligibleCommentType)
+						updates.AddAction(issue.Number, deleteAction, comment.RewardCommentType)
 					}
 				}
 			}
