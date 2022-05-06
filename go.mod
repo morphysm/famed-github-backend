@@ -3,6 +3,7 @@ module github.com/morphysm/famed-github-backend
 go 1.18
 
 require (
+	github.com/awnumar/memguard v0.22.2
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
 	github.com/google/go-github/v41 v41.0.0
 	github.com/labstack/echo/v4 v4.7.2
@@ -18,6 +19,7 @@ require (
 )
 
 require (
+	github.com/awnumar/memcall v0.0.0-20191004114545-73db50fd9f80 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect

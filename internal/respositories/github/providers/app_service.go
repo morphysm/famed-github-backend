@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/awnumar/memguard"
 	"github.com/google/go-github/v41/github"
 
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
@@ -25,15 +25,10 @@ type githubAppClient struct {
 }
 
 // NewAppClient returns a new instance of the GitHub client
-func NewAppClient(baseURL string, apiKey string, appID int64) (AppClient, error) {
-	itr, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(apiKey))
-	if err != nil {
-		return nil, err
-	}
-
-	itr.BaseURL = baseURL
+func NewAppClient(baseURL string, appID int64, keyEnclave *memguard.Enclave) (AppClient, error) {
+	transport := NewAppsTransport(baseURL, http.DefaultTransport, appID, keyEnclave)
 	loggingClient := libHttp.AddLogging(&http.Client{
-		Transport: itr,
+		Transport: transport,
 	})
 
 	// Create git client with app transport

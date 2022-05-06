@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 
+	"github.com/awnumar/memguard"
 	"github.com/spf13/viper"
 )
 
@@ -24,6 +25,15 @@ func loadBoolFromEnvironment(name string) (bool, error) {
 
 	envValue := viper.GetBool(name)
 	return envValue, nil
+}
+
+func loadStringEnclave(name string) (*memguard.Enclave, error) {
+	envValue, err := loadStringFromEnvironment(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return memguard.NewEnclave([]byte(envValue)), nil
 }
 
 func bindString(s *string, name string) error {

@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/awnumar/memguard"
+
 	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
 )
 
@@ -24,7 +26,7 @@ type Config struct {
 
 	Github struct {
 		Host          string
-		Key           string
+		KeyEnclave    *memguard.Enclave
 		WebhookSecret string
 		AppID         int64
 		BotLogin      string
@@ -82,7 +84,8 @@ func Load() (*Config, error) {
 	}
 
 	// GitHub api key
-	if err := bindString(&cfg.Github.Key, githubKeyEnvName); err != nil {
+	var err error
+	if cfg.Github.KeyEnclave, err = loadStringEnclave(githubKeyEnvName); err != nil {
 		return nil, err
 	}
 
