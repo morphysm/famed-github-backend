@@ -44,7 +44,7 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 	)
 
 	// Create new app client to fetch installations and github tokens.
-	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.Key, cfg.Github.AppID)
+	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.AppID, cfg.Github.KeyEnclave)
 	if err != nil {
 		return nil, err
 	}

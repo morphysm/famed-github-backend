@@ -7,7 +7,9 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/awnumar/memguard"
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/server"
 )
@@ -25,6 +27,11 @@ Go Backend
 )
 
 func main() {
+	// Setup memguard https://pkg.go.dev/github.com/awnumar/memguard
+	memguard.CatchInterrupt()
+	defer memguard.Purge()
+
+	// Load config
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
