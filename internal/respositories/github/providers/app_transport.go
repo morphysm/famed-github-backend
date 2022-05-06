@@ -21,23 +21,23 @@ const (
 // http.RoundTripper and provides GitHub Apps authentication as a
 // GitHub App.
 //
-// Client can also be overwritten, and is useful to change to one which
+// client can also be overwritten, and is useful to change to one which
 // provides retry logic if you do experience retryable errors.
 //
 // See https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/
 type AppsTransport struct {
-	BaseURL    string            // BaseURL is the scheme and host for GitHub API, defaults to https://api.github.com
-	Client     *http.Client      // Client to use to refresh tokens, defaults to http.Client with provided transport
+	baseURL    string            // baseURL is the scheme and host for GitHub API, defaults to https://api.github.com
+	client     *http.Client      // client to use to refresh tokens, defaults to http.Client with provided transport
 	tr         http.RoundTripper // tr is the underlying roundtripper being wrapped
-	keyEnclave *memguard.Enclave // keyEnclave memguard.Enclave containing is the GitHub App's private key
+	keyEnclave *memguard.Enclave // keyEnclave is a memguard.Enclave containing is the GitHub App's private key
 	appID      int64             // appID is the GitHub App's ID
 }
 
 // NewAppsTransport returns an AppsTransport using a memguard.Enclave containing a crypto/rsa.(*PrivateKey).
 func NewAppsTransport(baseUrl string, tr http.RoundTripper, appID int64, key *memguard.Enclave) *AppsTransport {
 	return &AppsTransport{
-		BaseURL:    baseUrl,
-		Client:     &http.Client{Transport: tr},
+		baseURL:    baseUrl,
+		client:     &http.Client{Transport: tr},
 		tr:         tr,
 		keyEnclave: key,
 		appID:      appID,
@@ -63,11 +63,12 @@ func (t *AppsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		memguard.SafePanic(err)
 	}
-	defer keyBuf.Destroy() // Destroy the copy when we return
+	// Destroy the copy when we return
+	defer keyBuf.Destroy()
 
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(keyBuf.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("could not parse private keyEnclave: %s", err)
+		return nil, fmt.Errorf("could not parse private key buffer: %s", err)
 	}
 
 	ss, err := bearer.SignedString(key)
@@ -75,9 +76,11 @@ func (t *AppsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return nil, fmt.Errorf("could not sign jwt: %s", err)
 	}
 
+	// Set key to nil to mitigate read from memory dump
+	key = nil
+
 	req.Header.Set("Authorization", "Bearer "+ss)
 	req.Header.Add("Accept", acceptHeader)
 
-	resp, err := t.tr.RoundTrip(req)
-	return resp, err
+	return t.tr.RoundTrip(req)
 }

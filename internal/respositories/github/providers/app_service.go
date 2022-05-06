@@ -26,9 +26,9 @@ type githubAppClient struct {
 
 // NewAppClient returns a new instance of the GitHub client
 func NewAppClient(baseURL string, appID int64, keyEnclave *memguard.Enclave) (AppClient, error) {
-	itr := NewAppsTransport(baseURL, http.DefaultTransport, appID, keyEnclave)
+	transport := NewAppsTransport(baseURL, http.DefaultTransport, appID, keyEnclave)
 	loggingClient := libHttp.AddLogging(&http.Client{
-		Transport: itr,
+		Transport: transport,
 	})
 
 	// Create git client with app transport
