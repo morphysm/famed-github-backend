@@ -27,6 +27,7 @@ This repository contains the code of the Famed-Backend.
 <!--ts-->
 
 - [How to Famed](#how-to-famed)
+- [Security Considerations](#security-considerations)
 - [Develop](#develop)
   - [Prerequisites](#prerequisites)
   - [Run](#run)
@@ -55,6 +56,11 @@ This repository contains the code of the Famed-Backend.
 
 
 4. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
+
+# Security Considerations
+We memmemory encrypted the GitHub keywith github.com/awnumar/memguard to mitigate memmory dump readout attacks.
+We use -buildmode=pie resulting in all addresses except the stack being randomized. (https://rain-1.github.io/golang-aslr.html)
+
 
 # Self Host
 Coming Soon
