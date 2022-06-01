@@ -78,11 +78,17 @@ Please make sure that your system has the following programs:
 
 - [go min. v1.17](https://go.dev/doc/install)
 
+1. Create your own GitHub app.
+2. Add a webhook secret to your GitHub app.
+3. Use a reverse proxy method of your choice to forward requests from github to your localhost port. (e.g. https://ngrok.com/)
+4. Add the reverse proxy endpoint for callbacks (famed/webhooks/event) at the GitHub app.
+5. Set up the Env variables.
+
 ## Run
 
 ### Env Variables
 
-- GITHUB_API_KEY: Secret key of the Famed GitHub app
+- GITHUB_API_KEY: Secret key of the Famed GitHub app (GoLand might format your API key wrongly - Go to .idea/workspace.xml with a alternative editor and set  <env name="GITHUB_API_KEY" value=<Key>/> where you replace newlines with &#10;).
 - GITHUB_APP_ID: ID of the Famed GitHub app
 - GITHUB_BOT_LOGIN: Login Name of the Famed GitHub app bot (GitHub App name - spaces replaced by "-" + [bot] e.g. : get-famed[bot] )
 - GITHUB_WEBHOOK_SECRET: Webhook secret key of the Famed GitHub app
@@ -90,8 +96,8 @@ Please make sure that your system has the following programs:
 - ADMIN_USERNAME: Username for simple auth admin calls
 - ADMIN_PASSWORD: Password for simple auth admin calls
 - NEWRELIC_ENABLED: Enable New Relic tracing (feature still experimental / in development)
-- NEWRELIC_KEY: New Relic authentication key
-- NEWRELIC_NAME: New Relic service name
+- NEWRELIC_KEY: New Relic authentication key (leave empty if NEWRELIC_ENABLED=false)
+- NEWRELIC_NAME: New Relic service name (leave empty if NEWRELIC_ENABLED=false)
 
 # Troubleshooting
 
