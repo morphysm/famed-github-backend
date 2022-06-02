@@ -3,6 +3,11 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	_ "embed"
+	"github.com/morphysm/famed-github-backend/assets"
+	"log"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,19 +24,22 @@ import (
 	"github.com/morphysm/famed-github-backend/pkg/ticker"
 )
 
-// NewServer returns an echo server with default configuration
-func newServer() *echo.Echo {
-	return echo.New()
+type Server struct {
+	echo *echo.Echo
+	cfg  *config.Config
 }
 
 // NewBackendServer instantiates new application Echo server.
-func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
+func NewServer(cfg *config.Config) (*Server, error) {
 	nrApp, err := configureNewRelic(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	e := newServer()
+	e := echo.New()
+
+	e.HideBanner = true
+	e.StdLogger.Printf(assets.Banner)
 
 	// Middleware
 	e.Use(
@@ -108,7 +116,8 @@ func NewBackendServer(cfg *config.Config) (*echo.Echo, error) {
 		)
 	}
 
-	return e, nil
+	return &Server{echo: e,
+		cfg: cfg}, nil
 }
 
 func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
@@ -123,4 +132,25 @@ func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
 		newrelic.ConfigDistributedTracerEnabled(true),
 		newrelic.ConfigEnabled(cfg.NewRelic.Enabled),
 	)
+}
+
+func (s Server) Start() {
+	// Start server for famed backend.
+	go func() {
+		if err := s.echo.Start(":" + s.cfg.App.Port); err != nil {
+			log.Fatalf("shutting down the server. %s", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := s.echo.Shutdown(ctx); err != nil {
+		log.Panic(err)
+	}
 }
