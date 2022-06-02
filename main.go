@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/morphysm/famed-github-backend/assets"
 	"log"
 	"os"
 	"os/signal"
@@ -12,18 +13,6 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/server"
-)
-
-const (
-	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=FamedBackend
-	banner = `
-   ____                  _____           __               __
-  / __/__ ___ _  ___ ___/ / _ )___ _____/ /_____ ___  ___/ /
- / _// _ '/  ' \/ -_) _  / _  / _ '/ __/  '_/ -_) _ \/ _  / 
-/_/  \_,_/_/_/_/\__/\_,_/____/\_,_/\__/_/\_\\__/_//_/\_,_/  
-
-Go Backend
-`
 )
 
 func main() {
@@ -59,7 +48,7 @@ func start(e *echo.Echo, cfg *config.Config) {
 	// Start server for famed backend.
 	go func() {
 		e.HideBanner = true
-		e.StdLogger.Printf(banner)
+		e.StdLogger.Printf(assets.Banner)
 
 		if err := e.Start(":" + cfg.App.Port); err != nil {
 			log.Fatalf("shutting down the server. %s", err)
