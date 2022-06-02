@@ -34,7 +34,7 @@ func main() {
 	// Load config
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	// Prepare server
@@ -75,6 +75,6 @@ func start(e *echo.Echo, cfg *config.Config) {
 	defer cancel()
 
 	if err := e.Shutdown(ctx); err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 }
