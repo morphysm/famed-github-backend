@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"crypto/subtle"
-	_ "embed"
-	"github.com/morphysm/famed-github-backend/assets"
 	"log"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/morphysm/famed-github-backend/assets"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -116,8 +116,10 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		)
 	}
 
-	return &Server{echo: e,
-		cfg: cfg}, nil
+	return &Server{
+		echo: e,
+		cfg:  cfg,
+	}, nil
 }
 
 func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
