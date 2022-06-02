@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/morphysm/famed-github-backend/assets"
@@ -24,25 +26,26 @@ import (
 	"github.com/morphysm/famed-github-backend/pkg/ticker"
 )
 
+// Server struct.
 type Server struct {
 	echo *echo.Echo
 	cfg  *config.Config
 }
 
-// NewBackendServer instantiates new application Echo server.
+// NewServer instantiates and setup new Server with new Echo server.
 func NewServer(cfg *config.Config) (*Server, error) {
 	nrApp, err := configureNewRelic(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't configure relic: %w", err)
 	}
 
-	e := echo.New()
+	echoServer := echo.New()
 
-	e.HideBanner = true
-	e.StdLogger.Printf(assets.Banner)
+	echoServer.HideBanner = true
+	echoServer.StdLogger.Printf(assets.Banner)
 
 	// Middleware
-	e.Use(
+	echoServer.Use(
 		nrecho.Middleware(nrApp),
 		middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://www.famed.morphysm.com", "https://famed.morphysm.com"},
@@ -54,13 +57,13 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// Create new app client to fetch installations and github tokens.
 	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.AppID, cfg.Github.KeyEnclave)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't create app client: %w", err)
 	}
 
 	// Get installations
 	installations, err := appClient.GetInstallations(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get installations: %w", err)
 	}
 
 	// Transform all installations to owner installationID map
@@ -72,7 +75,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// Create a new github client to fetch repo data
 	installationClient, err := providers.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamLogins)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't create new github client: %w", err)
 	}
 
 	// Create a new GitHub handler handling gateway calls to GitHub
@@ -86,7 +89,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	ticker.NewTicker(time.Duration(cfg.Famed.UpdateFrequency)*time.Second, famedHandler.CleanState)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests
-	famedGroup := e.Group("/famed")
+	famedGroup := echoServer.Group("/famed")
 	{
 		FamedRoutes(
 			famedGroup, famedHandler,
@@ -94,12 +97,13 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	}
 
 	// FamedAdminRoutes endpoints exposed for Famed admin requests
-	famedAdminGroup := e.Group("/admin", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+	famedAdminGroup := echoServer.Group("/admin", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
 		// Use of constant time comparison to prevent timing attacks
 		if subtle.ConstantTimeCompare([]byte(username), []byte(cfg.Admin.Username)) == 1 &&
 			subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Admin.Password)) == 1 {
 			return true, nil
 		}
+
 		return false, nil
 	}))
 	{
@@ -109,7 +113,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	}
 
 	// Health endpoints exposed for heartbeat
-	healthGroup := e.Group("/health")
+	healthGroup := echoServer.Group("/health")
 	{
 		HealthRoutes(
 			healthGroup, health.NewHandler(),
@@ -117,7 +121,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	}
 
 	return &Server{
-		echo: e,
+		echo: echoServer,
 		cfg:  cfg,
 	}, nil
 }
@@ -128,6 +132,7 @@ func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
 			newrelic.ConfigEnabled(cfg.NewRelic.Enabled),
 		)
 	}
+
 	return newrelic.NewApplication(
 		newrelic.ConfigAppName(cfg.NewRelic.Name),
 		newrelic.ConfigLicense(cfg.NewRelic.Key),
@@ -136,23 +141,39 @@ func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
 	)
 }
 
-func (s Server) Start() {
-	// Start server for famed backend.
+// Start starts the server and opens a new go routine that waits for the server to graceful shutdown it.
+func (s *Server) Start() error {
+	idleConnsClosed := make(chan struct{})
+
+	// Waits for an interrupt to shutdown the server
 	go func() {
-		if err := s.echo.Start(":" + s.cfg.App.Port); err != nil {
-			log.Fatalf("shutting down the server. %s", err)
+		// The expected signals to turn off the server (CTRL+C/syscall interrupt)
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+		defer stop()
+		<-ctx.Done()
+
+		// Does not accept any more requests, processes the remaining requests and stops the server
+		log.Println("Requested shutdown in progress.. Press Ctrl+C again to force.")
+
+		// Give 10 second to server to shutdown
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := s.echo.Shutdown(ctx); err != nil {
+			log.Fatal(err)
 		}
+
+		close(idleConnsClosed)
 	}()
 
-	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
+	// Start the server, the main thread will be blocked here
+	if err := s.echo.Start(":" + s.cfg.App.Port); err != nil {
+		close(idleConnsClosed)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := s.echo.Shutdown(ctx); err != nil {
-		log.Panic(err)
+		return fmt.Errorf("http server can't listen and serve: %w", err)
 	}
+
+	<-idleConnsClosed
+
+	return nil
 }

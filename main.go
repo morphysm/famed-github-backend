@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/awnumar/memguard"
 	"log"
+
+	"github.com/awnumar/memguard"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/server"
@@ -23,6 +24,8 @@ func main() {
 	if backendServer, err := server.NewServer(cfg); err != nil {
 		log.Panic(err)
 	} else {
-		backendServer.Start()
+		if err := backendServer.Start(); err != nil {
+			log.Panic(err)
+		}
 	}
 }
