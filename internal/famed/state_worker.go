@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
-	model2 "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	model2 "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // CleanState iterates over all issues and updates their comments if necessary.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // parseRedTeam returns a red team parsed from a GitHub issue body.

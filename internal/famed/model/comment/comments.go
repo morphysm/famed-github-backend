@@ -3,7 +3,7 @@ package comment
 import (
 	"strings"
 
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 type Comments []model.IssueComment

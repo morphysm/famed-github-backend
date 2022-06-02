@@ -10,7 +10,7 @@ import (
 
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // handleIssuesEvent handles issue events and posts a suggested payout handleClosedEvent to the GitHub API,

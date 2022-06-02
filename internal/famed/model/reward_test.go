@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/morphysm/famed-github-backend/internal/famed/model"
-	model2 "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	model2 "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 //nolint:funlen

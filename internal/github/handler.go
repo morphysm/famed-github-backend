@@ -3,7 +3,7 @@ package github
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 type HTTPHandler interface {

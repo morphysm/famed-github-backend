@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/famed-github-backend/internal/famed/model"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 	"github.com/morphysm/famed-github-backend/pkg/sync"
 )
 
