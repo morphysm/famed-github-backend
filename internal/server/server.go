@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -167,7 +168,7 @@ func (s *Server) Start() error {
 	}()
 
 	// Start the server, the main thread will be blocked here
-	if err := s.echo.Start(":" + s.cfg.App.Port); err != nil {
+	if err := s.echo.Start(net.JoinHostPort("", s.cfg.App.Port)); err != nil {
 		close(idleConnsClosed)
 
 		return fmt.Errorf("http server can't listen and serve: %w", err)
