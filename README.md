@@ -41,6 +41,7 @@ This repository contains the code of the Famed-Backend.
 
 # How to Famed
 
+🚧 [New guide in construction](https://github.com/morphysm/famed-github-backend/wiki/Installation-guide-&-first-start-%28Linux-version-%F0%9F%90%A7%29) 🚧
 1. Install the Famed GitHub App (https://github.com/apps/get-famed) and allow the app to access to your repository.</br>
    ***Note:** We populate the issue labels when you allow the app to access your repository: "famed", "none", "low", "medium", "high", "critical". We do not overwrite your labels if labels with the same name are present.*
 2. Setup frontend:
