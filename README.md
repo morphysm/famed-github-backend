@@ -88,6 +88,8 @@ Please make sure that your system has the following programs:
 ## Run
 
 ### Env Variables
+🚧 [New env variables list in construction](https://github.com/morphysm/famed-github-backend/wiki/Configuration-and-environment-variables
+) 🚧
 
 - GITHUB_API_KEY: Secret key of the Famed GitHub app (GoLand might format your API key wrongly - Go to .idea/workspace.xml with a alternative editor and set  <env name="GITHUB_API_KEY" value=<Key>/> where you replace newlines with &#10;).
 - GITHUB_APP_ID: ID of the Famed GitHub app
