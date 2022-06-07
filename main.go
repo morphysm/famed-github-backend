@@ -20,12 +20,13 @@ func main() {
 		log.Panic(err)
 	}
 
-	// Instantiate and start the server
-	if backendServer, err := server.NewServer(cfg); err != nil {
+	// Instantiate the server
+	backendServer, err := server.NewServer(cfg)
+	if err != nil {
 		log.Panic(err)
-	} else {
-		if err := backendServer.Start(); err != nil {
-			log.Panic(err)
-		}
+	}
+
+	if err := backendServer.Start(); err != nil {
+		log.Panic(err)
 	}
 }
