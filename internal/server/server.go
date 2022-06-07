@@ -27,17 +27,17 @@ import (
 	"github.com/morphysm/famed-github-backend/pkg/ticker"
 )
 
-// Server struct.
+// Server represents the HTTP server single instance.
 type Server struct {
 	echo *echo.Echo
 	cfg  *config.Config
 }
 
-// NewServer instantiates and setup new Server with new Echo server.
+// NewServer instantiates and sets up a new server using the echo web framework.
 func NewServer(cfg *config.Config) (*Server, error) {
 	nrApp, err := configureNewRelic(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("can't configure relic: %w", err)
+		return nil, fmt.Errorf("failed to configure relic: %w", err)
 	}
 
 	echoServer := echo.New()
@@ -58,13 +58,13 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// Create new app client to fetch installations and github tokens.
 	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.AppID, cfg.Github.KeyEnclave)
 	if err != nil {
-		return nil, fmt.Errorf("can't create app client: %w", err)
+		return nil, fmt.Errorf("failed to create app client: %w", err)
 	}
 
 	// Get installations
 	installations, err := appClient.GetInstallations(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("can't get installations: %w", err)
+		return nil, fmt.Errorf("failed to get installations: %w", err)
 	}
 
 	// Transform all installations to owner installationID map
@@ -76,7 +76,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// Create a new github client to fetch repo data
 	installationClient, err := providers.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamLogins)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new github client: %w", err)
+		return nil, fmt.Errorf("failed to create new github client: %w", err)
 	}
 
 	// Create a new GitHub handler handling gateway calls to GitHub
@@ -142,7 +142,7 @@ func configureNewRelic(cfg *config.Config) (*newrelic.Application, error) {
 	)
 }
 
-// Start starts the server and opens a new go routine that waits for the server to graceful shutdown it.
+// Start starts a new go routine that allows to gracefully shut down the server
 func (s *Server) Start() error {
 	idleConnsClosed := make(chan struct{})
 
@@ -171,7 +171,7 @@ func (s *Server) Start() error {
 	if err := s.echo.Start(net.JoinHostPort("", s.cfg.App.Port)); err != nil {
 		close(idleConnsClosed)
 
-		return fmt.Errorf("http server can't listen and serve: %w", err)
+		return fmt.Errorf("failed to listen and serve http server: %w", err)
 	}
 
 	<-idleConnsClosed
