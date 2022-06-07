@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 func TestConfig(t *testing.T) {

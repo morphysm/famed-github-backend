@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // NewBlueTeamFromIssues generates a blue team from a given slice of enriched issues.

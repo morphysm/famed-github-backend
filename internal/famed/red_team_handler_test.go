@@ -10,8 +10,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/morphysm/famed-github-backend/internal/famed"
-	model "github.com/morphysm/famed-github-backend/internal/respositories/github/model"
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/providers/providersfakes"
+	model "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 	"github.com/stretchr/testify/assert"
 )

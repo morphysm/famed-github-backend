@@ -3,7 +3,7 @@ package providers
 import (
 	"context"
 
-	"github.com/morphysm/famed-github-backend/internal/respositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 func (c *githubInstallationClient) GetRateLimit(ctx context.Context, owner string) (model.RateLimit, error) {
