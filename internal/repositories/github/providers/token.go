@@ -2,7 +2,7 @@ package providers
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 
 	"golang.org/x/oauth2"
 )
@@ -25,7 +25,7 @@ func (tS *gitHubTokenSource) Token() (*oauth2.Token, error) {
 		context.Background(),
 		tS.installationID)
 	if err != nil {
-		log.Printf("error getting access token: %v", err)
+		log.Error().Err(err).Msg("error getting access token")
 		return nil, err
 	}
 

@@ -1,7 +1,7 @@
 package famed
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -23,7 +23,7 @@ func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, eve
 	}
 	errors := gH.githubInstallationClient.PostLabels(c.Request().Context(), event.Installation.Account.Login, repoNames, gH.famedConfig.Labels)
 	for _, err := range errors {
-		log.Printf("[handleInstallationRepositoriesEvent] error while posting labels: %v", err)
+		log.Error().Err(err).Msg("[handleInstallationRepositoriesEvent] error while posting labels")
 	}
 
 	return c.NoContent(http.StatusOK)
