@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/awnumar/memguard"
+	"github.com/morphysm/famed-github-backend/assets"
 	"github.com/phuslu/log"
 	"time"
 
@@ -10,6 +12,9 @@ import (
 )
 
 func main() {
+	// Print the assets/banner.txt
+	fmt.Println(assets.Banner)
+
 	// Logger configuration
 	log.DefaultLogger = log.Logger{
 		Level:      log.InfoLevel,

@@ -11,8 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/morphysm/famed-github-backend/assets"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
@@ -43,7 +41,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	echoServer := echo.New()
 
 	echoServer.HideBanner = true
-	echoServer.StdLogger.Printf(assets.Banner)
 
 	// Middleware
 	echoServer.Use(
