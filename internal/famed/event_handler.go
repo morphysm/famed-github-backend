@@ -28,7 +28,7 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 	case model.InstallationEvent:
 		return gH.handleInstallationEvent(c, event)
 	default:
-		log.Printf("received unhandled event: %v\n", event)
+		log.Warn().Msgf("received unhandled event: %v\n", event)
 		return c.NoContent(http.StatusOK)
 	}
 }
