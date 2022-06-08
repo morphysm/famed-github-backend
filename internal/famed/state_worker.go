@@ -10,7 +10,7 @@ import (
 
 // CleanState iterates over all issues and updates their comments if necessary.
 func (gH *githubHandler) CleanState() {
-	log.Printf("[CleanState] running clean up...")
+	log.Info().Msgf("[CleanState] running clean up...")
 
 	ctx := context.Background()
 	installations, err := gH.githubAppClient.GetInstallations(ctx)
@@ -38,7 +38,7 @@ func (gH *githubHandler) CleanState() {
 			famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{famedLabel.Name}, nil)
 			if err != nil {
-				log.Printf("[CleanState] error while fetching issues for %s/%s: %v", installation.Account.Login, repoName, err)
+				log.Error().Err(err).Msgf("[CleanState] error while fetching issues for %s/%s", installation.Account.Login, repoName)
 			}
 
 			go func(owner string, repoName string, issues []model2.Issue) {

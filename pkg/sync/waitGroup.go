@@ -1,7 +1,7 @@
 package sync
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"sync"
 )
 
@@ -22,9 +22,9 @@ func (wG *WaitGroups) Wait(iD int64) {
 
 	wGs, ok := wG.wGs[iD]
 	if ok && len(wGs) > 0 {
-		log.Printf("[Wait] waiting for wg at position %d in queue %d", len(wGs), iD)
+		log.Info().Msgf("[Wait] waiting for wg at position %d in queue %d", len(wGs), iD)
 
-		defer log.Printf("[Wait] done waiting at position %d in queue %d", len(wGs), iD)
+		defer log.Info().Msgf("[Wait] done waiting at position %d in queue %d", len(wGs), iD)
 		defer wGs[len(wGs)-1].Wait()
 	}
 
@@ -42,10 +42,10 @@ func (wG *WaitGroups) Done(iD int64) {
 
 	wGs, ok := wG.wGs[iD]
 	if !ok {
-		log.Print("[Done] no wait group found")
+		log.Info().Msg("[Done] no wait group found")
 	}
 
-	log.Printf("[Done] done in queue %d", iD)
+	log.Info().Msgf("[Done] done in queue %d", iD)
 	wGs[0].Done()
 	wGs = wGs[1:]
 	wG.wGs[iD] = wGs

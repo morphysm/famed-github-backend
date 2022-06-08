@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	"github.com/phuslu/log"
 
 	"github.com/google/go-github/v41/github"
 )
@@ -76,6 +76,6 @@ func isIssueFamedLabeled(issue *github.Issue, famedLabel string) bool {
 		}
 	}
 
-	log.Printf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, issue.ID)
+	log.Warn().Msgf("[IsIssueFamedLabeled] missing famed label: %s in issue with ID: %d", famedLabel, issue.ID)
 	return false
 }

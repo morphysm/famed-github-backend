@@ -13,7 +13,7 @@ import (
 // handleInstallationRepositoriesEvent adds the labels needed for Famed to the added repository
 func (gH *githubHandler) handleInstallationRepositoriesEvent(c echo.Context, event model.InstallationRepositoriesEvent) error {
 	if event.Action != "added" {
-		log.Printf("[handleInstallationRepositoriesEvent] error is not valid repo added event")
+		log.Error().Msg("[handleInstallationRepositoriesEvent] error is not valid repo added event")
 		return model2.ErrEventNotRepoAdded
 	}
 

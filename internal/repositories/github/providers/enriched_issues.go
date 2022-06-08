@@ -2,7 +2,7 @@ package providers
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 	"sync"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -49,14 +49,14 @@ func (c *githubInstallationClient) EnrichIssues(ctx context.Context, owner strin
 func (c *githubInstallationClient) EnrichIssue(ctx context.Context, owner string, repoName string, issue model.Issue) model.EnrichedIssue {
 	pullRequest, err := c.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if pullRequest == nil || err != nil {
-		log.Printf("[EnrichIssue] error while requesting pull request for issue with number %d: %v", issue.Number, err)
+		log.Error().Err(err).Msgf("[EnrichIssue] error while requesting pull request for issue with number %d", issue.Number)
 	}
 
 	var events []model.IssueEvent
 	if !issue.Migrated {
 		events, err = c.GetIssueEvents(ctx, owner, repoName, issue.Number)
 		if err != nil {
-			log.Printf("[EnrichIssue] error while requesting events for issue with number %d: %v", issue.Number, err)
+			log.Error().Err(err).Msgf("[EnrichIssue] error while requesting events for issue with number %d", issue.Number)
 		}
 	}
 

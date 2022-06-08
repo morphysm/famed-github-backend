@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/phuslu/log"
 	"net/http"
 	"time"
 )
@@ -49,6 +49,7 @@ func (lRT loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 	bytes, err := json.Marshal(msg)
 	if err == nil {
 		log.Printf("Request: %s", string(bytes))
+		log.Info().Str("sendTime", msg.SendTime).Str("host", msg.Host).Str("method", msg.Method).Str("path", msg.Path).Str("status", msg.Status).Str("error", msg.Error).Msg("Request:")
 	}
 
 	return res, err

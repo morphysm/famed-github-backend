@@ -47,7 +47,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 		}
 
 	default:
-		log.Printf("[handleIssueEvent] error: %v", model2.ErrEventNotHandled)
+		log.Error().Err(model2.ErrEventNotHandled).Msg("[handleIssueEvent] error")
 		return model2.ErrEventNotHandled
 	}
 

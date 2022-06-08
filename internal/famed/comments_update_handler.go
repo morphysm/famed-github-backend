@@ -282,7 +282,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 func (gH *githubHandler) deleteComment(ctx context.Context, owner string, repoName string, comment model.IssueComment) (bool, error) {
 	err := gH.githubInstallationClient.DeleteComment(ctx, owner, repoName, comment.ID)
 	if err != nil {
-		log.Printf("[deleteComment] error while deleting comment with id: %d: %v", comment.ID, err)
+		log.Error().Err(err).Msgf("[deleteComment] error while deleting comment with id: %d", comment.ID)
 		return false, err
 	}
 

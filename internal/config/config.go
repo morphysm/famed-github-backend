@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"github.com/phuslu/log"
 	"os"
 
 	"github.com/awnumar/memguard"

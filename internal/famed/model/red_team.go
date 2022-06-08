@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"time"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -24,7 +24,7 @@ func NewRedTeamFromIssues(issues []model.Issue, currency string, now time.Time) 
 func (cs Contributors) mapRedTeamFromIssues(issues []model.Issue, currency string, now time.Time) {
 	for _, issue := range issues {
 		if issue.RedTeam == nil || issue.BountyPoints == nil || issue.ClosedAt == nil {
-			log.Printf("[mapRedTeamFromIssues] issue with id: %d: is missing data", issue.ID)
+			log.Warn().Msgf("[mapRedTeamFromIssues] issue with id: %d: is missing data", issue.ID)
 			continue
 		}
 
@@ -41,7 +41,7 @@ func (cs Contributors) mapRedTeamFromIssue(issue model.Issue, currency string, n
 
 		severity, err := issue.Severity()
 		if err != nil {
-			log.Printf("[mapRedTeamFromIssue] error while reading severity from with id: %d: %v", issue.ID, err)
+			log.Error().Err(err).Msgf("[mapRedTeamFromIssue] error while reading severity from with id: %d", issue.ID)
 			return
 		}
 

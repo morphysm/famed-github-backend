@@ -2,7 +2,7 @@ package providers
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 	"strings"
 
 	"github.com/google/go-github/v41/github"
@@ -46,7 +46,7 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 	for _, issue := range allIssues {
 		compressedIssue, err := model.NewIssue(issue, owner, repoName)
 		if err != nil {
-			log.Printf("[GetIssuesByRepo] validation error for issue with number %d: %v", issue.Number, err)
+			log.Error().Err(err).Msgf("[GetIssuesByRepo] validation error for issue with number %d", issue.Number)
 		}
 
 		if compressedIssue.Migrated {

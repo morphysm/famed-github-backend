@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"time"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -27,7 +27,7 @@ func NewBlueTeamFromIssue(issue model.EnrichedIssue, options BoardOptions) ([]*C
 	// Map issue to contributors
 	err := contributors.mapBlueTeamIssue(issue, options)
 	if err != nil {
-		log.Printf("[contributors] error while mapping issue with ID: %d, error: %v", issue.ID, err)
+		log.Error().Err(err).Msgf("[contributors] error while mapping issue with ID: %d", issue.ID)
 		return nil, err
 	}
 	// Transformation of contributors map to contributors array
@@ -41,7 +41,7 @@ func issuesToBlueTeam(issues map[int]model.EnrichedIssue, options BoardOptions) 
 		// Map issue to contributors
 		err := contributors.mapBlueTeamIssue(issue, options)
 		if err != nil {
-			log.Printf("[issuesToBlueTeam] error while mapping issue with ID: %d, error: %v", issueID, err)
+			log.Error().Err(err).Msgf("[issuesToBlueTeam] error while mapping issue with ID: %d", issueID)
 			issues[issueID] = issue
 		}
 	}
@@ -60,7 +60,7 @@ func (cs Contributors) mapBlueTeamIssue(issue model.EnrichedIssue, boardOptions 
 
 	severity, err := issue.Severity()
 	if err != nil {
-		log.Printf("[mapBlueTeamIssue] error while reading severity from with id: %d: %v", issue.ID, err)
+		log.Error().Err(err).Msgf("[mapBlueTeamIssue] error while reading severity from with id: %d", issue.ID)
 		return err
 	}
 
@@ -98,7 +98,7 @@ func (cs Contributors) mapBlueTeamEvents(events []model.IssueEvent, issueClosedA
 		switch event.Event {
 		case string(model.IssueEventActionAssigned):
 			if event.Assignee == nil {
-				log.Printf("[mapBlueTeamIssue] event assigned is missing for event with ID: %d", event.ID)
+				log.Warn().Msgf("[mapBlueTeamIssue] event assigned is missing for event with ID: %d", event.ID)
 				continue
 			}
 			if event.CreatedAt.After(issueClosedAt) {
@@ -134,6 +134,6 @@ func (cs Contributors) mapEventAssigned(event model.IssueEvent, issueClosedAt ti
 func mapEventUnassigned(event model.IssueEvent, workLogs WorkLogs) {
 	err := workLogs.UpdateEnd(event.Assignee.Login, event.CreatedAt)
 	if err != nil {
-		log.Printf("[mapEventUnassigned] %v on map of event with id %d \n", err, event.ID)
+		log.Error().Err(err).Msgf("[mapEventUnassigned] error on map of event with id %d \n", event.ID)
 	}
 }
