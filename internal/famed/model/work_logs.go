@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"log"
+	"github.com/phuslu/log"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func (wL WorkLogs) Add(login string, workLog WorkLog) {
 func (wL WorkLogs) UpdateEnd(login string, end time.Time) error {
 	assigneeWorkLogs := wL[login]
 	if len(assigneeWorkLogs) == 0 {
-		log.Printf("[mapEventUnassigned] %v \n", ErrNoWorkLogForAssignee)
+		log.Error().Err(ErrNoWorkLogForAssignee).Msgf("[mapEventUnassigned] \n")
 		return ErrNoWorkLogForAssignee
 	}
 

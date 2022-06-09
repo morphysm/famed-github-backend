@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"github.com/phuslu/log"
 	"os"
 
 	"github.com/awnumar/memguard"
@@ -121,7 +121,7 @@ func Load() (*Config, error) {
 func loadNewRelic(cfg *Config) error {
 	// NewRelic enabled
 	if err := bindBool(&cfg.NewRelic.Enabled, newRelicEnabledEnvName); err != nil {
-		log.Printf("%s not found", newRelicEnabledEnvName)
+		log.Error().Err(err).Msgf("%s not found", newRelicEnabledEnvName)
 		cfg.NewRelic.Enabled = false
 	}
 	if cfg.NewRelic.Enabled {

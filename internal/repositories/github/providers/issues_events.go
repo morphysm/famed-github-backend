@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"net/http"
 	"strings"
 
@@ -68,7 +68,7 @@ func (c *githubInstallationClient) ValidateWebHookEvent(request *http.Request) (
 
 		return installationEvent, err
 	default:
-		log.Println("[ValidateWebHookEvent] unhandled event")
+		log.Error().Msg("[ValidateWebHookEvent] unhandled event")
 		return event, model.ErrUnhandledEventType
 	}
 }

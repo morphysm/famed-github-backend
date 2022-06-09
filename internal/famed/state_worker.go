@@ -2,7 +2,7 @@ package famed
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	model2 "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -10,12 +10,12 @@ import (
 
 // CleanState iterates over all issues and updates their comments if necessary.
 func (gH *githubHandler) CleanState() {
-	log.Printf("[CleanState] running clean up...")
+	log.Info().Msgf("[CleanState] running clean up...")
 
 	ctx := context.Background()
 	installations, err := gH.githubAppClient.GetInstallations(ctx)
 	if err != nil {
-		log.Printf("[CleanState] error while getting installations: %v", err)
+		log.Error().Err(err).Msg("[CleanState] error while getting installations")
 	}
 
 	for _, installation := range installations {
@@ -23,14 +23,14 @@ func (gH *githubHandler) CleanState() {
 		if !gH.githubInstallationClient.CheckInstallation(installation.Account.Login) {
 			err := gH.githubInstallationClient.AddInstallation(installation.Account.Login, installation.ID)
 			if err != nil {
-				log.Printf("[CleanState] error while adding github: %v", err)
+				log.Error().Err(err).Msg("[CleanState] error while adding github")
 				continue
 			}
 		}
 
 		repos, err := gH.githubInstallationClient.GetRepos(ctx, installation.Account.Login)
 		if err != nil {
-			log.Printf("[CleanState] error while getting repos: %v", err)
+			log.Error().Err(err).Msg("[CleanState] error while getting repos")
 			continue
 		}
 
@@ -38,7 +38,7 @@ func (gH *githubHandler) CleanState() {
 			famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{famedLabel.Name}, nil)
 			if err != nil {
-				log.Printf("[CleanState] error while fetching issues for %s/%s: %v", installation.Account.Login, repoName, err)
+				log.Error().Err(err).Msgf("[CleanState] error while fetching issues for %s/%s", installation.Account.Login, repoName)
 			}
 
 			go func(owner string, repoName string, issues []model2.Issue) {

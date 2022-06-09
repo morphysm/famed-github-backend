@@ -1,7 +1,7 @@
 package famed
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,7 +13,7 @@ import (
 // handleInstallationRepositoriesEvent adds the labels needed for Famed to the added repository
 func (gH *githubHandler) handleInstallationEvent(c echo.Context, event model.InstallationEvent) error {
 	if event.Action != "created" {
-		log.Printf("[handleInstallationEvent] error is not valid insatllation created event")
+		log.Error().Msg("[handleInstallationEvent] error is not valid installation created event")
 		return model2.ErrEventNotInstallationCreated
 	}
 
@@ -28,7 +28,7 @@ func (gH *githubHandler) handleInstallationEvent(c echo.Context, event model.Ins
 	}
 	errors := gH.githubInstallationClient.PostLabels(c.Request().Context(), event.Installation.Account.Login, repoNames, gH.famedConfig.Labels)
 	for _, err := range errors {
-		log.Printf("[handleInstallationEvent] error while posting labels: %v", err)
+		log.Error().Err(err).Msg("[handleInstallationEvent] error while posting labels")
 	}
 
 	return c.NoContent(http.StatusOK)

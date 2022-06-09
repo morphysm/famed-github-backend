@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"sort"
 	"time"
 
@@ -55,7 +55,7 @@ func (cs Contributors) UpdateRewards(url string, workLogs WorkLogs, open time.Ti
 	for login, contributorTotalWork := range contributorsWork {
 		if contributorTotalWork < 0 {
 			// < is a safety measure, should not happen
-			log.Printf("contributor total work < 0: %d\n", contributorTotalWork)
+			log.Info().Msgf("contributor total work < 0: %d\n", contributorTotalWork)
 			continue
 		}
 		contributor := cs[login]

@@ -4,14 +4,12 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
-	"log"
+	"github.com/phuslu/log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/morphysm/famed-github-backend/assets"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -43,7 +41,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	echoServer := echo.New()
 
 	echoServer.HideBanner = true
-	echoServer.StdLogger.Printf(assets.Banner)
 
 	// Middleware
 	echoServer.Use(
@@ -154,14 +151,14 @@ func (s *Server) Start() error {
 		<-ctx.Done()
 
 		// Does not accept any more requests, processes the remaining requests and stops the server
-		log.Println("Requested shutdown in progress.. Press Ctrl+C again to force.")
+		log.Info().Msg("Requested shutdown in progress.. Press Ctrl+C again to force.")
 
 		// Give 10 second to server to shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := s.echo.Shutdown(ctx); err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("failed to gracefully shutdown server")
 		}
 
 		close(idleConnsClosed)

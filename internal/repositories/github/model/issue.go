@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	"github.com/phuslu/log"
 	"strconv"
 	"strings"
 	"time"
@@ -102,21 +102,21 @@ func parseMigrationIssue(issue Issue, body string) Issue {
 
 	createdAt, err := parseReportedTime(body)
 	if err != nil {
-		log.Printf("[parseMigrationIssue] error while parsing reported time: %v", err)
+		log.Error().Err(err).Msg("[parseMigrationIssue] error while parsing reported time")
 	} else {
 		issue.CreatedAt = createdAt
 	}
 
 	closedAt, err := parseFixTime(body)
 	if err != nil {
-		log.Printf("[parseMigrationIssue] error while parsing fix time: %v", err)
+		log.Error().Err(err).Msg("[parseMigrationIssue] error while parsing fix time")
 	} else {
 		issue.ClosedAt = &closedAt
 	}
 
 	bountyPoints, err := parseBountyPoints(body)
 	if err != nil {
-		log.Printf("[parseMigrationIssue] error while parsing bounty points: %v", err)
+		log.Error().Err(err).Msg("[parseMigrationIssue] error while parsing bounty points")
 	} else {
 		issue.BountyPoints = &bountyPoints
 	}

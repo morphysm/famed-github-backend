@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
+	"github.com/phuslu/log"
 
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
@@ -26,7 +26,7 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 	case string(model.Closed):
 		comment = gH.handleClosedEvent(ctx, event)
 		if err != nil {
-			log.Printf("[handleIssuesEvent] error while generating reward comment for closed event: %v", err)
+			log.Error().Err(err).Msg("[handleIssuesEvent] error while generating reward comment for closed event")
 			return err
 		}
 
@@ -42,19 +42,19 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 	case string(model.Unlabeled):
 		comment, err = gH.handleUpdatedEvent(ctx, event)
 		if err != nil {
-			log.Printf("[handleIssuesEvent] error while generating eligible comment for labeled event: %v", err)
+			log.Error().Err(err).Msg("[handleIssuesEvent] error while generating eligible comment for labeled event")
 			return err
 		}
 
 	default:
-		log.Printf("[handleIssueEvent] error: %v", model2.ErrEventNotHandled)
+		log.Error().Err(model2.ErrEventNotHandled).Msg("[handleIssueEvent] error")
 		return model2.ErrEventNotHandled
 	}
 
 	// Post comment to GitHub
 	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment)
 	if err != nil {
-		log.Printf("[handleIssueEvent] error while posting rewardComment: %v", err)
+		log.Error().Err(err).Msg("[handleIssueEvent] error while posting rewardComment")
 		return err
 	}
 

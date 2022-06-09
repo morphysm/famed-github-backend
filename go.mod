@@ -11,6 +11,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/newrelic/go-agent/v3 v3.16.1
 	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.2
+	github.com/phuslu/log v1.0.79
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.1

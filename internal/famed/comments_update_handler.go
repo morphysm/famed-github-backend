@@ -2,7 +2,7 @@ package famed
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 	"net/http"
 	"sync"
 
@@ -191,7 +191,7 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, owner string, 
 
 	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
 	if err != nil {
-		log.Printf("[updateRewardComment] error while posting reward comment: %v", err)
+		log.Error().Err(err).Msg("[updateRewardComment] error while posting reward comment")
 		return false, err
 	}
 
@@ -221,14 +221,14 @@ func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner strin
 func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner string, repoName string, issue model.Issue) (bool, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if err != nil {
-		log.Printf("[updateEligibleComment] error while fetching pull request: %v", err)
+		log.Error().Err(err).Msg("[updateEligibleComment] error while fetching pull request")
 		return false, err
 	}
 
 	comment := comment.NewEligibleComment(issue, pullRequest)
 	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment)
 	if err != nil {
-		log.Printf("[updateEligibleComment] error while posting eligable comment: %v", err)
+		log.Error().Err(err).Msg("[updateEligibleComment] error while posting eligable comment")
 		return false, err
 	}
 
@@ -282,7 +282,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 func (gH *githubHandler) deleteComment(ctx context.Context, owner string, repoName string, comment model.IssueComment) (bool, error) {
 	err := gH.githubInstallationClient.DeleteComment(ctx, owner, repoName, comment.ID)
 	if err != nil {
-		log.Printf("[deleteComment] error while deleting comment with id: %d: %v", comment.ID, err)
+		log.Error().Err(err).Msgf("[deleteComment] error while deleting comment with id: %d", comment.ID)
 		return false, err
 	}
 

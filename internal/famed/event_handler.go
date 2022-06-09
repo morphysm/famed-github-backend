@@ -1,10 +1,10 @@
 package famed
 
 import (
+	"github.com/phuslu/log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
@@ -28,7 +28,7 @@ func (gH *githubHandler) PostEvent(c echo.Context) error {
 	case model.InstallationEvent:
 		return gH.handleInstallationEvent(c, event)
 	default:
-		log.Printf("received unhandled event: %v\n", event)
+		log.Warn().Msgf("received unhandled event: %v\n", event)
 		return c.NoContent(http.StatusOK)
 	}
 }

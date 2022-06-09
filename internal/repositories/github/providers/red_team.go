@@ -2,7 +2,7 @@ package providers
 
 import (
 	"context"
-	"log"
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
@@ -12,7 +12,7 @@ func (c *githubInstallationClient) getRedTeamer(ctx context.Context, owner strin
 	// Read from known GitHub logins
 	login := c.redTeamLogins[pseudonym]
 	if login == "" {
-		log.Printf("[parseRedTeam] no GitHub login found for red teamer %s", pseudonym)
+		log.Warn().Msgf("[parseRedTeam] no GitHub login found for red teamer %s", pseudonym)
 		return model.User{Login: pseudonym}, nil
 	}
 
