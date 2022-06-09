@@ -7,7 +7,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/google/go-github/v41 v41.0.0
 	github.com/labstack/echo/v4 v4.7.2
-	github.com/labstack/gommon v0.3.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/newrelic/go-agent/v3 v3.16.1
 	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.2
@@ -27,6 +26,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
