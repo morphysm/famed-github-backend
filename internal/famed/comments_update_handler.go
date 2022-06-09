@@ -2,6 +2,7 @@ package famed
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -128,13 +129,23 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 	}
 
 	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
+
 	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx.Request().Context(), owner, repoName, []string{famedLabel.Name}, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get issues for repository: %w", err)
+	}
+
+	commentsIssues := make(map[*model.Issue][]model.IssueComment, len(issues))
+	for _, issue := range issues {
+		comments, err := gH.githubInstallationClient.GetComments(ctx.Request().Context(), owner, repoName, issue.Number)
+		if err != nil {
+			return err
+		}
+		commentsIssues[&issue] = comments
 	}
 
 	updates := NewSafeIssueCommentsUpdates()
-	gH.deleteDuplicateComments(ctx.Request().Context(), owner, repoName, issues, updates)
+	gH.deleteDuplicateComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -149,7 +160,7 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 	}()
 
 	wg.Wait()
-	gH.orderComments(ctx.Request().Context(), owner, repoName, issues, updates)
+	gH.orderComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 
 	return ctx.JSON(http.StatusOK, updateCommentsResponse{Updates: updates.m})
 }
@@ -239,13 +250,8 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoN
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, issues []model.Issue, updates *SafeIssueCommentsUpdates) error {
-	for _, issue := range issues {
-		comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issue.Number)
-		if err != nil {
-			return err
-		}
-
+func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.Issue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+	for issue, comments := range commentsIssues {
 		eligibleCommentFound := false
 		rewardCommentFound := false
 		for _, com := range comments {
@@ -293,12 +299,8 @@ func (gH *githubHandler) deleteComment(ctx context.Context, owner, repoName stri
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, issues []model.Issue, updates *SafeIssueCommentsUpdates) error {
-	for _, issue := range issues {
-		comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issue.Number)
-		if err != nil {
-			return err
-		}
+func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.Issue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+	for issue, comments := range commentsIssues {
 
 		rewardCommentFound := false
 		var rewardComment model.IssueComment
