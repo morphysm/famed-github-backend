@@ -10,7 +10,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/morphysm/famed-github-backend/internal/config"
 	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -128,14 +127,12 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, famedModel.ErrAppNotInstalled.Error())
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-
-	issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx.Request().Context(), owner, repoName, []string{famedLabel.Name}, nil)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx.Request().Context(), owner, repoName, model.Opened)
 	if err != nil {
 		return fmt.Errorf("failed to get issues for repository: %w", err)
 	}
 
-	commentsIssues := make(map[*model.Issue][]model.IssueComment, len(issues))
+	commentsIssues := make(map[*model.EnrichedIssue][]model.IssueComment, len(issues))
 	for _, issue := range issues {
 		comments, err := gH.githubInstallationClient.GetComments(ctx.Request().Context(), owner, repoName, issue.Number)
 		if err != nil {
@@ -152,11 +149,11 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 
 	go func() {
 		defer wg.Done()
-		gH.updateRewardComments(ctx.Request().Context(), owner, repoName, issues, updates)
+		gH.updateRewardComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 	}()
 	go func() {
 		defer wg.Done()
-		gH.updateEligibleComments(ctx.Request().Context(), owner, repoName, issues, updates)
+		gH.updateEligibleComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 	}()
 
 	wg.Wait()
@@ -166,30 +163,28 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) updateRewardComments(ctx context.Context, owner, repoName string, issues []model.Issue, updates *SafeIssueCommentsUpdates) {
-	enrichedIssues := gH.githubInstallationClient.EnrichIssues(ctx, owner, repoName, issues)
-
+func (gH *githubHandler) updateRewardComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	i := 0
-	for _, issue := range enrichedIssues {
+	for issue, comments := range commentsIssues {
 		wg.Add(1)
 		go func(ctx context.Context, wg *sync.WaitGroup, owner, repoName string, issue model.EnrichedIssue) {
 			defer wg.Done()
-			update, err := gH.updateRewardComment(ctx, owner, repoName, issue)
+			update, err := gH.updateRewardComment(ctx, owner, repoName, issue, comments)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.RewardCommentType)
 			}
 			if updates != nil && update {
 				updates.AddAction(issue.Number, updateAction, comment.RewardCommentType)
 			}
-		}(ctx, &wg, owner, repoName, issue)
+		}(ctx, &wg, owner, repoName, *issue)
 		i++
 	}
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, owner, repoName string, issue model.EnrichedIssue) (bool, error) {
+func (gH *githubHandler) updateRewardComment(ctx context.Context, owner, repoName string, issue model.EnrichedIssue, comments []model.IssueComment) (bool, error) {
 	boardOptions := famedModel.NewBoardOptions(gH.famedConfig.Currency, famedModel.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
 	contributors, err := famedModel.NewBlueTeamFromIssue(issue, boardOptions)
 	var newComment comment.Comment
@@ -203,7 +198,7 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, owner, repoNam
 		newComment = comment.NewRewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment, comments)
 	if err != nil {
 		log.Error().Err(err).Msg("[updateRewardComment] error while posting reward comment")
 		return false, err
@@ -212,27 +207,27 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, owner, repoNam
 	return updated, nil
 }
 
-func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner, repoName string, issues []model.Issue, updates *SafeIssueCommentsUpdates) {
+func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
-	for _, issue := range issues {
+	for issue, comments := range commentsIssues {
 		wg.Add(1)
 		go func(issue model.Issue) {
 			defer wg.Done()
-			update, err := gH.updateEligibleComment(ctx, owner, repoName, issue)
+			update, err := gH.updateEligibleComment(ctx, owner, repoName, issue, comments)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.EligibleCommentType)
 			}
 			if updates != nil && update {
 				updates.AddAction(issue.Number, updateAction, comment.EligibleCommentType)
 			}
-		}(issue)
+		}(issue.Issue)
 	}
 
 	return
 }
 
-func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoName string, issue model.Issue) (bool, error) {
+func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoName string, issue model.Issue, comments []model.IssueComment) (bool, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		log.Error().Err(err).Msg("[updateEligibleComment] error while fetching pull request")
@@ -240,7 +235,7 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoN
 	}
 
 	eligibleComment := comment.NewEligibleComment(issue, pullRequest)
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, eligibleComment)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, eligibleComment, comments)
 	if err != nil {
 		log.Error().Err(err).Msg("[updateEligibleComment] error while posting eligible comment")
 		return false, err
@@ -250,7 +245,7 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoN
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.Issue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
 	for issue, comments := range commentsIssues {
 		eligibleCommentFound := false
 		rewardCommentFound := false
@@ -299,7 +294,7 @@ func (gH *githubHandler) deleteComment(ctx context.Context, owner, repoName stri
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.Issue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
 	for issue, comments := range commentsIssues {
 
 		rewardCommentFound := false

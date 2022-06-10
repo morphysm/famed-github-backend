@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/phuslu/log"
 
-	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
+	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
@@ -47,12 +47,14 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 		}
 
 	default:
-		log.Error().Err(model2.ErrEventNotHandled).Msg("[handleIssueEvent] error")
-		return model2.ErrEventNotHandled
+		log.Error().Err(famedModel.ErrEventNotHandled).Msg("[handleIssueEvent] error")
+		return famedModel.ErrEventNotHandled
 	}
 
+	comments, err := gH.githubInstallationClient.GetComments(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
+
 	// Post comment to GitHub
-	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment)
+	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, comments)
 	if err != nil {
 		log.Error().Err(err).Msg("[handleIssueEvent] error while posting rewardComment")
 		return err
@@ -64,18 +66,18 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 // handleClosedEvent returns a reward comment if event and issue qualifies and reopens the issue if close conditions are not met.
 func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.IssuesEvent) comment.Comment {
 	if len(event.Issue.Assignees) == 0 {
-		return comment.NewErrorRewardComment(model2.ErrIssueMissingAssignee)
+		return comment.NewErrorRewardComment(famedModel.ErrIssueMissingAssignee)
 	}
 
 	issue := gH.githubInstallationClient.EnrichIssue(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue)
 	// TODO: Commented out for dev connect
 	//if issue.PullRequest == nil {
-	//	return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
+	//	return comment.NewErrorRewardComment(famedModel.ErrIssueMissingPullRequest)
 	//}
 
-	rewardStructure := model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
-	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
-	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
+	rewardStructure := famedModel.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
+	boardOptions := famedModel.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
+	contributors, err := famedModel.NewBlueTeamFromIssue(issue, boardOptions)
 	if err != nil {
 		return comment.NewErrorRewardComment(err)
 	}
@@ -100,12 +102,7 @@ func (gH *githubHandler) handleUpdatedEvent(ctx context.Context, event model.Iss
 // if so, the handleClosedEvent body is checked for equality against the new handleClosedEvent,
 // if the comments are not equal the handleClosedEvent is updated,
 // if no handleClosedEvent was found a new handleClosedEvent is posted.
-func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, updatedComment comment.Comment) (bool, error) {
-	comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issueNumber)
-	if err != nil {
-		return false, err
-	}
-
+func (gH *githubHandler) postOrUpdateComment(ctx context.Context, owner string, repoName string, issueNumber int, updatedComment comment.Comment, comments []model.IssueComment) (bool, error) {
 	body, err := updatedComment.String()
 	if err != nil {
 		return false, err

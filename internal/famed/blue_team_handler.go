@@ -1,6 +1,7 @@
 package famed
 
 import (
+	githubModel "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -24,7 +25,7 @@ func (gH *githubHandler) GetBlueTeam(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, model.ErrAppNotInstalled.Error())
 	}
 
-	issues, err := gH.githubInstallationClient.GetEnrichedIssues(c.Request().Context(), owner, repoName)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(c.Request().Context(), owner, repoName, githubModel.Closed)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}

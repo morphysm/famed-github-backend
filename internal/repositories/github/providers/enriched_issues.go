@@ -19,8 +19,7 @@ func (sWI *safeWrappedIssue) Add(wI model.EnrichedIssue) {
 	sWI.enrichedIssues[wI.Number] = wI
 }
 
-func (c *githubInstallationClient) GetEnrichedIssues(ctx context.Context, owner string, repoName string) (map[int]model.EnrichedIssue, error) {
-	issueState := model.Closed
+func (c *githubInstallationClient) GetEnrichedIssues(ctx context.Context, owner string, repoName string, issueState model.IssueState) (map[int]model.EnrichedIssue, error) {
 	issues, err := c.GetIssuesByRepo(ctx, owner, repoName, []string{c.famedLabel}, &issueState)
 	if err != nil {
 		return nil, err
