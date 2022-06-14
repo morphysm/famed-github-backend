@@ -22,11 +22,10 @@ dockers:
       - --label=org.opencontainers.image.licenses=MIT
     extra_files:
       - config.json
+sboms:
+  - artifacts: archive
 nfpms:
-  - maintainer: Carlos A Becker <root@carlosbecker.dev>
-    description: Sample project.
-    homepage: https://github.com/caarlos0/tasktimer
-    license: MIT
+  - license: MIT
     formats:
       - deb
       - rpm
