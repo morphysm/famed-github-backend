@@ -2,42 +2,30 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/awnumar/memguard"
 	"github.com/morphysm/famed-github-backend/assets"
-	"github.com/phuslu/log"
-	"time"
-
-	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/server"
+	"github.com/phuslu/log"
 )
 
 func main() {
 	// Print the assets/banner.txt
 	fmt.Println(assets.Banner)
 
-	// Logger configuration
-	log.DefaultLogger = log.Logger{
-		Level:      log.InfoLevel,
-		TimeFormat: time.Stamp,
-		Writer: &log.ConsoleWriter{
-			ColorOutput:    true,
-			QuoteString:    true,
-			EndWithMessage: false,
-		},
+	// Instantiate essential components (log, config, etc.)
+	devtoolkit, err := devtoolkit.NewDevToolkit()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to instantiate essential components")
 	}
 
 	// Setup memguard https://pkg.go.dev/github.com/awnumar/memguard
 	memguard.CatchInterrupt()
 	defer memguard.Purge()
 
-	// Load config
-	cfg, err := config.Load()
-	if err != nil {
-		log.Panic().Err(err).Msg("failed to load configuration")
-	}
-
 	// Instantiate the server
-	backendServer, err := server.NewServer(cfg)
+	backendServer, err := server.NewServer(devtoolkit.Config)
 	if err != nil {
 		log.Panic().Err(err).Msg("failed to instantiate server")
 	}
