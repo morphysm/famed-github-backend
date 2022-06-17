@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/morphysm/famed-github-backend/internal/otherconfig"
 
 	"github.com/awnumar/memguard"
 	"github.com/morphysm/famed-github-backend/assets"
@@ -11,6 +12,17 @@ import (
 )
 
 func main() {
+
+	config, err := otherconfig.NewConfig("./config.yaml")
+	if err != nil {
+		log.Error().Err(err).Msg("failed to load config")
+		return
+	}
+
+	fmt.Println(config.App.Host)
+
+	return
+
 	// Print the assets/banner.txt
 	fmt.Println(assets.Banner)
 
