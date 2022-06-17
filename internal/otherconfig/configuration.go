@@ -9,7 +9,6 @@ import (
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
-	"github.com/phuslu/log"
 	"github.com/rotisserie/eris"
 	"os"
 	"strings"
@@ -23,9 +22,8 @@ const envPrefix = "FAMED_"
 
 type Config struct {
 	App struct {
-		Host     string    `koanf:"host"`
-		Port     string    `koanf:"port"`
-		LogLevel log.Level `koanf:"loglevel"`
+		Host string `koanf:"host"`
+		Port string `koanf:"port"`
 	} `koanf:"app"`
 
 	NewRelic struct {
@@ -62,14 +60,87 @@ type Config struct {
 func NewConfig(filePath string) (*Config, error) {
 	k := koanf.New(delimiter)
 
+	// TODO currency.host don't exist. what to do ?
+
+	defaultLabel := map[string]model.Label{}
+
+	defaultLabel["famed"] = model.Label{
+		Name:        "famed",
+		Color:       "566FDB",
+		Description: "Famed - Tracked by Famed",
+	}
+
+	defaultLabel["info"] = model.Label{
+		Name:        "info",
+		Color:       "566FDB",
+		Description: "Famed - Common Vulnerability Scoring System (CVSS) - None",
+	}
+
+	defaultLabel["low"] = model.Label{
+		Name:        "low",
+		Color:       "566FDB",
+		Description: "Famed - Common Vulnerability Scoring System (CVSS) - Low",
+	}
+
+	defaultLabel["medium"] = model.Label{
+		Name:        "medium",
+		Color:       "566FDB",
+		Description: "Famed - Common Vulnerability Scoring System (CVSS) - Medium",
+	}
+
+	defaultLabel["high"] = model.Label{
+		Name:        "high",
+		Color:       "566FDB",
+		Description: "Famed - Common Vulnerability Scoring System (CVSS) - High",
+	}
+
+	defaultLabel["critical"] = model.Label{
+		Name:        "critical",
+		Color:       "566FDB",
+		Description: "Famed - Common Vulnerability Scoring System (CVSS) - Critical",
+	}
+
+	defaultIssueSeverity := map[model.IssueSeverity]float64{}
+
+	defaultIssueSeverity[model.Info] = 0
+	defaultIssueSeverity[model.Low] = 1000
+	defaultIssueSeverity[model.Medium] = 5000
+	defaultIssueSeverity[model.High] = 10000
+	defaultIssueSeverity[model.Critical] = 25000
+
+	defaultRedTeams := map[string]string{}
+	defaultRedTeams["Jonny Rhea"] = "jrhea"
+	defaultRedTeams["Alexander Sadovskyi"] = "AlexSSD7"
+	defaultRedTeams["Martin Holst Swende"] = "holiman"
+	defaultRedTeams["Tintin"] = "tintinweb"
+	defaultRedTeams["Antoine Toulme"] = "atoulme"
+	defaultRedTeams["Stefan Kobrc"] = "tintinweb"
+	defaultRedTeams["Quan"] = "cryptosubtlety"
+	defaultRedTeams["WINE Academic Workshop"] = ""
+	defaultRedTeams["Proto"] = "protolambda"
+	defaultRedTeams["Taurus"] = ""
+	defaultRedTeams["Saulius Grigaitis (+team)."] = "sifraitech"
+	defaultRedTeams["Antonio Sanso"] = "asanso"
+	defaultRedTeams["Guido Vranken"] = "guidovranken"
+	defaultRedTeams["Guido Vranken"] = "guidovranken"
+	defaultRedTeams["Jacek"] = "arnetheduck"
+	defaultRedTeams["Onur Kılıç"] = "kilic"
+	defaultRedTeams["Jim McDonald"] = "mcdee"
+	defaultRedTeams["Nishant (Prysm)"] = "nisdas"
 
 	// Load defaults values.
 	err := k.Load(confmap.Provider(map[string]interface{}{
-		"app.host":                          "127.0.0.1",
-		"app.port":                          "8080",
-		"app.loglevel": log.ErrorLevel
-		}
-	}, delimiter), nil)
+		"app.host":              "127.0.0.1",
+		"app.port":              "8080",
+		"github.host":           "https://api.github.com",
+		"currency.host":         "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1",
+		"famed.labels":          defaultLabel,
+		"famed.rewards":         defaultIssueSeverity,
+		"famed.currency":        "POINTS",
+		"famed.daystofix":       90,
+		"famed.updatefrequency": 120,
+		"famed.redteamslogins":  defaultRedTeams,
+	}, "."), nil)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to load default values")
 	}
