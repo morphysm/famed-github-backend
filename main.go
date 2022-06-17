@@ -14,10 +14,10 @@ func main() {
 	// Print the assets/banner.txt
 	fmt.Println(assets.Banner)
 
-	// Instantiate essential components (log, config, etc.)
+	// Setup essential components (log, config and sentry)
 	devtoolkit, err := devtoolkit.NewDevToolkit()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to instantiate essential components")
+		log.Panic().Err(err).Msg("failed to setup essential components")
 	}
 
 	// Setup memguard https://pkg.go.dev/github.com/awnumar/memguard
@@ -25,7 +25,7 @@ func main() {
 	defer memguard.Purge()
 
 	// Instantiate the server
-	backendServer, err := server.NewServer(devtoolkit.Config)
+	backendServer, err := server.NewServer(devtoolkit)
 	if err != nil {
 		log.Panic().Err(err).Msg("failed to instantiate server")
 	}
