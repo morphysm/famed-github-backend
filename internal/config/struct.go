@@ -1,16 +1,17 @@
-package otherconfig
+package config
 
 import (
 	"github.com/awnumar/memguard"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/phuslu/log"
 )
 
-// Config représente la structure complète est exacte de la configuration lisible par le chargeur famed.
-// default, env file,
+// Config is the complete representation of the configuration, it is authoritative on configuration names, hierarchy, structure and type.
 type Config struct {
 	App struct {
-		Host string `koanf:"host"`
-		Port string `koanf:"port"`
+		Host     string    `koanf:"host"`
+		Port     string    `koanf:"port"`
+		LogLevel log.Level `koanf:"loglevel"`
 	} `koanf:"app"`
 
 	NewRelic struct {
@@ -36,7 +37,7 @@ type Config struct {
 	} `koanf:"famed"`
 
 	// TODO this should probably not be in memory
-	RedTeamLogins map[string]string `koanf:"redteamslogins"`
+	RedTeamLogins map[string]string `koanf:"redteamlogins"`
 
 	Admin struct {
 		Username string `koanf:"username"`

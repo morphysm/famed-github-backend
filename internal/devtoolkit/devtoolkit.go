@@ -49,8 +49,13 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 		return nil, eris.Wrap(err, "failed to instantiate build information")
 	}
 
+	toolkit.UserDirs, err = userdirs.NewUserDirs(buildinfo.ProgramName)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to instantiate user directories")
+	}
+
 	// New configuration, based on environment variables and file
-	toolkit.Config, err = config.Load()
+	toolkit.Config, err = config.NewConfig(toolkit.UserDirs.ConfigHome)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to load configuration")
 	}
@@ -65,11 +70,6 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 	})
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to instantiate Sentry client")
-	}
-
-	toolkit.UserDirs, err = userdirs.NewUserDirs(buildinfo.ProgramName)
-	if err != nil {
-		return nil, eris.Wrap(err, "failed to instantiate user directories")
 	}
 
 	return toolkit, nil

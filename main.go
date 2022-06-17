@@ -2,29 +2,50 @@ package main
 
 import (
 	"fmt"
-	"github.com/morphysm/famed-github-backend/internal/otherconfig"
-
+	"github.com/alexflint/go-arg"
 	"github.com/awnumar/memguard"
 	"github.com/morphysm/famed-github-backend/assets"
 	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
-	"github.com/morphysm/famed-github-backend/internal/server"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
+	"github.com/morphysm/famed-github-backend/internal/subcommand"
 	"github.com/phuslu/log"
+	"time"
 )
 
-func main() {
+// Arguments are all the possible subcommands, arguments and flags that can be sent to the application.
+type Arguments struct {
+	Server *Server `arg:"subcommand:server" help:"Start the server (default)"` // Server is the subcommand that starts the server.
+}
 
-	config, err := otherconfig.NewConfig("./config.yaml")
+// Server subcommand starts the server.
+type Server struct{}
+
+// Version prints build information (--version argument).
+func (Arguments) Version() string {
+	buildinfo, err := buildinfo.NewBuildInfo()
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load config")
-		return
+		return fmt.Sprintf("%v", err)
 	}
 
-	fmt.Println(config.App.Host)
+	return fmt.Sprintf("%+v", *buildinfo)
+}
 
-	return
+// Description returns the software description (--help argument).
+func (Arguments) Description() string {
+	return "☄ " + buildinfo.ProjectName + " is a LOREM foobar.️\n" +
+		"🌐 " + buildinfo.ProjectWebsite
+}
 
-	// Print the assets/banner.txt
-	fmt.Println(assets.Banner)
+func main() {
+	// Define default arguments
+	arguments := &Arguments{
+		Server: nil,
+	}
+
+	// Parse the arguments and set server as default sub-command.
+	if arg.MustParse(arguments).Subcommand() == nil {
+		arguments.Server = &Server{}
+	}
 
 	// Setup essential components (log, config and sentry)
 	devtoolkit, err := devtoolkit.NewDevToolkit()
@@ -32,17 +53,27 @@ func main() {
 		log.Panic().Err(err).Msg("failed to setup essential components")
 	}
 
+	// Print the assets/banner.txt
+	fmt.Println(assets.Banner)
+
+	// Set logger level
+	//devtoolkit.Logger.Level = devtoolkit.Config.App
+
 	// Setup memguard https://pkg.go.dev/github.com/awnumar/memguard
 	memguard.CatchInterrupt()
 	defer memguard.Purge()
 
-	// Instantiate the server
-	backendServer, err := server.NewServer(devtoolkit)
-	if err != nil {
-		log.Panic().Err(err).Msg("failed to instantiate server")
+	// Check and run server subcommand
+	if arguments.Server != nil {
+		if serverSubCmd, err := subcommand.NewServer(devtoolkit); err != nil {
+			devtoolkit.Logger.Error().Err(err).Msg("can't initialize server subcommand")
+		} else {
+			if err := serverSubCmd.Start(); err != nil {
+				devtoolkit.Logger.Error().Err(err).Msg("can't start server subcommand")
+			}
+		}
 	}
 
-	if err := backendServer.Start(); err != nil {
-		log.Panic().Err(err).Msg("failed to start server")
-	}
+	// Close sentry
+	devtoolkit.SentryClient.Flush(time.Second + time.Second)
 }

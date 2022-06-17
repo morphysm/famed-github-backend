@@ -38,7 +38,7 @@ func NewUserDirs(programName string) (*UserDirs, error) {
 
 	userDirs.CacheHome = filepath.Join(userCacheDir, programName)
 
-	err = userDirs.MakePaths()
+	err = userDirs.makePaths()
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to make paths for %q", programName)
 	}
@@ -49,7 +49,7 @@ func NewUserDirs(programName string) (*UserDirs, error) {
 // MakePaths makes sure every paths exists, with the defaultFileMode permissions.
 // This function also check if directories exists.
 // You should only call this method once.
-func (u *UserDirs) MakePaths() error {
+func (u *UserDirs) makePaths() error {
 	const fileMode = os.FileMode(0o755)
 
 	// ConfigHome

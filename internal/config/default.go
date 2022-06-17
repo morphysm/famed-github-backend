@@ -1,14 +1,16 @@
-package otherconfig
+package config
 
-import "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
-
-// TODO currency.host don't exist. what to do ?
+import (
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/phuslu/log"
+)
 
 var defaultConfig = map[string]interface{}{
 	"app.host":      "127.0.0.1",
 	"app.port":      "8080",
+	"app.loglevel":  log.Error(),
 	"github.host":   "https://api.github.com",
-	"currency.host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1",
+	"currency.host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1", // TODO: NOT EXIST IN ORIGINAL SOURCE ?!
 	"famed.labels": map[string]model.Label{
 		"famed": {
 			Name:        "famed",
@@ -51,7 +53,7 @@ var defaultConfig = map[string]interface{}{
 	"famed.currency":        "POINTS",
 	"famed.daystofix":       90,
 	"famed.updatefrequency": 120,
-	"famed.redteamslogins": map[string]string{
+	"famed.redteamlogins": map[string]string{
 		"Jonny Rhea":                 "jrhea",
 		"Alexander Sadovskyi":        "AlexSSD7",
 		"Martin Holst Swende":        "holiman",
