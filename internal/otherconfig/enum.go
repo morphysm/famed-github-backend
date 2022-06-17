@@ -9,20 +9,20 @@ import (
 type Enum int
 
 const (
-	APIServerListenAddress Enum = iota
+	ServerListenAddress Enum = iota
 	LogLevel
 )
 
 func EnumString() []string {
 	return []string{
-		"apiserver.listenaddress", // APIServerListenAddress
-		"log.level",               // LogLevel
+		"server.listenaddress", // ServerListenAddress
+		"log.level",            // LogLevel
 	}
 }
 
 func EnumsDefault() []any {
 	return []any{
-		":1337",       // APIServerListenAddress
+		":1337",       // ServerListenAddress
 		log.InfoLevel, // LogLevel
 	}
 }
