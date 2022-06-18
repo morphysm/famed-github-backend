@@ -8,7 +8,7 @@ import (
 var defaultConfig = map[string]interface{}{
 	"app.host":      "127.0.0.1",
 	"app.port":      "8080",
-	"app.loglevel":  log.Error(),
+	"app.loglevel":  log.ErrorLevel,
 	"github.host":   "https://api.github.com",
 	"currency.host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1", // TODO: NOT EXIST IN ORIGINAL SOURCE ?!
 	"famed.labels": map[string]model.Label{
@@ -20,7 +20,7 @@ var defaultConfig = map[string]interface{}{
 		"info": {
 			Name:        "info",
 			Color:       "566FDB",
-			Description: "Famed - Common Vulnerability Scoring System (CVSS) - None",
+			Description: "Fam²ed - Common Vulnerability Scoring System (CVSS) - None",
 		},
 		"low": {
 			Name:        "low",
