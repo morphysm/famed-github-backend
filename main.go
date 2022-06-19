@@ -31,7 +31,7 @@ func main() {
 	defer memguard.Purge()
 
 	// Load config
-	cfg, err := config.Load()
+	cfg, err := config.NewConfig("config.json")
 	if err != nil {
 		log.Panic().Err(err).Msg("failed to load configuration")
 	}
