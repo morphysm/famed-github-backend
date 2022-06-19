@@ -3,7 +3,6 @@ package devtoolkit
 
 import (
 	"github.com/morphysm/famed-github-backend/internal/config"
-	"path/filepath"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -56,7 +55,7 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 	}
 
 	// New configuration, based on environment variables and file
-	toolkit.Config, err = config.NewConfig(filepath.Join(toolkit.UserDirs.ConfigHome, "config.yaml"))
+	toolkit.Config, err = config.Load()
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to load configuration")
 	}
