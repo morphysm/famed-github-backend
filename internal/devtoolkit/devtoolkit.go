@@ -2,16 +2,15 @@
 package devtoolkit
 
 import (
-	"github.com/morphysm/famed-github-backend/internal/config"
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit/userdirs"
-
+	"github.com/phuslu/log"
 	"github.com/rotisserie/eris"
 
-	"github.com/phuslu/log"
+	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/userdirs"
 )
 
 // DevToolkit store the various dependencies that will be used during injection.

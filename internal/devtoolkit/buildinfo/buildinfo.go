@@ -5,9 +5,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/rotisserie/eris"
-
 	"github.com/Masterminds/semver/v3"
+	"github.com/rotisserie/eris"
 )
 
 const (

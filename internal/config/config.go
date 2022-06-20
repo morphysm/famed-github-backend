@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/phuslu/log"
 	"os"
+
+
+	"github.com/phuslu/log"
 
 	"github.com/awnumar/memguard"
 
@@ -117,7 +119,7 @@ func Load() (*Config, error) {
 	return &cfg, nil
 }
 
-// loadNewRelic loads the config for NewRelic
+// loadNewRelic loads the config for NewRelic.
 func loadNewRelic(cfg *Config) error {
 	// NewRelic enabled
 	if err := bindBool(&cfg.NewRelic.Enabled, newRelicEnabledEnvName); err != nil {

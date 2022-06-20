@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/alexflint/go-arg"
 	"github.com/awnumar/memguard"
+	"github.com/phuslu/log"
+
 	"github.com/morphysm/famed-github-backend/assets"
 	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
 	"github.com/morphysm/famed-github-backend/internal/subcommand"
-	"github.com/phuslu/log"
-	"time"
 )
 
 // Arguments are all the possible subcommands, arguments and flags that can be sent to the application.

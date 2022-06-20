@@ -1,9 +1,10 @@
 package subcommand
 
 import (
+	"github.com/rotisserie/eris"
+
 	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/server"
-	"github.com/rotisserie/eris"
 )
 
 type Server struct {
