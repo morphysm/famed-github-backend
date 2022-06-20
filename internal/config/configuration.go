@@ -13,18 +13,17 @@ import (
 	"strings"
 )
 
-// delimiter allows to have the hierarchy between configuration name
+//delimiter delimits hierarchy levels in configuration names
 const delimiter = "."
 
-// envPrefix is the prefix the environment variables that will be taken into account
+//envPrefix prefixes all environment variables
 const envPrefix = "FAMED_"
 
-// ??
+// FamedLabelKey is the label used in GitHub to tell our backend that this issue should be tracked by famed. // Todo: make it configurable
 const FamedLabelKey = "famed"
 
-// NewConfig loads from the different available sources the whole configuration
-// the function returns the completed structure with all parameters loaded.
-// The order of loading is as follows:
+// NewConfig returns a fully initialized(? maybe not the best word) configuration.
+// The configuration can be set and loaded from different sources. The following load order is used:
 // Defaults values, which can be overridden by
 // YAML config from XDG path, which can be overridden by
 // dotenv file (./.env file), which can be overridden by
@@ -32,7 +31,7 @@ const FamedLabelKey = "famed"
 func NewConfig(filePath string) (config *Config, err error) {
 	koanf := koanf.New(delimiter)
 
-	// Load defaults values.
+	// Load defaults values
 	if err := koanf.Load(confmap.Provider(defaultConfig, delimiter), nil); err != nil {
 		return nil, eris.Wrap(err, "failed to load configuration from default values")
 	}
@@ -139,34 +138,28 @@ func verifyConfig(cfg Config) error {
 		return err
 	}
 
-	// GitHub api key
 	if cfg.Github.KeyEnclave == "" {
-		return eris.New("Missing GitHub Key")
+		return eris.New("missing github key")
 	}
 
-	// GitHub api key
 	if cfg.Github.WebhookSecret == "" {
-		return eris.New("Missing GitHub Webhook secret")
+		return eris.New("missing github webhook secret")
 	}
 
-	// GitHub Famed app id
 	if cfg.Github.AppID == 0 {
-		return eris.New("Missing GitHub AppID")
+		return eris.New("missing github appid")
 	}
 
-	// GitHub bot name
 	if cfg.Github.BotLogin == "" {
-		return eris.New("Missing GitHub BotLogin")
+		return eris.New("missing github botlogin")
 	}
 
-	// Admin username
 	if cfg.Admin.Username == "" {
-		return eris.New("Missing Admin username")
+		return eris.New("missing admin username")
 	}
 
-	// Admin password
 	if cfg.Admin.Password == "" {
-		return eris.New("Missing Admin password")
+		return eris.New("missing admin password")
 	}
 
 	return nil

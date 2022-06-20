@@ -20,7 +20,7 @@ var defaultConfig = map[string]interface{}{
 		"info": {
 			Name:        "info",
 			Color:       "566FDB",
-			Description: "Fam²ed - Common Vulnerability Scoring System (CVSS) - None",
+			Description: "Famed - Common Vulnerability Scoring System (CVSS) - None",
 		},
 		"low": {
 			Name:        "low",
