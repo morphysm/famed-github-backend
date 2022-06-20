@@ -34,7 +34,7 @@ func (Arguments) Version() string {
 
 // Description returns the software description (--help argument).
 func (Arguments) Description() string {
-	return "☄ " + buildinfo.ProjectName + " is a LOREM foobar.️\n" +
+	return buildinfo.ProjectName + " is a security tool that manages the vulnerability lifecycle.\n" +
 		"🌐 " + buildinfo.ProjectWebsite
 }
 
@@ -70,12 +70,14 @@ func main() {
 
 	// Check and run server subcommand
 	if arguments.Server != nil {
-		if serverSubCmd, err := subcommand.NewServer(devtoolkit); err != nil {
-			devtoolkit.Logger.Error().Err(err).Msg("can't initialize server subcommand")
-		} else {
-			if err := serverSubCmd.Start(); err != nil {
-				devtoolkit.Logger.Error().Err(err).Msg("can't start server subcommand")
-			}
+		serverSubCmd, err := subcommand.NewServer(devtoolkit)
+		if err != nil {
+			devtoolkit.Logger.Panic().Err(err).Msg("can't initialize server subcommand")
+		}
+
+		err = serverSubCmd.Start()
+		if err != nil {
+			devtoolkit.Logger.Panic().Err(err).Msg("can't start server subcommand")
 		}
 	}
 }
