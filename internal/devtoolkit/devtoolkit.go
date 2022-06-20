@@ -23,7 +23,7 @@ type DevToolkit struct {
 	SentryClient *sentry.Client
 	// UserDirs gives the paths of the folders respecting the XDG standards.
 	UserDirs *userdirs.UserDirs
-	// BuildInfo brings together all information about the current build.
+	// BuildInfo holds all information about the current build.
 	BuildInfo *buildinfo.BuildInfo
 }
 
@@ -53,7 +53,7 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 		return nil, eris.Wrap(err, "failed to instantiate user directories")
 	}
 
-	// New configuration, based on environment variables and file
+	// New configuration, based on environment variables and fileand configuration files
 	toolkit.Config, err = config.Load()
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to load configuration")
@@ -62,7 +62,7 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 	// Creating a new sentry client and checking the DSN
 	// TODO: CHANGE THE DSN!
 	toolkit.SentryClient, err = sentry.NewClient(sentry.ClientOptions{
-		Dsn:              "https://foo@bar.ingest.sentry.io/TEST",
+		Dsn:              "https://foo@bar.ingest.sentry.io/TEST", // Todo: load it from config
 		AttachStacktrace: true,
 		Release:          buildinfo.ProgramName + "@" + toolkit.BuildInfo.Version.String(),
 		Environment:      toolkit.BuildInfo.Version.Prerelease(),
