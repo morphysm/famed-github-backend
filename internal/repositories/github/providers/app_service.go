@@ -2,9 +2,9 @@ package providers
 
 import (
 	"context"
-	"github.com/awnumar/memguard"
 	"net/http"
 
+	"github.com/awnumar/memguard"
 	"github.com/google/go-github/v41/github"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
