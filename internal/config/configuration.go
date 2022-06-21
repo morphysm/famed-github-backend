@@ -26,7 +26,7 @@ const FamedLabelKey = "famed"
 // NewConfig returns a fully initialized(? maybe not the best word) configuration.
 // The configuration can be set and loaded from different sources. The following load order is used:
 // Defaults values, which can be overridden by
-// YAML config from XDG path, which can be overridden by
+// JSON config from XDG path, which can be overridden by
 // dotenv file (./.env file), which can be overridden by
 // environment variables
 func NewConfig(filePath string) (config *Config, err error) {
