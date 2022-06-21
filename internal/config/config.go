@@ -8,7 +8,6 @@ import (
 
 
 	"github.com/phuslu/log"
-
 	"github.com/awnumar/memguard"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
