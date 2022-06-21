@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 	"crypto/subtle"
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
-	"github.com/rotisserie/eris"
 	"net"
 	"os"
 	"os/signal"
@@ -15,8 +13,10 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rotisserie/eris"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/github"
