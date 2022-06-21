@@ -49,7 +49,7 @@ func NewConfig(filePath string) (config *Config, err error) {
 	}
 
 	if err := loadEnvVars(koanf); err != nil {
-		log.Info().Msg("ignores environment variables")
+		log.Info().Msg("ignoring environment variables")
 	}
 
 	// Try to unmarshal config from all loaders.
