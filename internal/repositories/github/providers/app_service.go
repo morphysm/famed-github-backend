@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"github.com/awnumar/memguard"
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
@@ -24,7 +25,7 @@ type githubAppClient struct {
 }
 
 // NewAppClient returns a new instance of the GitHub client
-func NewAppClient(baseURL string, appID int64, keyEnclave string) (AppClient, error) {
+func NewAppClient(baseURL string, appID int64, keyEnclave *memguard.Enclave) (AppClient, error) {
 	transport := NewAppsTransport(baseURL, http.DefaultTransport, appID, keyEnclave)
 	loggingClient := libHttp.AddLogging(&http.Client{
 		Transport: transport,

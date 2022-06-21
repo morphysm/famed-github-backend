@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/awnumar/memguard"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/json"
@@ -70,6 +71,9 @@ func NewConfig(filePath string) (config *Config, err error) {
 		return nil, err
 	}
 
+	config.Github.KeyEnclave = memguard.NewEnclave([]byte(config.Github.Key))
+	config.Github.Key = ""
+
 	return config, nil
 }
 
@@ -138,7 +142,7 @@ func verifyConfig(cfg Config) error {
 		return err
 	}
 
-	if cfg.Github.KeyEnclave == "" {
+	if cfg.Github.Key == "" {
 		return eris.New("missing github key")
 	}
 

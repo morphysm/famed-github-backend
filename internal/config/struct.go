@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/awnumar/memguard"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/phuslu/log"
 )
@@ -21,7 +22,8 @@ type Config struct {
 
 	Github struct {
 		Host          string `koanf:"host"`
-		KeyEnclave    string `koanf:"keyenclave"`
+		Key           string `koanf:"key"`
+		KeyEnclave    *memguard.Enclave
 		WebhookSecret string `koanf:"webhooksecret"`
 		AppID         int64  `koanf:"appid"`
 		BotLogin      string `koanf:"botlogin"`

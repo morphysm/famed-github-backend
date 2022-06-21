@@ -6,11 +6,10 @@ import (
 )
 
 var defaultConfig = map[string]interface{}{
-	"app.host":      "127.0.0.1",
-	"app.port":      "8080",
-	"app.loglevel":  log.ErrorLevel,
-	"github.host":   "https://api.github.com",
-	"currency.host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1", // TODO: NOT EXIST IN ORIGINAL SOURCE ?!
+	"app.host":     "127.0.0.1",
+	"app.port":     "8080",
+	"app.loglevel": log.ErrorLevel,
+	"github.host":  "https://api.github.com",
 	"famed.labels": map[string]model.Label{
 		"famed": {
 			Name:        "famed",
@@ -53,23 +52,4 @@ var defaultConfig = map[string]interface{}{
 	"famed.currency":        "POINTS",
 	"famed.daystofix":       90,
 	"famed.updatefrequency": 120,
-	"famed.redteamlogins": map[string]string{
-		"Jonny Rhea":                 "jrhea",
-		"Alexander Sadovskyi":        "AlexSSD7",
-		"Martin Holst Swende":        "holiman",
-		"Tintin":                     "tintinweb",
-		"Antoine Toulme":             "atoulme",
-		"Stefan Kobrc":               "",
-		"Quan":                       "cryptosubtlety",
-		"WINE Academic Workshop":     "",
-		"Proto":                      "protolambda",
-		"Taurus":                     "",
-		"Saulius Grigaitis (+team).": "sifraitech",
-		"Antonio Sanso":              "asanso",
-		"Guido Vranken":              "guidovranken",
-		"Jacek":                      "arnetheduck",
-		"Onur Kılıç":                 "kilic",
-		"Jim McDonald":               "mcdee",
-		"Nishant (Prysm)":            "nisdas",
-	},
 }
