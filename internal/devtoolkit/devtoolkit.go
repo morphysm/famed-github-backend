@@ -21,7 +21,7 @@ type DevToolkit struct {
 	Config *config.Config
 	// SentryClient allows to send errors to Sentry.
 	SentryClient *sentry.Client
-	// UserDirs gives the paths of the folders respecting the XDG standards.
+	// UserDirs contains the paths of the folders following the XDG standards.
 	UserDirs *userdirs.UserDirs
 	// BuildInfo holds all information about the current build.
 	BuildInfo *buildinfo.BuildInfo

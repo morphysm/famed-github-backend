@@ -55,7 +55,7 @@ func main() {
 		log.Panic().Err(err).Msg("failed to setup essential components")
 	}
 
-	// be sure to flush Sentry
+	// Flush Sentry on program end/shutdown
 	defer devtoolkit.SentryClient.Flush(2 * time.Second)
 
 	// Print the assets/banner.txt
