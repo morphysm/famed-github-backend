@@ -1,8 +1,9 @@
 package sync
 
 import (
-	"github.com/phuslu/log"
 	"sync"
+
+	"github.com/phuslu/log"
 )
 
 // WaitGroups represents a mutex map of a ID with an associated sync.WaitGroup slice.

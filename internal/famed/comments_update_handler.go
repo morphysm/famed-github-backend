@@ -2,9 +2,10 @@ package famed
 
 import (
 	"context"
-	"github.com/phuslu/log"
 	"net/http"
 	"sync"
+
+	"github.com/phuslu/log"
 
 	"github.com/labstack/echo/v4"
 

@@ -4,12 +4,13 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
-	"github.com/phuslu/log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/phuslu/log"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
