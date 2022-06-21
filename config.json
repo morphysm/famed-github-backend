@@ -1,0 +1,51 @@
+{
+  "app": {
+    "host": "127.0.0.1",
+    "port": "8080"
+  },
+  "github": {
+    "host": "https://api.github.com"
+  },
+  "currency": {
+    "host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1"
+  },
+  "famed": {
+    "labels": {
+      "famed": {"name": "famed", "color": "566FDB", "description": "Famed - Tracked by Famed"},
+      "info": {"name": "info", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - None"},
+      "low": {"name": "low", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Low"},
+      "medium": {"name": "medium", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Medium"},
+      "high": {"name": "high", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - High"},
+      "critical": {"name": "critical", "color": "566FDB", "description": "Famed - Common Vulnerability Scoring System (CVSS) - Critical"}
+    },
+    "rewards": {
+      "info" : 0,
+      "low" : 1000,
+      "medium" : 5000,
+      "high" : 10000,
+      "critical": 25000
+    },
+    "currency": "POINTS",
+    "daysToFix": 90,
+    "updateFrequency": 120
+  },
+  "redTeamLogins": {
+    "Jonny Rhea":                 "jrhea",
+    "Alexander Sadovskyi":        "AlexSSD7",
+    "Martin Holst Swende":        "holiman",
+    "Tintin":                     "tintinweb",
+    "Antoine Toulme":             "atoulme",
+    "Stefan Kobrc":               "",
+    "Quan":                       "cryptosubtlety",
+    "WINE Academic Workshop":     "",
+    "Proto":                      "protolambda",
+    "Taurus":                     "",
+    "Saulius Grigaitis (+team).": "sifraitech",
+    "Antonio Sanso":              "asanso",
+    "Guido Vranken":              "guidovranken",
+    "Jacek":                      "arnetheduck",
+    "Onur Kılıç":                 "kilic",
+    "Jim McDonald":               "mcdee",
+    "Nishant (Prysm)":            "nisdas"
+  }
+}

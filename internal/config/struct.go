@@ -2,8 +2,9 @@ package config
 
 import (
 	"github.com/awnumar/memguard"
-	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/phuslu/log"
+
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // Config is the complete representation of the configuration, it is authoritative on configuration names, hierarchy, structure and type.

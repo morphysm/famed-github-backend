@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/awnumar/memguard"
-	"github.com/morphysm/famed-github-backend/assets"
-	"github.com/phuslu/log"
 	"time"
 
+	"github.com/awnumar/memguard"
+	"github.com/phuslu/log"
+
+	"github.com/morphysm/famed-github-backend/assets"
 	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/server"
 )

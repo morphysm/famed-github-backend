@@ -1,6 +1,9 @@
 package config
 
 import (
+	"os"
+	"strings"
+
 	"github.com/awnumar/memguard"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/dotenv"
@@ -8,19 +11,17 @@ import (
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/phuslu/log"
 	"github.com/rotisserie/eris"
-	"os"
-	"strings"
+
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
-//delimiter delimits hierarchy levels in configuration names
 const delimiter = "."
 
-//envPrefix prefixes all environment variables
 const envPrefix = "FAMED_"
 
-// FamedLabelKey is the label used in GitHub to tell our backend that this issue should be tracked by famed. // Todo: make it configurable
+// FamedLabelKey is the label used in GitHub to tell our backend that this issue should be tracked by famed. // Todo: make it configurable.
 const FamedLabelKey = "famed"
 
 // NewConfig returns a fully initialized(? maybe not the best word) configuration.
@@ -28,37 +29,27 @@ const FamedLabelKey = "famed"
 // Defaults values, which can be overridden by
 // JSON config from XDG path, which can be overridden by
 // dotenv file (./.env file), which can be overridden by
-// environment variables
+// environment variables.
 func NewConfig(filePath string) (config *Config, err error) {
 	koanf := koanf.New(delimiter)
 
 	// Load defaults values
-	if err := koanf.Load(confmap.Provider(defaultConfig, delimiter), nil); err != nil {
+	if loadDefaultValues(koanf) != nil {
 		return nil, eris.Wrap(err, "failed to load configuration from default values")
 	}
 
-	// if the XDG json config file exists then load the configuration from this file.
-	if jsonFile, err := os.Stat(filePath); err == nil {
-		if err := koanf.Load(file.Provider(jsonFile.Name()), json.Parser()); err != nil {
-			return nil, eris.Wrap(err, "failed to load configuration from json config")
-		}
+	// Load config from JSON file
+	if err := loadConfigFile(koanf, filePath, json.Parser()); err != nil {
+		log.Info().Msg("ignoring JSON file")
 	}
 
-	// Todo: bad loading
-	// if the dotenv (./.env) file exists then load the configuration from this file.
-	if envFile, err := os.Stat(".env"); err == nil {
-		if err := koanf.Load(file.Provider(envFile.Name()), dotenv.Parser()); err != nil {
-			return nil, eris.Wrap(err, "failed to load configuration from .env file")
-		}
+	// Load config from .env file
+	if err := loadConfigFile(koanf, ".env", dotenv.Parser()); err != nil {
+		log.Info().Msg("ignoring .env file")
 	}
 
-	// Load from environment variables
-	err = koanf.Load(env.Provider(envPrefix, delimiter, func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(
-			strings.TrimPrefix(s, envPrefix)), "_", delimiter)
-	}), nil)
-	if err != nil {
-		return nil, eris.Wrap(err, "failed to load configuration from environment variables")
+	if err := loadEnvVars(koanf); err != nil {
+		log.Info().Msg("ignores environment variables")
 	}
 
 	// Try to unmarshal config from all loaders.
@@ -75,6 +66,38 @@ func NewConfig(filePath string) (config *Config, err error) {
 	config.Github.Key = ""
 
 	return config, nil
+}
+
+// loadEnvVars loads configuration from environment variables.
+func loadEnvVars(koanf *koanf.Koanf) error {
+	err := koanf.Load(env.Provider(envPrefix, delimiter, func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(
+			strings.TrimPrefix(s, envPrefix)), "_", delimiter)
+	}), nil)
+	if err != nil {
+		return eris.Wrap(err, "failed to load configuration from environment variables")
+	}
+
+	return nil
+}
+
+// loadConfigFile retrieves values from filePath configuration file.
+func loadConfigFile(koanf *koanf.Koanf, filePath string, parser koanf.Parser) error {
+	configFile, err := os.Stat(filePath)
+	if err != nil {
+		return eris.Wrap(err, filePath+" does not exist")
+	}
+
+	if err := koanf.Load(file.Provider(configFile.Name()), parser); err != nil {
+		return eris.Wrap(err, "failed to load json file")
+	}
+
+	return nil
+}
+
+// loadDefaultValues retrieves the default values from the source code.
+func loadDefaultValues(koanf *koanf.Koanf) error {
+	return koanf.Load(confmap.Provider(defaultConfig, delimiter), nil)
 }
 
 func verifyConfig(cfg Config) error {

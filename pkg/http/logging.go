@@ -2,9 +2,10 @@ package http
 
 import (
 	"fmt"
-	"github.com/phuslu/log"
 	"net/http"
 	"time"
+
+	"github.com/phuslu/log"
 )
 
 type logMsg struct {

@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/phuslu/log"
+
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 var defaultConfig = map[string]interface{}{
