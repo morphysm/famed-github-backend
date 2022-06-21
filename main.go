@@ -62,7 +62,7 @@ func main() {
 	fmt.Println(assets.Banner)
 
 	// Set logger level
-	devtoolkit.Logger.Level = log.ErrorLevel
+	devtoolkit.Logger.Level = devtoolkit.Config.App.LogLevel
 
 	// Setup memguard https://pkg.go.dev/github.com/awnumar/memguard
 	memguard.CatchInterrupt()

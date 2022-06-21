@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/phuslu/log"
 	"time"
+
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )

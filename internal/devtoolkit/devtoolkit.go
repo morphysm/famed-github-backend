@@ -54,7 +54,7 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 	}
 
 	// New configuration, based on environment variables and fileand configuration files
-	toolkit.Config, err = config.Load()
+	toolkit.Config, err = config.NewConfig("config.json")
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to load configuration")
 	}
