@@ -2,8 +2,9 @@ package model
 
 import (
 	"errors"
-	"github.com/phuslu/log"
 	"time"
+
+	"github.com/phuslu/log"
 )
 
 var ErrNoWorkLogForAssignee = errors.New("no work log found for assignee")

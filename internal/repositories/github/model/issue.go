@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/phuslu/log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/phuslu/log"
 
 	"github.com/google/go-github/v41/github"
 

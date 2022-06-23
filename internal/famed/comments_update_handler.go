@@ -2,11 +2,11 @@ package famed
 
 import (
 	"context"
-	"github.com/phuslu/log"
 	"net/http"
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
