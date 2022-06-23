@@ -8,6 +8,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
 dockers:
   - image_templates: ["ghcr.io/morphysm/famed-github-backend:{{ .Version }}"]
     dockerfile: Dockerfile
@@ -22,8 +24,6 @@ dockers:
       - --label=org.opencontainers.image.licenses=AGPL3
     extra_files:
       - config.json
-sboms:
-  - artifacts: archive
 nfpms:
   - formats:
       - deb
