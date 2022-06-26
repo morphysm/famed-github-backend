@@ -7,7 +7,7 @@ require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/awnumar/memguard v0.22.3
 	github.com/getsentry/sentry-go v0.13.0
-	github.com/golang-jwt/jwt/v4 v4.4.1
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/go-github/v41 v41.0.0
 	github.com/knadh/koanf v1.4.2
 	github.com/labstack/echo/v4 v4.7.2
@@ -17,8 +17,8 @@ require (
 	github.com/phuslu/log v1.0.80
 	github.com/rotisserie/eris v0.5.4
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00
-	github.com/stretchr/testify v1.7.4
-	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
+	github.com/stretchr/testify v1.7.5
+	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2
 	golang.org/x/text v0.3.7
 )
 

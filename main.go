@@ -45,6 +45,7 @@ func main() {
 	}
 
 	// Parse the arguments and set server as default sub-command.
+	// MustParse will exit(0) if --help or --version is called, and therefore will go no further.
 	if arg.MustParse(arguments).Subcommand() == nil {
 		arguments.Server = &Server{}
 	}
