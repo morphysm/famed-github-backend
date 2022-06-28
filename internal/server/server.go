@@ -106,7 +106,7 @@ func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
 	}))
 	{
 		FamedAdminRoutes(
-			famedAdminGroup, famedHandler, githubHandler,
+			famedAdminGroup, famedHandler, githubHandler, devToolKit.Monitor,
 		)
 	}
 

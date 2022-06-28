@@ -2,10 +2,10 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/github"
 	"github.com/morphysm/famed-github-backend/internal/health"
+	"github.com/morphysm/famed-github-backend/internal/monitoring"
 )
 
 // FamedRoutes defines endpoints exposed to serve famed api endpoints.
@@ -18,10 +18,13 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.POST("/repos/:owner/:repo_name/update", handler.GetUpdateComments)
 }
 
-func FamedAdminRoutes(g *echo.Group, famedHandler famed.HTTPHandler, githubHandler github.HTTPHandler) {
+func FamedAdminRoutes(g *echo.Group, famedHandler famed.HTTPHandler, githubHandler github.HTTPHandler, monitorHandler *monitoring.Monitoring) {
 	g.GET("/installations", famedHandler.GetInstallations)
 	g.GET("/trackedissues", famedHandler.GetTrackedIssues)
 	g.GET("/ratelimit/:owner", githubHandler.GetRateLimit)
+
+	g.GET("/metrics", echo.WrapHandler(monitorHandler.Handler))
+	//https://github.com/ffuf/ffuf
 }
 
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.

@@ -4,6 +4,8 @@ package devtoolkit
 import (
 	"time"
 
+	"github.com/morphysm/famed-github-backend/internal/monitoring"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/phuslu/log"
 	"github.com/rotisserie/eris"
@@ -25,6 +27,8 @@ type DevToolkit struct {
 	UserDirs *userdirs.UserDirs
 	// BuildInfo holds all information about the current build.
 	BuildInfo *buildinfo.BuildInfo
+	// Monitor provides information on the current status.
+	Monitor *monitoring.Monitoring
 }
 
 // NewDevToolkit instantiates a new DevToolkit for the application. This function should only be called once.
@@ -41,6 +45,7 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 			EndWithMessage: false,
 		},
 	}
+	log.DefaultLogger = *toolkit.Logger
 
 	// Generation of build information
 	toolkit.BuildInfo, err = buildinfo.NewBuildInfo()
@@ -70,6 +75,8 @@ func NewDevToolkit() (toolkit *DevToolkit, err error) {
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to instantiate Sentry client")
 	}
+
+	toolkit.Monitor = monitoring.NewMonitoring()
 
 	return toolkit, nil
 }

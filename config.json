@@ -3,8 +3,16 @@
     "host": "127.0.0.1",
     "port": "8080"
   },
+  "admin": {
+    "username": "changeme",
+    "password": "changeme"
+  },
   "github": {
-    "host": "https://api.github.com"
+    "host": "https://api.github.com",
+    "key": "changeme",
+    "webhooksecret": "foobar",
+    "appid": "208560",
+    "botlogin": "changeme"
   },
   "currency": {
     "host": "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1"
