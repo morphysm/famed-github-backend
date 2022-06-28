@@ -24,6 +24,16 @@ dockers:
       - --label=org.opencontainers.image.licenses=AGPL3
     extra_files:
       - config.json
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source
+
+signs:
+  - artifacts: checksum
+    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+
 nfpms:
   - formats:
       - deb
