@@ -243,7 +243,7 @@ func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoN
 	return updated, nil
 }
 
-// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
+// deleteDuplicateComments ?
 func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
 	for issue, comments := range commentsIssues {
 		eligibleCommentFound := false
@@ -298,7 +298,7 @@ func (gH *githubHandler) deleteComment(ctx context.Context, owner, repoName stri
 	return true, nil
 }
 
-// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
+// orderComments
 func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
 	for issue, comments := range commentsIssues {
 
