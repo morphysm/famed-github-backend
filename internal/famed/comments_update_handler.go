@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/phuslu/log"
-
 	"github.com/labstack/echo/v4"
+	"github.com/phuslu/log"
 
 	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
@@ -249,7 +248,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, rep
 	for issue, comments := range commentsIssues {
 		eligibleCommentFound := false
 		rewardCommentFound := false
-		for _, com := range comments {
+		for i, com := range comments {
 			if comment.VerifyComment(com, gH.famedConfig.BotLogin, comment.EligibleCommentType) {
 				if !eligibleCommentFound {
 					eligibleCommentFound = true
@@ -259,6 +258,9 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, rep
 						updates.AddError(issue.Number, err, comment.EligibleCommentType)
 					}
 					if updates != nil && deleted {
+						// Replace it with the last one and remove the last one
+						commentsIssues[issue][i] = commentsIssues[issue][len(commentsIssues[issue])-1]
+						commentsIssues[issue] = commentsIssues[issue][:len(commentsIssues[issue])-1]
 						updates.AddAction(issue.Number, deleteAction, comment.EligibleCommentType)
 					}
 				}
@@ -267,6 +269,9 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, rep
 				if !rewardCommentFound {
 					rewardCommentFound = true
 				} else {
+					// Replace it with the last one and remove the last one
+					commentsIssues[issue][i] = commentsIssues[issue][len(commentsIssues[issue])-1]
+					commentsIssues[issue] = commentsIssues[issue][:len(commentsIssues[issue])-1]
 					deleted, err := gH.deleteComment(ctx, owner, repoName, com)
 					if updates != nil && err != nil {
 						updates.AddError(issue.Number, err, comment.RewardCommentType)

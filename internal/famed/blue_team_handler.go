@@ -1,12 +1,12 @@
 package famed
 
 import (
-	githubModel "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 
 	"github.com/morphysm/famed-github-backend/internal/famed/model"
+	githubModel "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // GetBlueTeam returns a list of contributors for the famed board.
