@@ -12,6 +12,7 @@ import (
 	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/pkg/arrays"
 )
 
 type action string
@@ -258,7 +259,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, rep
 						updates.AddError(issue.Number, err, comment.EligibleCommentType)
 					}
 					if updates != nil && deleted {
-						// Replace it with the last one and remove the last one
+						arrays.Remove(commentsIssues[issue], i)
 						commentsIssues[issue][i] = commentsIssues[issue][len(commentsIssues[issue])-1]
 						commentsIssues[issue] = commentsIssues[issue][:len(commentsIssues[issue])-1]
 						updates.AddAction(issue.Number, deleteAction, comment.EligibleCommentType)
@@ -269,9 +270,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, rep
 				if !rewardCommentFound {
 					rewardCommentFound = true
 				} else {
-					// Replace it with the last one and remove the last one
-					commentsIssues[issue][i] = commentsIssues[issue][len(commentsIssues[issue])-1]
-					commentsIssues[issue] = commentsIssues[issue][:len(commentsIssues[issue])-1]
+					arrays.Remove(commentsIssues[issue], i)
 					deleted, err := gH.deleteComment(ctx, owner, repoName, com)
 					if updates != nil && err != nil {
 						updates.AddError(issue.Number, err, comment.RewardCommentType)
