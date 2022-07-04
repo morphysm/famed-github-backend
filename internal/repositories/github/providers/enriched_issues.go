@@ -2,8 +2,9 @@ package providers
 
 import (
 	"context"
-	"github.com/phuslu/log"
 	"sync"
+
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )

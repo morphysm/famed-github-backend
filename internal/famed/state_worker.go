@@ -2,6 +2,7 @@ package famed
 
 import (
 	"context"
+
 	"github.com/phuslu/log"
 
 	famedModel "github.com/morphysm/famed-github-backend/internal/repositories/github/model"

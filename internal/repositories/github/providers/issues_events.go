@@ -1,9 +1,10 @@
 package providers
 
 import (
-	"github.com/phuslu/log"
 	"net/http"
 	"strings"
+
+	"github.com/phuslu/log"
 
 	"github.com/google/go-github/v41/github"
 
