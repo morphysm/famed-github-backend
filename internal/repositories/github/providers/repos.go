@@ -8,7 +8,8 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
-func (c *githubInstallationClient) GetRepos(ctx context.Context, owner string) ([]string, error) {
+// GetReposByOwner lists the repositories that are accessible to an owners authenticated installation.
+func (c *githubInstallationClient) GetReposByOwner(ctx context.Context, owner string) ([]string, error) {
 	var (
 		client, _          = c.clients.get(owner)
 		allRepos           []*github.Repository

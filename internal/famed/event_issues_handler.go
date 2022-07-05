@@ -73,6 +73,7 @@ func (gH *githubHandler) handleClosedEvent(ctx context.Context, event model.Issu
 	//	return comment.NewErrorRewardComment(model2.ErrIssueMissingPullRequest)
 	//}
 
+	// TODO compress into githubHandler struct
 	rewardStructure := model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2)
 	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, rewardStructure, gH.now())
 	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)

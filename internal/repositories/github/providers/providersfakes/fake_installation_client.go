@@ -999,7 +999,7 @@ func (fake *FakeInstallationClient) GetRateLimitReturnsOnCall(i int, result1 mod
 	}{result1, result2}
 }
 
-func (fake *FakeInstallationClient) GetRepos(arg1 context.Context, arg2 string) ([]string, error) {
+func (fake *FakeInstallationClient) GetReposByOwner(arg1 context.Context, arg2 string) ([]string, error) {
 	fake.getReposMutex.Lock()
 	ret, specificReturn := fake.getReposReturnsOnCall[len(fake.getReposArgsForCall)]
 	fake.getReposArgsForCall = append(fake.getReposArgsForCall, struct {
@@ -1008,7 +1008,7 @@ func (fake *FakeInstallationClient) GetRepos(arg1 context.Context, arg2 string) 
 	}{arg1, arg2})
 	stub := fake.GetReposStub
 	fakeReturns := fake.getReposReturns
-	fake.recordInvocation("GetRepos", []interface{}{arg1, arg2})
+	fake.recordInvocation("GetReposByOwner", []interface{}{arg1, arg2})
 	fake.getReposMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)

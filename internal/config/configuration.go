@@ -166,19 +166,19 @@ func verifyConfig(cfg Config) error {
 	}
 
 	if cfg.Github.Key == "" {
-		return eris.New("missing github key")
+		return eris.New("missing GitHub key")
 	}
 
 	if cfg.Github.WebhookSecret == "" {
-		return eris.New("missing github webhook secret")
+		return eris.New("missing GitHub webhook secret")
 	}
 
 	if cfg.Github.AppID == 0 {
-		return eris.New("missing github appid")
+		return eris.New("missing GitHub appID")
 	}
 
 	if cfg.Github.BotLogin == "" {
-		return eris.New("missing github botlogin")
+		return eris.New("missing GitHub bot login")
 	}
 
 	if cfg.Admin.Username == "" {

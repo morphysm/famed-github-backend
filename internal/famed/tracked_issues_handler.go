@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
@@ -25,7 +24,7 @@ func (gH *githubHandler) GetTrackedIssues(c echo.Context) error {
 
 	trackedIssues := make(map[string][]trackedIssue)
 	for _, installation := range installations {
-		repos, err := gH.githubInstallationClient.GetRepos(ctx, installation.Account.Login)
+		repos, err := gH.githubInstallationClient.GetReposByOwner(ctx, installation.Account.Login)
 		if err != nil {
 			return err
 		}

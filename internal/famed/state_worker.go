@@ -29,7 +29,7 @@ func (gH *githubHandler) CleanState() {
 			}
 		}
 
-		repos, err := gH.githubInstallationClient.GetRepos(ctx, installation.Account.Login)
+		repos, err := gH.githubInstallationClient.GetReposByOwner(ctx, installation.Account.Login)
 		if err != nil {
 			log.Error().Err(err).Msg("[CleanState] error while getting repos")
 			continue

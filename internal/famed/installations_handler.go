@@ -21,7 +21,7 @@ func (gH *githubHandler) GetInstallations(c echo.Context) error {
 
 	resp := make([]installation, len(installations))
 	for i, instal := range installations {
-		repositories, err := gH.githubInstallationClient.GetRepos(c.Request().Context(), instal.Account.Login)
+		repositories, err := gH.githubInstallationClient.GetReposByOwner(c.Request().Context(), instal.Account.Login)
 		if err != nil {
 			return err
 		}
