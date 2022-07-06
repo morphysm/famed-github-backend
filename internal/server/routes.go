@@ -17,7 +17,9 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 
 	g.POST("/repos/:owner/:repo_name/update", handler.GetUpdateComments)
 
-	g.GET("/:owner/eligableissues", handler.GetElligableIssues)
+	// TODO think about protecting these routes with owner/contributor GitHub access token.
+	// Or Airdrop/Reward service access key
+	g.GET("/:owner/eligibleissues", handler.GetEligibleIssues)
 	g.GET("/:contributor/rewards", handler.GetContributorRewards)
 }
 

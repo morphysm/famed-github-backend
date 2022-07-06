@@ -14,7 +14,7 @@ type HTTPHandler interface {
 	GetInstallations(c echo.Context) error
 	GetTrackedIssues(c echo.Context) error
 
-	GetElligableIssues(c echo.Context) error
+	GetEligibleIssues(c echo.Context) error
 	GetContributorRewards(c echo.Context) error
 
 	GetBlueTeam(c echo.Context) error

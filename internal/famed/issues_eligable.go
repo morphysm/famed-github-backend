@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/famed-github-backend/internal/config"
 	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
@@ -28,7 +29,8 @@ type EligibleIssue struct {
 	Contributors []*famedModel.Contributor `json:"contributors"`
 }
 
-func (gH *githubHandler) GetElligableIssues(c echo.Context) error {
+// GetEligibleIssues returns a list of eligible issues of repos owned by a given owner.
+func (gH *githubHandler) GetEligibleIssues(c echo.Context) error {
 	var (
 		ctx   = c.Request().Context()
 		owner = c.Param("owner")
