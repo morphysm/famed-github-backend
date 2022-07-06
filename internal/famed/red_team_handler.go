@@ -8,6 +8,7 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/config"
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 func (gH *githubHandler) GetRedTeam(c echo.Context) error {
@@ -25,9 +26,12 @@ func (gH *githubHandler) GetRedTeam(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrAppNotInstalled.Error())
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := model.All
-	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, &issueState)
+	issueOptions := providers.IssueListByRepoOptions{
+		Labels: []string{gH.famedConfig.Labels[config.FamedLabelKey].Name},
+		State:  &issueState,
+	}
+	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, issueOptions)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadGateway, err.Error())
 	}

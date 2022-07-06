@@ -23,7 +23,7 @@ type InstallationClient interface {
 
 	GetReposByOwner(ctx context.Context, owner string) ([]string, error)
 
-	GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *model.IssueState) ([]model.Issue, error)
+	GetIssuesByRepo(ctx context.Context, owner string, repoName string, options IssueListByRepoOptions) ([]model.Issue, error)
 	GetEnrichedIssues(ctx context.Context, owner string, repoName string) (map[int]model.EnrichedIssue, error)
 	EnrichIssues(ctx context.Context, owner string, repoName string, issues []model.Issue) map[int]model.EnrichedIssue
 	EnrichIssue(ctx context.Context, owner string, repoName string, issues model.Issue) model.EnrichedIssue

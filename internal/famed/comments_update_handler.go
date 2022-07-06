@@ -12,6 +12,7 @@ import (
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 type action string
@@ -125,8 +126,10 @@ func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrAppNotInstalled.Error())
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, nil)
+	issueOptions := providers.IssueListByRepoOptions{
+		Labels: []string{gH.famedConfig.Labels[config.FamedLabelKey].Name},
+	}
+	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, issueOptions)
 	if err != nil {
 		return err
 	}

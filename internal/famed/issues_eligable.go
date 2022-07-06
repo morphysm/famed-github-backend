@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-
 	"github.com/morphysm/famed-github-backend/internal/config"
 	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 type EligibleIssuesResponse struct {
@@ -44,11 +44,14 @@ func (gH *githubHandler) GetElligableIssues(c echo.Context) error {
 		return err
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
 	issueState := model.Closed
+	issueOptions := providers.IssueListByRepoOptions{
+		Labels: []string{gH.famedConfig.Labels[config.FamedLabelKey].Name},
+		State:  &issueState,
+	}
 	for _, repo := range repos {
 		repoResp := Repo{Name: repo, EligibleIssues: []EligibleIssue{}}
-		issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, []string{famedLabel.Name}, &issueState)
+		issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, issueOptions)
 		if err != nil {
 			return err
 		}
@@ -64,7 +67,7 @@ func (gH *githubHandler) GetElligableIssues(c echo.Context) error {
 				return err
 			}
 
-			if len(contributors) != 0 {
+			if len(contributors) != 0 && err == nil {
 				repoResp.EligibleIssues = append(repoResp.EligibleIssues, EligibleIssue{ID: issue.ID, Number: issue.Number, HTMLURL: issue.HTMLURL, Contributors: contributors})
 			}
 		}

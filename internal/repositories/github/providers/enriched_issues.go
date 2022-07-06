@@ -22,7 +22,11 @@ func (sWI *safeWrappedIssue) Add(wI model.EnrichedIssue) {
 
 func (c *githubInstallationClient) GetEnrichedIssues(ctx context.Context, owner string, repoName string) (map[int]model.EnrichedIssue, error) {
 	issueState := model.Closed
-	issues, err := c.GetIssuesByRepo(ctx, owner, repoName, []string{c.famedLabel}, &issueState)
+	issueOptions := IssueListByRepoOptions{
+		Labels: []string{c.famedLabel},
+		State:  &issueState,
+	}
+	issues, err := c.GetIssuesByRepo(ctx, owner, repoName, issueOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -48,19 +52,20 @@ func (c *githubInstallationClient) EnrichIssues(ctx context.Context, owner strin
 }
 
 func (c *githubInstallationClient) EnrichIssue(ctx context.Context, owner string, repoName string, issue model.Issue) model.EnrichedIssue {
-	pullRequest, err := c.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
-	if pullRequest == nil || err != nil {
-		log.Error().Err(err).Msgf("[EnrichIssue] error while requesting pull request for issue with number %d", issue.Number)
+	// TODO add this if we consider pull request again
+	//pullRequest, err := c.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
+	//if pullRequest == nil || err != nil {
+	//	log.Error().Err(err).Msgf("[EnrichIssue] error while requesting pull request for issue with number %d", issue.Number)
+	//}
+
+	if issue.Migrated {
+		return model.NewEnrichIssue(issue, nil, nil)
 	}
 
-	var events []model.IssueEvent
-	if !issue.Migrated {
-		events, err = c.GetIssueEvents(ctx, owner, repoName, issue.Number)
-		if err != nil {
-			log.Error().Err(err).Msgf("[EnrichIssue] error while requesting events for issue with number %d", issue.Number)
-		}
+	events, err := c.GetIssueEvents(ctx, owner, repoName, issue.Number)
+	if err != nil {
+		log.Error().Err(err).Msgf("[EnrichIssue] error while requesting events for issue with number %d", issue.Number)
 	}
 
-	enrichedIssue := model.NewEnrichIssue(issue, pullRequest, events)
-	return enrichedIssue
+	return model.NewEnrichIssue(issue, nil, events)
 }

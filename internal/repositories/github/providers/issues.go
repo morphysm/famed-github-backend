@@ -11,14 +11,22 @@ import (
 	"github.com/morphysm/famed-github-backend/pkg/parse"
 )
 
+// IssueListByRepoOptions specifies filtering options to be passed
+// to the GetIssuesByRepo method.
+type IssueListByRepoOptions struct {
+	Labels   []string
+	State    *model.IssueState
+	Assignee *string
+}
+
 // GetIssuesByRepo returns all issues from a given repository.
-func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, labels []string, state *model.IssueState) ([]model.Issue, error) {
+func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner string, repoName string, options IssueListByRepoOptions) ([]model.Issue, error) {
 	var (
 		client, _           = c.clients.get(owner)
 		allIssues           []*github.Issue
 		allCompressedIssues []model.Issue
 		listOptions         = &github.IssueListByRepoOptions{
-			Labels: labels,
+			Labels: options.Labels,
 			ListOptions: github.ListOptions{
 				Page:    1,
 				PerPage: 30,
@@ -26,8 +34,11 @@ func (c *githubInstallationClient) GetIssuesByRepo(ctx context.Context, owner st
 		}
 	)
 
-	if state != nil {
-		listOptions.State = string(*state)
+	if options.Assignee != nil {
+		listOptions.Assignee = *options.Assignee
+	}
+	if options.State != nil {
+		listOptions.State = string(*options.State)
 	} else {
 		listOptions.State = string(model.All)
 	}

@@ -18,6 +18,7 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 	g.POST("/repos/:owner/:repo_name/update", handler.GetUpdateComments)
 
 	g.GET("/:owner/eligableissues", handler.GetElligableIssues)
+	g.GET("/:contributor/rewards", handler.GetContributorRewards)
 }
 
 func FamedAdminRoutes(g *echo.Group, famedHandler famed.HTTPHandler, githubHandler github.HTTPHandler) {

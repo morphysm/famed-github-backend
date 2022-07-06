@@ -7,6 +7,7 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/config"
 	model2 "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 // CleanState iterates over all issues and updates their comments if necessary.
@@ -36,8 +37,10 @@ func (gH *githubHandler) CleanState() {
 		}
 
 		for _, repoName := range repos {
-			famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{famedLabel.Name}, nil)
+			issueOptions := providers.IssueListByRepoOptions{
+				Labels: []string{gH.famedConfig.Labels[config.FamedLabelKey].Name},
+			}
+			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, issueOptions)
 			if err != nil {
 				log.Error().Err(err).Msgf("[CleanState] error while fetching issues for %s/%s", installation.Account.Login, repoName)
 			}

@@ -5,7 +5,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/morphysm/famed-github-backend/internal/config"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 type trackedIssue struct {
@@ -31,7 +34,11 @@ func (gH *githubHandler) GetTrackedIssues(c echo.Context) error {
 
 		for _, repoName := range repos {
 			issueState := model.All
-			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{"famed"}, &issueState)
+			issueOptions := providers.IssueListByRepoOptions{
+				Labels: []string{gH.famedConfig.Labels[config.FamedLabelKey].Name},
+				State:  &issueState,
+			}
+			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, issueOptions)
 			if err != nil {
 				return err
 			}
