@@ -3,11 +3,11 @@ module github.com/morphysm/famed-github-backend
 go 1.18
 
 require (
-	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/Masterminds/semver v1.5.0
 	github.com/alexflint/go-arg v1.4.3
 	github.com/awnumar/memguard v0.22.3
 	github.com/getsentry/sentry-go v0.13.0
-	github.com/golang-jwt/jwt/v4 v4.4.1
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/go-github/v41 v41.0.0
 	github.com/knadh/koanf v1.4.2
 	github.com/labstack/echo/v4 v4.7.2

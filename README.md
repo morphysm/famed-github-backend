@@ -14,7 +14,7 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
  <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
  <a href="https://codecov.io/gh/morphysm/famed-github-backend">
   <img src="https://codecov.io/gh/morphysm/famed-github-backend/branch/master/graph/badge.svg?token=P5ZUKZF9XN"/>
-</a>   
+</a>
 </h1>
 
 
@@ -33,6 +33,7 @@ This repository contains the code of the Famed-Backend.
   - [Run](#run)
     - [Env Variables](#env-variables)
 - [Troubleshooting](#troubleshooting)
+- [Check releases integrity](#check-integrity-release)
 - [Code Owners](#code-owners)
 - [Contribute](#contribute)
 - [License](#license)
@@ -106,6 +107,13 @@ Please make sure that your system has the following programs:
 # Troubleshooting
 
 If you have encountered any problems while running the code, please open a new issue in this repo and label it bug, and we will assist you in resolving it.
+
+# Check releases integrity
+
+```
+gpg --keyserver keybase.io --recv-keys ID_WILL_BE_PUBLISHED
+gpg --verify famed-github-backend_x.x.x_checksums.txt.sig famed-github-backend_x.x.x_checksums.txt
+```
 
 # Code Owners
 

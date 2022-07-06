@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
+	"github.com/Masterminds/semver"
 	"github.com/rotisserie/eris"
 )
 
@@ -17,6 +17,8 @@ const (
 	// ProjectWebsite is the project's web page.
 	ProjectWebsite = "https://www.famed.morphysm.com/"
 )
+
+var version = "0.0.0-dev"
 
 type BuildInfo struct {
 	Version         *semver.Version
@@ -37,7 +39,7 @@ func NewBuildInfo() (*BuildInfo, error) {
 	}
 
 	// TODO: Retrieve version from vcs tag
-	version, err := semver.NewVersion("0.0.0")
+	version, err := semver.NewVersion(version)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to instantiate new semver")
 	}
