@@ -34,6 +34,7 @@ This repository contains the code of the Famed-Backend.
     - [Env Variables](#env-variables)
 - [Troubleshooting](#troubleshooting)
 - [Code Owners](#code-owners)
+- [Contribute](#contribute)
 - [License](#license)
 - [Contact](#contact)
 <!--te-->
@@ -108,7 +109,11 @@ If you have encountered any problems while running the code, please open a new i
 
 # Code Owners
 
-@morphysm/team :sunglasses:
+@morphysm/team 😎
+
+# Contribute
+
+Developers interested in contributing should read the [Contribution Guide](https://github.com/morphysm/famed-github-backend/wiki/Contribution-Guide).
 
 # License
 
