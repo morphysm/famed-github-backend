@@ -92,12 +92,13 @@ type FakeInstallationClient struct {
 		result1 []model.IssueComment
 		result2 error
 	}
-	GetEnrichedIssuesStub        func(context.Context, string, string) (map[int]model.EnrichedIssue, error)
+	GetEnrichedIssuesStub        func(context.Context, string, string, model.IssueState) (map[int]model.EnrichedIssue, error)
 	getEnrichedIssuesMutex       sync.RWMutex
 	getEnrichedIssuesArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
+		arg4 model.IssueState
 	}
 	getEnrichedIssuesReturns struct {
 		result1 map[int]model.EnrichedIssue
@@ -661,20 +662,21 @@ func (fake *FakeInstallationClient) GetCommentsReturnsOnCall(i int, result1 []mo
 	}{result1, result2}
 }
 
-func (fake *FakeInstallationClient) GetEnrichedIssues(arg1 context.Context, arg2 string, arg3 string) (map[int]model.EnrichedIssue, error) {
+func (fake *FakeInstallationClient) GetEnrichedIssues(arg1 context.Context, arg2 string, arg3 string, arg4 model.IssueState) (map[int]model.EnrichedIssue, error) {
 	fake.getEnrichedIssuesMutex.Lock()
 	ret, specificReturn := fake.getEnrichedIssuesReturnsOnCall[len(fake.getEnrichedIssuesArgsForCall)]
 	fake.getEnrichedIssuesArgsForCall = append(fake.getEnrichedIssuesArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
-	}{arg1, arg2, arg3})
+		arg4 model.IssueState
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.GetEnrichedIssuesStub
 	fakeReturns := fake.getEnrichedIssuesReturns
-	fake.recordInvocation("GetEnrichedIssues", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetEnrichedIssues", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getEnrichedIssuesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -688,17 +690,17 @@ func (fake *FakeInstallationClient) GetEnrichedIssuesCallCount() int {
 	return len(fake.getEnrichedIssuesArgsForCall)
 }
 
-func (fake *FakeInstallationClient) GetEnrichedIssuesCalls(stub func(context.Context, string, string) (map[int]model.EnrichedIssue, error)) {
+func (fake *FakeInstallationClient) GetEnrichedIssuesCalls(stub func(context.Context, string, string, model.IssueState) (map[int]model.EnrichedIssue, error)) {
 	fake.getEnrichedIssuesMutex.Lock()
 	defer fake.getEnrichedIssuesMutex.Unlock()
 	fake.GetEnrichedIssuesStub = stub
 }
 
-func (fake *FakeInstallationClient) GetEnrichedIssuesArgsForCall(i int) (context.Context, string, string) {
+func (fake *FakeInstallationClient) GetEnrichedIssuesArgsForCall(i int) (context.Context, string, string, model.IssueState) {
 	fake.getEnrichedIssuesMutex.RLock()
 	defer fake.getEnrichedIssuesMutex.RUnlock()
 	argsForCall := fake.getEnrichedIssuesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeInstallationClient) GetEnrichedIssuesReturns(result1 map[int]model.EnrichedIssue, result2 error) {
