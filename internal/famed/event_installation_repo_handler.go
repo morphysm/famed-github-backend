@@ -3,9 +3,8 @@ package famed
 import (
 	"net/http"
 
-	"github.com/phuslu/log"
-
 	"github.com/labstack/echo/v4"
+	"github.com/phuslu/log"
 
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"

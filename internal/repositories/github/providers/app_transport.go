@@ -35,7 +35,6 @@ type AppsTransport struct {
 
 // NewAppsTransport returns an AppsTransport using a memguard.Enclave containing a crypto/rsa.(*PrivateKey).
 func NewAppsTransport(baseUrl string, tr http.RoundTripper, appID int64, key *memguard.Enclave) *AppsTransport {
-
 	return &AppsTransport{
 		baseURL:    baseUrl,
 		client:     &http.Client{Transport: tr},

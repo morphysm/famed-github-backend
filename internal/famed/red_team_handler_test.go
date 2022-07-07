@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	model "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRedTeam(t *testing.T) {

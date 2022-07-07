@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -13,10 +14,9 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/rotisserie/eris"
+	"github.com/phuslu/log"
 
 	"github.com/morphysm/famed-github-backend/internal/config"
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/github"
@@ -27,15 +27,15 @@ import (
 
 // Server represents the HTTP server single instance.
 type Server struct {
-	echo       *echo.Echo
-	devToolKit *devtoolkit.DevToolkit
+	echo *echo.Echo
+	cfg  *config.Config
 }
 
 // NewServer instantiates and sets up a new server using the echo web framework.
-func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
-	nrApp, err := configureNewRelic(devToolKit.Config)
+func NewServer(cfg *config.Config) (*Server, error) {
+	nrApp, err := configureNewRelic(cfg)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to configure relic")
+		return nil, fmt.Errorf("failed to configure relic: %w", err)
 	}
 
 	echoServer := echo.New()
@@ -53,15 +53,15 @@ func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
 	)
 
 	// Create new app client to fetch installations and github tokens.
-	appClient, err := providers.NewAppClient(devToolKit.Config.Github.Host, devToolKit.Config.Github.AppID, devToolKit.Config.Github.KeyEnclave)
+	appClient, err := providers.NewAppClient(cfg.Github.Host, cfg.Github.AppID, cfg.Github.KeyEnclave)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to create app client")
+		return nil, fmt.Errorf("failed to create app client: %w", err)
 	}
 
 	// Get installations
 	installations, err := appClient.GetInstallations(context.Background())
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to get installations")
+		return nil, fmt.Errorf("failed to get installations: %w", err)
 	}
 
 	// Transform all installations to owner installationID map
@@ -71,20 +71,20 @@ func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
 	}
 
 	// Create a new github client to fetch repo data
-	installationClient, err := providers.NewInstallationClient(devToolKit.Config.Github.Host, appClient, transformedInstallations, devToolKit.Config.Github.WebhookSecret, devToolKit.Config.Famed.Labels[config.FamedLabelKey].Name, devToolKit.Config.RedTeamLogins)
+	installationClient, err := providers.NewInstallationClient(cfg.Github.Host, appClient, transformedInstallations, cfg.Github.WebhookSecret, cfg.Famed.Labels[config.FamedLabelKey].Name, cfg.RedTeamLogins)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to create new github client")
+		return nil, fmt.Errorf("failed to create new github client: %w", err)
 	}
 
 	// Create a new GitHub handler handling gateway calls to GitHub
 	githubHandler := github.NewHandler(installationClient)
 
 	// Create the famed handler handling the famed business logic
-	famedConfig := model.NewFamedConfig(devToolKit.Config.Famed.Currency, devToolKit.Config.Famed.Rewards, devToolKit.Config.Famed.Labels, devToolKit.Config.Famed.DaysToFix, devToolKit.Config.Github.BotLogin)
+	famedConfig := model.NewFamedConfig(cfg.Famed.Currency, cfg.Famed.Rewards, cfg.Famed.Labels, cfg.Famed.DaysToFix, cfg.Github.BotLogin)
 	famedHandler := famed.NewHandler(appClient, installationClient, famedConfig, time.Now)
 
 	// Start comment update interval
-	ticker.NewTicker(time.Duration(devToolKit.Config.Famed.UpdateFrequency)*time.Second, famedHandler.CleanState)
+	ticker.NewTicker(time.Duration(cfg.Famed.UpdateFrequency)*time.Second, famedHandler.CleanState)
 
 	// FamedRoutes endpoints exposed for Famed frontend client requests
 	famedGroup := echoServer.Group("/famed")
@@ -97,8 +97,8 @@ func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
 	// FamedAdminRoutes endpoints exposed for Famed admin requests
 	famedAdminGroup := echoServer.Group("/admin", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
 		// Use of constant time comparison to prevent timing attacks
-		if subtle.ConstantTimeCompare([]byte(username), []byte(devToolKit.Config.Admin.Username)) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte(devToolKit.Config.Admin.Password)) == 1 {
+		if subtle.ConstantTimeCompare([]byte(username), []byte(cfg.Admin.Username)) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Admin.Password)) == 1 {
 			return true, nil
 		}
 
@@ -119,8 +119,8 @@ func NewServer(devToolKit *devtoolkit.DevToolkit) (*Server, error) {
 	}
 
 	return &Server{
-		echo:       echoServer,
-		devToolKit: devToolKit,
+		echo: echoServer,
+		cfg:  cfg,
 	}, nil
 }
 
@@ -151,24 +151,24 @@ func (s *Server) Start() error {
 		<-ctx.Done()
 
 		// Does not accept any more requests, processes the remaining requests and stops the server
-		s.devToolKit.Logger.Info().Msg("Requested shutdown in progress.. Press Ctrl+C again to force.")
+		log.Info().Msg("Requested shutdown in progress.. Press Ctrl+C again to force.")
 
 		// Give 10 second to server to shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := s.echo.Shutdown(ctx); err != nil {
-			s.devToolKit.Logger.Fatal().Err(err).Msg("failed to gracefully shutdown server")
+			log.Fatal().Err(err).Msg("failed to gracefully shutdown server")
 		}
 
 		close(idleConnsClosed)
 	}()
 
 	// Start the server, the main thread will be blocked here
-	if err := s.echo.Start(net.JoinHostPort("", s.devToolKit.Config.App.Port)); err != nil {
+	if err := s.echo.Start(net.JoinHostPort("", s.cfg.App.Port)); err != nil {
 		close(idleConnsClosed)
 
-		return eris.Wrap(err, "failed to listen and serve http server")
+		return fmt.Errorf("failed to listen and serve http server: %w", err)
 	}
 
 	<-idleConnsClosed
