@@ -19,8 +19,8 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 
 	// TODO think about protecting these routes with owner/contributor GitHub access token.
 	// Or Airdrop/Reward service access key
-	g.GET("/:owner/eligibleissues", handler.GetEligibleIssues)
-	g.GET("/:contributor/rewards", handler.GetContributorRewards)
+	g.GET("/owners/:owner/rewards", handler.GetRewardsByOwner)
+	g.GET("/contributors/:contributor/rewards", handler.GetRewardsByContributor)
 }
 
 func FamedAdminRoutes(g *echo.Group, famedHandler famed.HTTPHandler, githubHandler github.HTTPHandler) {

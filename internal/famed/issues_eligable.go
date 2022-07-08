@@ -16,21 +16,21 @@ type EligibleIssuesResponse struct {
 }
 
 type Repo struct {
-	Name           string          `json:"name"`
-	EligibleIssues []EligibleIssue `json:"eligibleIssues"`
+	Name   string  `json:"name"`
+	Issues []Issue `json:"issues"`
 }
 
-// EligibleIssue represents an issue with a list of contributors that are eligible for a reward.
+// Issue represents an issue with a list of contributors that are eligible for a reward.
 // We do not transmit the name of the issue since it could contain sensible information.
-type EligibleIssue struct {
+type Issue struct {
 	ID           int64                     `json:"id"`
 	Number       int                       `json:"number"`
 	HTMLURL      string                    `json:"htmlurl"`
 	Contributors []*famedModel.Contributor `json:"contributors"`
 }
 
-// GetEligibleIssues returns a list of eligible issues of repos owned by a given owner.
-func (gH *githubHandler) GetEligibleIssues(c echo.Context) error {
+// GetRewardsByOwner returns a list of rewards for a given owner.
+func (gH *githubHandler) GetRewardsByOwner(c echo.Context) error {
 	var (
 		ctx   = c.Request().Context()
 		owner = c.Param("owner")
@@ -52,7 +52,7 @@ func (gH *githubHandler) GetEligibleIssues(c echo.Context) error {
 		State:  &issueState,
 	}
 	for _, repo := range repos {
-		repoResp := Repo{Name: repo, EligibleIssues: []EligibleIssue{}}
+		repoResp := Repo{Name: repo, Issues: []Issue{}}
 		issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, issueOptions)
 		if err != nil {
 			return err
@@ -70,7 +70,7 @@ func (gH *githubHandler) GetEligibleIssues(c echo.Context) error {
 			}
 
 			if len(contributors) != 0 && err == nil {
-				repoResp.EligibleIssues = append(repoResp.EligibleIssues, EligibleIssue{ID: issue.ID, Number: issue.Number, HTMLURL: issue.HTMLURL, Contributors: contributors})
+				repoResp.Issues = append(repoResp.Issues, Issue{ID: issue.ID, Number: issue.Number, HTMLURL: issue.HTMLURL, Contributors: contributors})
 			}
 		}
 

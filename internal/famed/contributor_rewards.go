@@ -11,8 +11,8 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
-// GetContributorRewards returns a list of rewards for a given contributor.
-func (gH *githubHandler) GetContributorRewards(c echo.Context) error {
+// GetRewardsByContributor returns a list of rewards for a given contributor.
+func (gH *githubHandler) GetRewardsByContributor(c echo.Context) error {
 	var (
 		ctx         = c.Request().Context()
 		contributor = c.Param("contributor")
@@ -39,7 +39,7 @@ func (gH *githubHandler) GetContributorRewards(c echo.Context) error {
 			Assignee: &contributor,
 		}
 		for _, repo := range repos {
-			repoResp := Repo{Name: repo, EligibleIssues: []EligibleIssue{}}
+			repoResp := Repo{Name: repo, Issues: []Issue{}}
 			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, owner, repo, issueOptions)
 			if err != nil {
 				return err
@@ -54,7 +54,7 @@ func (gH *githubHandler) GetContributorRewards(c echo.Context) error {
 				contributors, err := famedModel.NewBlueTeamFromIssue(enrichedIssue, boardOptions)
 
 				if len(contributors) != 0 && err == nil {
-					repoResp.EligibleIssues = append(repoResp.EligibleIssues, EligibleIssue{ID: issue.ID, Number: issue.Number, HTMLURL: issue.HTMLURL, Contributors: contributors})
+					repoResp.Issues = append(repoResp.Issues, Issue{ID: issue.ID, Number: issue.Number, HTMLURL: issue.HTMLURL, Contributors: contributors})
 				}
 			}
 
