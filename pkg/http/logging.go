@@ -14,7 +14,7 @@ type logMsg struct {
 	Method   string `json:"method"`
 	Path     string `json:"path"`
 	Status   string `json:"status"`
-	Error    string `json:"error"`
+	Error    error  `json:"error"`
 	RTT      string `json:"rTT"`
 }
 
@@ -35,7 +35,7 @@ func (lRT loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 	}
 
 	if err != nil {
-		msg.Error = err.Error()
+		msg.Error = err
 	}
 
 	if res != nil {
@@ -46,7 +46,13 @@ func (lRT loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 		msg.Path = req.URL.Path
 	}
 
-	log.Info().Str("sendTime", msg.SendTime).Str("host", msg.Host).Str("method", msg.Method).Str("path", msg.Path).Str("status", msg.Status).Err(err).Msg("Request:")
+	log.Info().
+		Str("sendTime", msg.SendTime).
+		Str("host", msg.Host).
+		Str("method", msg.Method).
+		Str("path", msg.Path).
+		Str("status", msg.Status).
+		Err(msg.Error).Msg("Request:")
 
 	return res, err
 }
