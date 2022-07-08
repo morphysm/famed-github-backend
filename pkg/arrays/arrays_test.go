@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestArraysRemoveElement test the deletion of an element and be sure that the order is kept.
 func TestArraysRemoveElement(t *testing.T) {
 	t.Parallel()
 
