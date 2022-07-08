@@ -1,20 +1,40 @@
-package arrays_test
+package arrays
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/morphysm/famed-github-backend/pkg/arrays"
-
-	"github.com/stretchr/testify/assert"
 )
 
-// TestArraysRemoveElement test the deletion of an element and be sure that the order is kept.
-func TestArraysRemoveElement(t *testing.T) {
+type T any
+
+func TestRemove(t *testing.T) {
 	t.Parallel()
 
-	slice := []int{1, 2, 3, 4, 5}
+	type args struct {
+		slice []T
+		s     int
+	}
+	tests := []struct {
+		name string
+		args args
+		want []T
+	}{
+		{
+			name: "string",
+			args: args{
+				slice: []T{"morphysm", 1337, "deadbeef", "66616D6564", "famed"},
+				s:     2,
+			},
+			want: []T{"morphysm", 1337, "66616D6564", "famed"},
+		},
+	}
 
-	slice = arrays.Remove(slice, 2)
-
-	assert.Equal(t, []int{1, 2, 4, 5}, slice)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := Remove(tt.args.slice, tt.args.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Remove() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
