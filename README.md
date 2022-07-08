@@ -10,11 +10,17 @@ contributing to security, cryptography, cryptocurrency and AI.</h5>
 <h1 align="center">
   <img src="https://img.shields.io/badge/Go-^1.18.0-green" alt="python badge">
 
- <img src="https://img.shields.io/badge/version-1.1-green" alt="version badge">
- <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
- <a href="https://codecov.io/gh/morphysm/famed-github-backend">
-  <img src="https://codecov.io/gh/morphysm/famed-github-backend/branch/master/graph/badge.svg?token=P5ZUKZF9XN"/>
-</a>   
+  <img src="https://img.shields.io/badge/version-1.1-green" alt="version badge">
+  <img src="https://img.shields.io/gitlab/pipeline-status/dicu.chat/server?branch=master" alt="docker build">
+  <a href="https://codecov.io/gh/morphysm/famed-github-backend">
+    <img src="https://codecov.io/gh/morphysm/famed-github-backend/branch/master/graph/badge.svg?token=P5ZUKZF9XN"/>
+  </a>
+  <a href="https://lgtm.com/projects/g/morphysm/famed-github-backend/alerts/">
+    <img alt="Total alerts" src="https://img.shields.io/lgtm/alerts/g/morphysm/famed-github-backend.svg?logo=lgtm&logoWidth=18"/>
+  </a>
+  <a href="https://lgtm.com/projects/g/morphysm/famed-github-backend/context:go">
+    <img alt="Language grade: Go" src="https://img.shields.io/lgtm/grade/go/g/morphysm/famed-github-backend.svg?logo=lgtm&logoWidth=18"/>
+  </a>
 </h1>
 
 
