@@ -62,9 +62,6 @@ This repository contains the code of the Famed-Backend.
       
    You will see comments by the Famed bot on your issues labeled with "famed" - the frontend is updated once the first issues are closed.
 
-
-4. Join Famed on Telegram: https://t.me/+iQPfZQNshl04YmIy
-
 # Security Considerations
 We memmemory encrypted the GitHub keywith https://github.com/awnumar/memguard to mitigate memmory dump readout attacks.
 
