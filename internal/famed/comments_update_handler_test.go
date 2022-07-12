@@ -41,7 +41,6 @@ func TestGetUpdateComment(t *testing.T) {
 	testCases := []struct {
 		Name                               string
 		Issues                             map[int]model.EnrichedIssue
-		Events                             []model.IssueEvent
 		Comments                           []model.IssueComment
 		PullRequest                        *string
 		ExpectedGetEnrichedIssuesCallCount int
@@ -68,20 +67,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -97,7 +95,7 @@ func TestGetUpdateComment(t *testing.T) {
 			Issues: map[int]model.EnrichedIssue{0: {
 				Issue: model.Issue{
 					ID:         0,
-					Number:     0,
+					Number:     1,
 					HTMLURL:    "TestURL",
 					Title:      "TestIssue",
 					CreatedAt:  open,
@@ -107,21 +105,20 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
-			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1 + "foo"}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
 			ExpectedGetCommentsCallCount:       1,
@@ -146,20 +143,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser2"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser2"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -185,20 +181,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser2"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser2"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -224,20 +219,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser2"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser2"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -263,20 +257,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -300,28 +293,28 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignees:  []model.User{{Login: "testUser"}},
 					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
 					Migrated:   false,
+				},
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
 				}}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
 			ExpectedGetCommentsCallCount:       1,
 			ExpectedPostCommentCallCount:       0,
 			ExpectedUpdateCommentCallCount:     0,
-			ExpectedDeleteCommentCallCount:     2,
+			ExpectedDeleteCommentCallCount:     1,
 			ExpectedComments:                   []string{},
-			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"delete\",\"delete\",\"order\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"order\"],\"errors\":[]}}}}\n",
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"delete\"],\"errors\":[]},\"rewardComment\":{\"actions\":[],\"errors\":[]}}}}\n",
 		},
 		{
 			Name: "Delete Reward",
@@ -338,20 +331,19 @@ func TestGetUpdateComment(t *testing.T) {
 					Migrated:   false,
 				},
 				PullRequest: nil,
-				Events:      nil,
+				Events: []model.IssueEvent{
+					{
+						Event:     "assigned",
+						CreatedAt: assigned,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+					{
+						Event:     "closed",
+						CreatedAt: closed,
+						Assignee:  &model.User{Login: "testUser"},
+					},
+				},
 			}},
-			Events: []model.IssueEvent{
-				{
-					Event:     "assigned",
-					CreatedAt: assigned,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-				{
-					Event:     "closed",
-					CreatedAt: closed,
-					Assignee:  &model.User{Login: "testUser"},
-				},
-			},
 			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: rewardCommentV1}},
 			PullRequest:                        pointer.String("test"),
 			ExpectedGetEnrichedIssuesCallCount: 1,
@@ -384,8 +376,8 @@ func TestGetUpdateComment(t *testing.T) {
 			fakeInstallationClient.GetEnrichedIssuesReturns(testCase.Issues, nil)
 			fakeInstallationClient.EnrichIssuesStub = func(ctx context.Context, owner string, repoName string, issues []model.Issue) map[int]model.EnrichedIssue {
 				enrichedIssues := make(map[int]model.EnrichedIssue, len(issues))
-				for _, issue := range issues {
-					enrichedIssues[issue.Number] = model.NewEnrichIssue(issue, testCase.PullRequest, testCase.Events)
+				for i, issue := range issues {
+					enrichedIssues[issue.Number] = model.NewEnrichIssue(issue, testCase.PullRequest, testCase.Issues[i].Events)
 				}
 
 				return enrichedIssues
@@ -413,10 +405,10 @@ func TestGetUpdateComment(t *testing.T) {
 				}
 			}
 
-			// Delete comments
+			// Update comments
 			assert.Equal(t, testCase.ExpectedUpdateCommentCallCount, fakeInstallationClient.UpdateCommentCallCount())
 
-			// Update comments
+			// Delete comments
 			assert.Equal(t, testCase.ExpectedDeleteCommentCallCount, fakeInstallationClient.DeleteCommentCallCount())
 
 			// Response
