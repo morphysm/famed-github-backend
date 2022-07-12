@@ -127,7 +127,7 @@ func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, famedModel.ErrAppNotInstalled.Error())
 	}
 
-	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx.Request().Context(), owner, repoName, model.Opened)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx.Request().Context(), owner, repoName, model.All)
 	if err != nil {
 		return fmt.Errorf("failed to get issues for repository: %w", err)
 	}

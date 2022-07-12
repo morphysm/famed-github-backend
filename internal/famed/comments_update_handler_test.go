@@ -39,32 +39,36 @@ func TestGetUpdateComment(t *testing.T) {
 	repoName := "testRepo"
 
 	testCases := []struct {
-		Name                             string
-		Issues                           []model.Issue
-		Events                           []model.IssueEvent
-		Comments                         []model.IssueComment
-		PullRequest                      *string
-		ExpectedGetIssuesByRepoCallCount int
-		ExpectedGetCommentsCallCount     int
-		ExpectedPostCommentCallCount     int
-		ExpectedUpdateCommentCallCount   int
-		ExpectedDeleteCommentCallCount   int
-		ExpectedComments                 []string
-		ExpectedResponse                 string
-		ExpectedErr                      *echo.HTTPError
+		Name                               string
+		Issues                             map[int]model.EnrichedIssue
+		Events                             []model.IssueEvent
+		Comments                           []model.IssueComment
+		PullRequest                        *string
+		ExpectedGetEnrichedIssuesCallCount int
+		ExpectedGetCommentsCallCount       int
+		ExpectedPostCommentCallCount       int
+		ExpectedUpdateCommentCallCount     int
+		ExpectedDeleteCommentCallCount     int
+		ExpectedComments                   []string
+		ExpectedResponse                   string
+		ExpectedErr                        *echo.HTTPError
 	}{
 		{
 			Name: "No Update",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -78,28 +82,32 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     0,
-			ExpectedUpdateCommentCallCount:   0,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     0,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{}}\n",
 		},
 		{
 			Name: "Update Eligible",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     1,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -113,28 +121,32 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     0,
-			ExpectedUpdateCommentCallCount:   1,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"1\":{\"eligibleComment\":{\"actions\":[\"update\"],\"errors\":[]},\"rewardComment\":{\"actions\":[],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     1,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"1\":{\"eligibleComment\":{\"actions\":[\"update\"],\"errors\":[]},\"rewardComment\":{\"actions\":[],\"errors\":[]}}}}\n",
 		},
 		{
 			Name: "Update Reward",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser2"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -148,28 +160,32 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     0,
-			ExpectedUpdateCommentCallCount:   1,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     1,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
 		},
 		{
 			Name: "Post Reward",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser2"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -183,28 +199,32 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     1,
-			ExpectedUpdateCommentCallCount:   0,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       1,
+			ExpectedUpdateCommentCallCount:     0,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
 		},
 		{
 			Name: "Post Eligible - Rotate Reward",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser2"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -218,28 +238,32 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     1,
-			ExpectedUpdateCommentCallCount:   1,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"update\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       1,
+			ExpectedUpdateCommentCallCount:     1,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"update\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"update\"],\"errors\":[]}}}}\n",
 		},
 		{
 			Name: "Rotate",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -253,64 +277,68 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     0,
-			ExpectedUpdateCommentCallCount:   2,
-			ExpectedDeleteCommentCallCount:   0,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"order\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"order\"],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     2,
+			ExpectedDeleteCommentCallCount:     0,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"order\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"order\"],\"errors\":[]}}}}\n",
 		},
-		// TODO: refactor multiple comment calls
-		//{
-		//	Name: "Delete Eligible",
-		//	Issues: []model.Issue{{
-		//		ID:         0,
-		//		Number:     0,
-		//		HTMLURL:    "TestURL",
-		//		Title:      "TestIssue",
-		//		CreatedAt:  open,
-		//		ClosedAt:   &closed,
-		//		Assignees:  []model.User{{Login: "testUser"}},
-		//		Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-		//		Migrated:   false,
-		//	}},
-		//	Events: []model.IssueEvent{
-		//		{
-		//			Event:     "assigned",
-		//			CreatedAt: assigned,
-		//			Assignee:  &model.User{Login: "testUser"},
-		//		},
-		//		{
-		//			Event:     "closed",
-		//			CreatedAt: closed,
-		//			Assignee:  &model.User{Login: "testUser"},
-		//		},
-		//	},
-		//	Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
-		//	PullRequest:                      pointer.String("test"),
-		//	ExpectedGetIssuesByRepoCallCount: 1,
-		//	ExpectedGetCommentsCallCount:     4,
-		//	ExpectedPostCommentCallCount:     0,
-		//	ExpectedUpdateCommentCallCount:   0,
-		//	ExpectedDeleteCommentCallCount:   2,
-		//	ExpectedComments:                 []string{},
-		//	ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"delete\",\"delete\",\"order\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"order\"],\"errors\":[]}}}}\n",
-		//},
+		{
+			Name: "Delete Eligible",
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				}}},
+			Events: []model.IssueEvent{
+				{
+					Event:     "assigned",
+					CreatedAt: assigned,
+					Assignee:  &model.User{Login: "testUser"},
+				},
+				{
+					Event:     "closed",
+					CreatedAt: closed,
+					Assignee:  &model.User{Login: "testUser"},
+				},
+			},
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: eligibleCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     0,
+			ExpectedDeleteCommentCallCount:     2,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[\"delete\",\"delete\",\"order\"],\"errors\":[]},\"rewardComment\":{\"actions\":[\"order\"],\"errors\":[]}}}}\n",
+		},
 		{
 			Name: "Delete Reward",
-			Issues: []model.Issue{{
-				ID:         0,
-				Number:     0,
-				HTMLURL:    "TestURL",
-				Title:      "TestIssue",
-				CreatedAt:  open,
-				ClosedAt:   &closed,
-				Assignees:  []model.User{{Login: "testUser"}},
-				Severities: []model.IssueSeverity{model.IssueSeverity("low")},
-				Migrated:   false,
+			Issues: map[int]model.EnrichedIssue{0: {
+				Issue: model.Issue{
+					ID:         0,
+					Number:     0,
+					HTMLURL:    "TestURL",
+					Title:      "TestIssue",
+					CreatedAt:  open,
+					ClosedAt:   &closed,
+					Assignees:  []model.User{{Login: "testUser"}},
+					Severities: []model.IssueSeverity{model.IssueSeverity("low")},
+					Migrated:   false,
+				},
+				PullRequest: nil,
+				Events:      nil,
 			}},
 			Events: []model.IssueEvent{
 				{
@@ -324,15 +352,15 @@ func TestGetUpdateComment(t *testing.T) {
 					Assignee:  &model.User{Login: "testUser"},
 				},
 			},
-			Comments:                         []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: rewardCommentV1}},
-			PullRequest:                      pointer.String("test"),
-			ExpectedGetIssuesByRepoCallCount: 1,
-			ExpectedGetCommentsCallCount:     4,
-			ExpectedPostCommentCallCount:     0,
-			ExpectedUpdateCommentCallCount:   0,
-			ExpectedDeleteCommentCallCount:   1,
-			ExpectedComments:                 []string{},
-			ExpectedResponse:                 "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"delete\"],\"errors\":[]}}}}\n",
+			Comments:                           []model.IssueComment{{ID: 1, User: model.User{Login: botUser}, Body: eligibleCommentV1}, {ID: 2, User: model.User{Login: botUser}, Body: rewardCommentV1}, {ID: 3, User: model.User{Login: botUser}, Body: rewardCommentV1}},
+			PullRequest:                        pointer.String("test"),
+			ExpectedGetEnrichedIssuesCallCount: 1,
+			ExpectedGetCommentsCallCount:       1,
+			ExpectedPostCommentCallCount:       0,
+			ExpectedUpdateCommentCallCount:     0,
+			ExpectedDeleteCommentCallCount:     1,
+			ExpectedComments:                   []string{},
+			ExpectedResponse:                   "{\"updates\":{\"0\":{\"eligibleComment\":{\"actions\":[],\"errors\":[]},\"rewardComment\":{\"actions\":[\"delete\"],\"errors\":[]}}}}\n",
 		},
 	}
 
@@ -353,7 +381,7 @@ func TestGetUpdateComment(t *testing.T) {
 
 			fakeInstallationClient := &providersfakes.FakeInstallationClient{}
 			fakeInstallationClient.CheckInstallationReturns(true)
-			fakeInstallationClient.GetIssuesByRepoReturns(testCase.Issues, nil)
+			fakeInstallationClient.GetEnrichedIssuesReturns(testCase.Issues, nil)
 			fakeInstallationClient.EnrichIssuesStub = func(ctx context.Context, owner string, repoName string, issues []model.Issue) map[int]model.EnrichedIssue {
 				enrichedIssues := make(map[int]model.EnrichedIssue, len(issues))
 				for _, issue := range issues {
@@ -371,7 +399,7 @@ func TestGetUpdateComment(t *testing.T) {
 
 			// THEN
 			//Get issues
-			assert.Equal(t, testCase.ExpectedGetIssuesByRepoCallCount, fakeInstallationClient.GetIssuesByRepoCallCount())
+			assert.Equal(t, testCase.ExpectedGetEnrichedIssuesCallCount, fakeInstallationClient.GetEnrichedIssuesCallCount())
 
 			//Get comments
 			assert.Equal(t, testCase.ExpectedGetCommentsCallCount, fakeInstallationClient.GetCommentsCallCount())
