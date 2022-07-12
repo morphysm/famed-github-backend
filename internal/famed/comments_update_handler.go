@@ -2,16 +2,17 @@ package famed
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/phuslu/log"
 
-	"github.com/morphysm/famed-github-backend/internal/config"
-	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
+	famedModel "github.com/morphysm/famed-github-backend/internal/famed/model"
 	"github.com/morphysm/famed-github-backend/internal/famed/model/comment"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/pkg/arrays"
 )
 
 type action string
@@ -22,51 +23,51 @@ const (
 	deleteAction action = "delete"
 )
 
-type safeIssueCommentsUpdates struct {
-	m map[int]issueCommentUpdate
+type SafeIssueCommentsUpdates struct {
+	m map[int]IssueCommentUpdate
 	sync.RWMutex
 }
 
-type issueCommentUpdate struct {
-	EligibleComment commentUpdate `json:"eligibleComment"`
-	RewardComment   commentUpdate `json:"rewardComment"`
+type IssueCommentUpdate struct {
+	EligibleComment CommentUpdate `json:"eligibleComment"`
+	RewardComment   CommentUpdate `json:"rewardComment"`
 }
 
-func NewIssueCommentUpdate() issueCommentUpdate {
-	return issueCommentUpdate{
+func NewIssueCommentUpdate() IssueCommentUpdate {
+	return IssueCommentUpdate{
 		EligibleComment: NewCommentUpdate(),
 		RewardComment:   NewCommentUpdate(),
 	}
 }
 
-type commentUpdate struct {
+type CommentUpdate struct {
 	Actions []action `json:"actions"`
 	Errors  []string `json:"errors"`
 }
 
 // NewCommentUpdate returns a new commentUpdate with initialized slice fields.
-func NewCommentUpdate() commentUpdate {
-	return commentUpdate{
+func NewCommentUpdate() CommentUpdate {
+	return CommentUpdate{
 		Actions: []action{},
 		Errors:  []string{},
 	}
 }
 
-func (c *commentUpdate) AddAction(action action) {
+func (c *CommentUpdate) AddAction(action action) {
 	c.Actions = append(c.Actions, action)
 }
 
-func (c *commentUpdate) AddError(err error) {
+func (c *CommentUpdate) AddError(err error) {
 	c.Errors = append(c.Errors, err.Error())
 }
 
-func NewSafeIssueCommentsUpdates() *safeIssueCommentsUpdates {
-	return &safeIssueCommentsUpdates{
-		m: make(map[int]issueCommentUpdate),
+func NewSafeIssueCommentsUpdates() *SafeIssueCommentsUpdates {
+	return &SafeIssueCommentsUpdates{
+		m: make(map[int]IssueCommentUpdate),
 	}
 }
 
-func (sICU *safeIssueCommentsUpdates) AddAction(issueNumber int, action action, commentType comment.Type) {
+func (sICU *SafeIssueCommentsUpdates) AddAction(issueNumber int, action action, commentType comment.Type) {
 	sICU.Lock()
 	defer sICU.Unlock()
 
@@ -85,7 +86,7 @@ func (sICU *safeIssueCommentsUpdates) AddAction(issueNumber int, action action, 
 	sICU.m[issueNumber] = update
 }
 
-func (sICU *safeIssueCommentsUpdates) AddError(issueNumber int, err error, commentType comment.Type) {
+func (sICU *SafeIssueCommentsUpdates) AddError(issueNumber int, err error, commentType comment.Type) {
 	sICU.Lock()
 	defer sICU.Unlock()
 
@@ -97,6 +98,7 @@ func (sICU *safeIssueCommentsUpdates) AddError(issueNumber int, err error, comme
 	if commentType != comment.EligibleCommentType {
 		update.EligibleComment.AddError(err)
 	}
+
 	if commentType != comment.RewardCommentType {
 		update.RewardComment.AddError(err)
 	}
@@ -105,79 +107,86 @@ func (sICU *safeIssueCommentsUpdates) AddError(issueNumber int, err error, comme
 }
 
 type updateCommentsResponse struct {
-	Updates map[int]issueCommentUpdate `json:"updates"`
+	Updates map[int]IssueCommentUpdate `json:"updates"`
 }
 
 // GetUpdateComments updates the comments in a GitHub repo.
 // TODO improve efficiency. Multiple get comments calls could be avoided. Updates could be reduced to necessary.
-func (gH *githubHandler) GetUpdateComments(c echo.Context) error {
-	owner := c.Param("owner")
+func (gH *githubHandler) GetUpdateComments(ctx echo.Context) error {
+	owner := ctx.Param("owner")
 	if owner == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrMissingOwnerPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, famedModel.ErrMissingOwnerPathParameter.Error())
 	}
 
-	repoName := c.Param("repo_name")
+	repoName := ctx.Param("repo_name")
 	if repoName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrMissingRepoPathParameter.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, famedModel.ErrMissingRepoPathParameter.Error())
 	}
 
 	if ok := gH.githubInstallationClient.CheckInstallation(owner); !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, model2.ErrAppNotInstalled.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, famedModel.ErrAppNotInstalled.Error())
 	}
 
-	famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-	issues, err := gH.githubInstallationClient.GetIssuesByRepo(c.Request().Context(), owner, repoName, []string{famedLabel.Name}, nil)
+	issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx.Request().Context(), owner, repoName, model.All)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get issues for repository: %w", err)
+	}
+
+	commentsIssues := make(map[*model.EnrichedIssue][]model.IssueComment, len(issues))
+	for _, issue := range issues {
+		comments, err := gH.githubInstallationClient.GetComments(ctx.Request().Context(), owner, repoName, issue.Number)
+		if err != nil {
+			return err
+		}
+		commentsIssues[&issue] = comments
 	}
 
 	updates := NewSafeIssueCommentsUpdates()
-	gH.deleteDuplicateComments(c.Request().Context(), owner, repoName, issues, updates)
+	gH.deleteDuplicateComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
+
 	go func() {
 		defer wg.Done()
-		gH.updateRewardComments(c.Request().Context(), owner, repoName, issues, updates)
+		gH.updateRewardComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 	}()
 	go func() {
 		defer wg.Done()
-		gH.updateEligibleComments(c.Request().Context(), owner, repoName, issues, updates)
+		gH.updateEligibleComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 	}()
 
 	wg.Wait()
-	gH.orderComments(c.Request().Context(), owner, repoName, issues, updates)
+	gH.orderComments(ctx.Request().Context(), owner, repoName, commentsIssues, updates)
 
-	return c.JSON(http.StatusOK, updateCommentsResponse{Updates: updates.m})
+	return ctx.JSON(http.StatusOK, updateCommentsResponse{Updates: updates.m})
 }
 
 // updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) updateRewardComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) {
-	enrichedIssues := gH.githubInstallationClient.EnrichIssues(ctx, owner, repoName, issues)
-
+func (gH *githubHandler) updateRewardComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	i := 0
-	for _, issue := range enrichedIssues {
+	for issue, comments := range commentsIssues {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, owner string, repoName string, issue model.EnrichedIssue) {
+		go func(ctx context.Context, wg *sync.WaitGroup, owner, repoName string, issue model.EnrichedIssue) {
 			defer wg.Done()
-			update, err := gH.updateRewardComment(ctx, owner, repoName, issue)
+			update, err := gH.updateRewardComment(ctx, owner, repoName, issue, comments)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.RewardCommentType)
 			}
 			if updates != nil && update {
 				updates.AddAction(issue.Number, updateAction, comment.RewardCommentType)
 			}
-		}(ctx, &wg, owner, repoName, issue)
+		}(ctx, &wg, owner, repoName, *issue)
 		i++
 	}
 }
 
 // updateRewardComment should be run as  a go routine to check a handleClosedEvent and update the handleClosedEvent if necessary.
-func (gH *githubHandler) updateRewardComment(ctx context.Context, owner string, repoName string, issue model.EnrichedIssue) (bool, error) {
-	boardOptions := model2.NewBoardOptions(gH.famedConfig.Currency, model2.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
-	contributors, err := model2.NewBlueTeamFromIssue(issue, boardOptions)
+func (gH *githubHandler) updateRewardComment(ctx context.Context, owner, repoName string, issue model.EnrichedIssue, comments []model.IssueComment) (bool, error) {
+	boardOptions := famedModel.NewBoardOptions(gH.famedConfig.Currency, famedModel.NewRewardStructure(gH.famedConfig.Rewards, gH.famedConfig.DaysToFix, 2), gH.now())
+	contributors, err := famedModel.NewBlueTeamFromIssue(issue, boardOptions)
 	var newComment comment.Comment
 	if err != nil {
 		newComment = comment.NewErrorRewardComment(err)
@@ -189,7 +198,7 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, owner string, 
 		newComment = comment.NewRewardComment(contributors, gH.famedConfig.Currency, owner, repoName)
 	}
 
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, newComment, comments)
 	if err != nil {
 		log.Error().Err(err).Msg("[updateRewardComment] error while posting reward comment")
 		return false, err
@@ -198,54 +207,49 @@ func (gH *githubHandler) updateRewardComment(ctx context.Context, owner string, 
 	return updated, nil
 }
 
-func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) {
+func (gH *githubHandler) updateEligibleComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
-	for _, issue := range issues {
+	for issue, comments := range commentsIssues {
 		wg.Add(1)
 		go func(issue model.Issue) {
 			defer wg.Done()
-			update, err := gH.updateEligibleComment(ctx, owner, repoName, issue)
+			update, err := gH.updateEligibleComment(ctx, owner, repoName, issue, comments)
 			if updates != nil && err != nil {
 				updates.AddError(issue.Number, err, comment.EligibleCommentType)
 			}
 			if updates != nil && update {
 				updates.AddAction(issue.Number, updateAction, comment.EligibleCommentType)
 			}
-		}(issue)
+		}(issue.Issue)
 	}
 
 	return
 }
 
-func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner string, repoName string, issue model.Issue) (bool, error) {
+func (gH *githubHandler) updateEligibleComment(ctx context.Context, owner, repoName string, issue model.Issue, comments []model.IssueComment) (bool, error) {
 	pullRequest, err := gH.githubInstallationClient.GetIssuePullRequest(ctx, owner, repoName, issue.Number)
 	if err != nil {
 		log.Error().Err(err).Msg("[updateEligibleComment] error while fetching pull request")
 		return false, err
 	}
 
-	comment := comment.NewEligibleComment(issue, pullRequest)
-	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, comment)
+	eligibleComment := comment.NewEligibleComment(issue, pullRequest)
+	updated, err := gH.postOrUpdateComment(ctx, owner, repoName, issue.Number, eligibleComment, comments)
 	if err != nil {
-		log.Error().Err(err).Msg("[updateEligibleComment] error while posting eligable comment")
+		log.Error().Err(err).Msg("[updateEligibleComment] error while posting eligible comment")
 		return false, err
 	}
 
 	return updated, nil
 }
 
-// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) error {
-	for _, issue := range issues {
-		comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issue.Number)
-		if err != nil {
-			return err
-		}
-
+// deleteDuplicateComments ?
+func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+	for issue, comments := range commentsIssues {
 		eligibleCommentFound := false
 		rewardCommentFound := false
-		for _, com := range comments {
+		for i, com := range comments {
 			if comment.VerifyComment(com, gH.famedConfig.BotLogin, comment.EligibleCommentType) {
 				if !eligibleCommentFound {
 					eligibleCommentFound = true
@@ -255,6 +259,9 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 						updates.AddError(issue.Number, err, comment.EligibleCommentType)
 					}
 					if updates != nil && deleted {
+						arrays.Remove(commentsIssues[issue], i)
+						commentsIssues[issue][i] = commentsIssues[issue][len(commentsIssues[issue])-1]
+						commentsIssues[issue] = commentsIssues[issue][:len(commentsIssues[issue])-1]
 						updates.AddAction(issue.Number, deleteAction, comment.EligibleCommentType)
 					}
 				}
@@ -263,6 +270,7 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 				if !rewardCommentFound {
 					rewardCommentFound = true
 				} else {
+					arrays.Remove(commentsIssues[issue], i)
 					deleted, err := gH.deleteComment(ctx, owner, repoName, com)
 					if updates != nil && err != nil {
 						updates.AddError(issue.Number, err, comment.RewardCommentType)
@@ -278,8 +286,8 @@ func (gH *githubHandler) deleteDuplicateComments(ctx context.Context, owner stri
 	return nil
 }
 
-// deleteComment deletes a given comment and returns a commentUpdate.
-func (gH *githubHandler) deleteComment(ctx context.Context, owner string, repoName string, comment model.IssueComment) (bool, error) {
+// deleteComment deletes a given comment and returns a CommentUpdate.
+func (gH *githubHandler) deleteComment(ctx context.Context, owner, repoName string, comment model.IssueComment) (bool, error) {
 	err := gH.githubInstallationClient.DeleteComment(ctx, owner, repoName, comment.ID)
 	if err != nil {
 		log.Error().Err(err).Msgf("[deleteComment] error while deleting comment with id: %d", comment.ID)
@@ -289,13 +297,9 @@ func (gH *githubHandler) deleteComment(ctx context.Context, owner string, repoNa
 	return true, nil
 }
 
-// updateRewardComments checks all comments and updates comments where necessary in a concurrent fashion.
-func (gH *githubHandler) orderComments(ctx context.Context, owner string, repoName string, issues []model.Issue, updates *safeIssueCommentsUpdates) error {
-	for _, issue := range issues {
-		comments, err := gH.githubInstallationClient.GetComments(ctx, owner, repoName, issue.Number)
-		if err != nil {
-			return err
-		}
+// orderComments
+func (gH *githubHandler) orderComments(ctx context.Context, owner, repoName string, commentsIssues map[*model.EnrichedIssue][]model.IssueComment, updates *SafeIssueCommentsUpdates) error {
+	for issue, comments := range commentsIssues {
 
 		rewardCommentFound := false
 		var rewardComment model.IssueComment

@@ -5,8 +5,7 @@ import (
 
 	"github.com/phuslu/log"
 
-	"github.com/morphysm/famed-github-backend/internal/config"
-	model2 "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	famedModel "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
 // CleanState iterates over all issues and updates their comments if necessary.
@@ -36,18 +35,23 @@ func (gH *githubHandler) CleanState() {
 		}
 
 		for _, repoName := range repos {
-			famedLabel := gH.famedConfig.Labels[config.FamedLabelKey]
-			issues, err := gH.githubInstallationClient.GetIssuesByRepo(ctx, installation.Account.Login, repoName, []string{famedLabel.Name}, nil)
+			issues, err := gH.githubInstallationClient.GetEnrichedIssues(ctx, installation.Account.Login, repoName, famedModel.Opened)
 			if err != nil {
 				log.Error().Err(err).Msgf("[CleanState] error while fetching issues for %s/%s", installation.Account.Login, repoName)
 			}
 
-			go func(owner string, repoName string, issues []model2.Issue) {
-				gH.updateRewardComments(ctx, owner, repoName, issues, nil)
-			}(installation.Account.Login, repoName, issues)
-			go func(owner string, repoName string, issues []model2.Issue) {
-				gH.updateEligibleComments(ctx, owner, repoName, issues, nil)
-			}(installation.Account.Login, repoName, issues)
+			commentsIssues := make(map[*famedModel.EnrichedIssue][]famedModel.IssueComment, len(issues))
+			for _, issue := range issues {
+				comments, _ := gH.githubInstallationClient.GetComments(ctx, installation.Account.Login, repoName, issue.Number)
+				commentsIssues[&issue] = comments
+			}
+
+			go func(owner string, repoName string, issues map[*famedModel.EnrichedIssue][]famedModel.IssueComment) {
+				gH.updateRewardComments(ctx, owner, repoName, commentsIssues, nil)
+			}(installation.Account.Login, repoName, commentsIssues)
+			go func(owner string, repoName string, issues map[*famedModel.EnrichedIssue][]famedModel.IssueComment) {
+				gH.updateEligibleComments(ctx, owner, repoName, commentsIssues, nil)
+			}(installation.Account.Login, repoName, commentsIssues)
 		}
 	}
 }
