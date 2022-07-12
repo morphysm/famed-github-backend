@@ -52,6 +52,10 @@ func (gH *githubHandler) handleIssuesEvent(c echo.Context, event model.IssuesEve
 	}
 
 	comments, err := gH.githubInstallationClient.GetComments(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number)
+	if err != nil {
+		log.Error().Err(err).Msg("[handleIssueEvent] error while retrieving comments")
+		return err
+	}
 
 	// Post comment to GitHub
 	_, err = gH.postOrUpdateComment(ctx, event.Repo.Owner.Login, event.Repo.Name, event.Issue.Number, comment, comments)
