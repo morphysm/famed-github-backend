@@ -4,7 +4,6 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"os"
-	"reflect"
 	"testing"
 )
 
@@ -24,17 +23,22 @@ func TestNewConfig(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "without_config",
-			args:       args{filePath: ""},
+			name: "without_config",
+			args: args{
+				filePath: "noconfig.json",
+			},
 			wantConfig: nil,
 			wantErr:    true,
 		},
 		{
-			name:       "normal",
-			args:       args{filePath: "config_test.json"},
+			name: "normal",
+			args: args{
+				filePath: "config_test.json",
+			},
 			wantConfig: nil,
 			wantErr:    false,
 		},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -43,7 +47,7 @@ func TestNewConfig(t *testing.T) {
 				t.Errorf("NewConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotConfig, tt.wantConfig) || gotConfig.Admin.Password != "" {
+			if !tt.wantErr && gotConfig.Admin.Password != "foobar" {
 				t.Errorf("NewConfig() gotConfig = %v, want %v", gotConfig, tt.wantConfig)
 			}
 		})
