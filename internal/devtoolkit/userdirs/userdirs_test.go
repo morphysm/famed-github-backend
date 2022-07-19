@@ -1,7 +1,6 @@
 package userdirs
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -15,7 +14,14 @@ func TestNewUserDirs(t *testing.T) {
 		want    *UserDirs
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "default_path",
+			args: args{
+				programName: "testapp",
+			},
+			want:    nil,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -24,7 +30,7 @@ func TestNewUserDirs(t *testing.T) {
 				t.Errorf("NewUserDirs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if got.ConfigHome == "" {
 				t.Errorf("NewUserDirs() got = %v, want %v", got, tt.want)
 			}
 		})
