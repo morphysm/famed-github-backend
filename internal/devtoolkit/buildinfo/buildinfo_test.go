@@ -57,7 +57,11 @@ func TestNewBuildInfo(t *testing.T) {
 		want    *BuildInfo
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:    "default_buildinfo",
+			want:    nil,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -66,7 +70,7 @@ func TestNewBuildInfo(t *testing.T) {
 				t.Errorf("NewBuildInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !reflect.DeepEqual(got.CompilerVersion, runtime.Version()) {
 				t.Errorf("NewBuildInfo() got = %v, want %v", got, tt.want)
 			}
 		})

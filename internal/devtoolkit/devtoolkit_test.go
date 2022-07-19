@@ -1,7 +1,6 @@
 package devtoolkit
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -11,17 +10,18 @@ func TestNewDevToolkit(t *testing.T) {
 		wantToolkit *DevToolkit
 		wantErr     bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:        "default_devtoolkit",
+			wantToolkit: nil,
+			wantErr:     true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotToolkit, err := NewDevToolkit()
+			_, err := NewDevToolkit()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDevToolkit() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(gotToolkit, tt.wantToolkit) {
-				t.Errorf("NewDevToolkit() gotToolkit = %v, want %v", gotToolkit, tt.wantToolkit)
 			}
 		})
 	}
