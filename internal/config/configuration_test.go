@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"os"
 	"testing"
@@ -38,7 +39,6 @@ func TestNewConfig(t *testing.T) {
 			wantConfig: nil,
 			wantErr:    false,
 		},
-		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -55,6 +55,8 @@ func TestNewConfig(t *testing.T) {
 }
 
 func Test_loadConfigFile(t *testing.T) {
+	k := koanf.New(delimiter)
+
 	type args struct {
 		koanf    *koanf.Koanf
 		filePath string
@@ -65,7 +67,24 @@ func Test_loadConfigFile(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "without_config",
+			args: args{
+				koanf:    k,
+				filePath: "noconfig.json",
+				parser:   json.Parser(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "with_config",
+			args: args{
+				koanf:    k,
+				filePath: "config_test.json",
+				parser:   json.Parser(),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -77,6 +96,8 @@ func Test_loadConfigFile(t *testing.T) {
 }
 
 func Test_loadDefaultValues(t *testing.T) {
+	k := koanf.New(delimiter)
+
 	type args struct {
 		koanf *koanf.Koanf
 	}
@@ -85,7 +106,13 @@ func Test_loadDefaultValues(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "load_default",
+			args: args{
+				koanf: k,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -96,6 +123,7 @@ func Test_loadDefaultValues(t *testing.T) {
 	}
 }
 
+// Todo: find a way to test env var ?
 func Test_loadEnvVars(t *testing.T) {
 	type args struct {
 		koanf *koanf.Koanf
@@ -116,27 +144,14 @@ func Test_loadEnvVars(t *testing.T) {
 	}
 }
 
-func Test_verifyConfig(t *testing.T) {
-	type args struct {
-		cfg Config
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyConfig(tt.args.cfg); (err != nil) != tt.wantErr {
-				t.Errorf("verifyConfig() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func Test_verifyLabel(t *testing.T) {
+	cfg := Config{}
+
+	k := koanf.New(delimiter)
+	loadDefaultValues(k)
+
+	k.Unmarshal("", &cfg)
+
 	type args struct {
 		cfg   Config
 		label string
@@ -146,7 +161,22 @@ func Test_verifyLabel(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "exist",
+			args: args{
+				cfg:   cfg,
+				label: string(model.Info),
+			},
+			wantErr: false,
+		},
+		{
+			name: "not_exist",
+			args: args{
+				cfg:   cfg,
+				label: "foo",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -158,6 +188,15 @@ func Test_verifyLabel(t *testing.T) {
 }
 
 func Test_verifyReward(t *testing.T) {
+	cfg := Config{}
+
+	cfg2 := Config{}
+
+	k := koanf.New(delimiter)
+	loadDefaultValues(k)
+
+	k.Unmarshal("", &cfg2)
+
 	type args struct {
 		cfg  Config
 		cvss model.IssueSeverity
@@ -167,12 +206,76 @@ func Test_verifyReward(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "empty",
+			args: args{
+				cfg:  cfg,
+				cvss: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "default",
+			args: args{
+				cfg:  cfg2,
+				cvss: model.Info,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := verifyReward(tt.args.cfg, tt.args.cvss); (err != nil) != tt.wantErr {
 				t.Errorf("verifyReward() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_verifyConfig(t *testing.T) {
+	cfg := Config{}
+
+	cfg2 := Config{}
+
+	k := koanf.New(delimiter)
+	loadDefaultValues(k)
+
+	cfg2.Github.Key = "fookey"
+	cfg2.Github.WebhookSecret = "webhook"
+	cfg2.Github.AppID = 1337
+	cfg2.Github.BotLogin = "bot"
+	cfg2.Admin.Username = "foousername"
+	cfg2.Admin.Password = "foopassword"
+
+	k.Unmarshal("", &cfg2)
+
+	type args struct {
+		cfg Config
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "empty_struct",
+			args: args{
+				cfg: cfg,
+			},
+			wantErr: true,
+		},
+		{
+			name: "full_struct",
+			args: args{
+				cfg: cfg2,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := verifyConfig(tt.args.cfg); (err != nil) != tt.wantErr {
+				t.Errorf("verifyConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

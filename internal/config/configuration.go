@@ -106,7 +106,7 @@ func verifyConfig(cfg Config) error {
 	}
 
 	if cfg.App.Port == "" {
-		return eris.New("config.json app.host must be set")
+		return eris.New("config.json app.port must be set")
 	}
 
 	if cfg.Github.Host == "" {
