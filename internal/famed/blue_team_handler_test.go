@@ -12,7 +12,7 @@ import (
 
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	model2 "github.com/morphysm/famed-github-backend/internal/famed/model"
-	model "github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers/providersfakes"
 	"github.com/morphysm/famed-github-backend/pkg/pointer"
 )

@@ -6,17 +6,18 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 )
 
-func (c *githubInstallationClient) GetRateLimit(ctx context.Context, owner string) (model.RateLimit, error) {
+// GetRateLimits returns the rate limits of a user or organization that installed the Famed app.
+func (c *githubInstallationClient) GetRateLimits(ctx context.Context, owner string) (model.RateLimits, error) {
 	client, _ := c.clients.get(owner)
 
 	rateLimit, _, err := client.RateLimits(ctx)
 	if err != nil {
-		return model.RateLimit{}, err
+		return model.RateLimits{}, err
 	}
 
 	compressedRateLimit, err := model.NewRateLimit(rateLimit)
 	if err != nil {
-		return model.RateLimit{}, err
+		return model.RateLimits{}, err
 	}
 
 	return compressedRateLimit, nil

@@ -21,7 +21,7 @@ func FamedRoutes(g *echo.Group, handler famed.HTTPHandler) {
 func FamedAdminRoutes(g *echo.Group, famedHandler famed.HTTPHandler, githubHandler github.HTTPHandler) {
 	g.GET("/installations", famedHandler.GetInstallations)
 	g.GET("/trackedissues", famedHandler.GetTrackedIssues)
-	g.GET("/ratelimit/:owner", githubHandler.GetRateLimit)
+	g.GET("/ratelimits/:owner", githubHandler.GetRateLimits)
 }
 
 // HealthRoutes defines endpoints exposed to serve uses cases of infrastructure and customer support.
