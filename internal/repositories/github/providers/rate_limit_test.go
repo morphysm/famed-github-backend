@@ -18,6 +18,8 @@ import (
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers/providersfakes"
 )
 
+var testTime = time.Date(2022, 4, 20, 0, 0, 0, 0, time.Local)
+
 func TestGetRateLimits(t *testing.T) {
 	t.Parallel()
 
@@ -33,25 +35,25 @@ func TestGetRateLimits(t *testing.T) {
 		{
 			Name:  "Valid",
 			Owner: "testOwner",
-			GitHubResponseBody: `{"resources":{
-					"core": {"limit":2,"remaining":1,"reset":1372700873},
-					"search": {"limit":3,"remaining":2,"reset":1372700874},
-					"graphql": {"limit":4,"remaining":3,"reset":1372700875},
-					"integration_manifest": {"limit":5,"remaining":4,"reset":1372700876},
-					"source_import": {"limit":6,"remaining":5,"reset":1372700877},
-					"code_scanning_upload": {"limit":7,"remaining":6,"reset":1372700878},
-					"actions_runner_registration": {"limit":8,"remaining":7,"reset":1372700879},
-					"scim": {"limit":9,"remaining":8,"reset":1372700880}
-				}}`,
+			GitHubResponseBody: fmt.Sprintf(`{"resources":{
+					"core": {"limit":2,"remaining":1,"reset":%d},
+					"search": {"limit":3,"remaining":2,"reset":%d},
+					"graphql": {"limit":4,"remaining":3,"reset":%d},
+					"integration_manifest": {"limit":5,"remaining":4,"reset":%d},
+					"source_import": {"limit":6,"remaining":5,"reset":%d},
+					"code_scanning_upload": {"limit":7,"remaining":6,"reset":%d},
+					"actions_runner_registration": {"limit":8,"remaining":7,"reset":%d},
+					"scim": {"limit":9,"remaining":8,"reset":%d}
+				}}`, testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix()),
 			ExpectedResponse: model.RateLimits{
 				Core: model.Rate{
 					Limit:     2,
 					Remaining: 1,
-					Reset:     time.Date(2013, time.July, 1, 19, 47, 53, 0, time.Local)},
+					Reset:     testTime},
 				Search: model.Rate{
 					Limit:     3,
 					Remaining: 2,
-					Reset:     time.Date(2013, time.July, 1, 19, 47, 54, 0, time.Local)}},
+					Reset:     testTime}},
 		},
 		{
 			Name:                 "GitHub Error",
