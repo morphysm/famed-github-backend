@@ -7,7 +7,7 @@ import (
 )
 
 type HTTPHandler interface {
-	GetRateLimit(c echo.Context) error
+	GetRateLimits(c echo.Context) error
 }
 
 // githubHandler represents the handler for the GitHub endpoints.

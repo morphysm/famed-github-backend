@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 	"sync"
@@ -14,10 +15,15 @@ import (
 	libHttp "github.com/morphysm/famed-github-backend/pkg/http"
 )
 
+var (
+	ErrNoGithubClient    = errors.New("no github client configured for owner")
+	ErrNoGithubGQLClient = errors.New("no github gql client configured for owner")
+)
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . InstallationClient
 type InstallationClient interface {
-	GetRateLimit(ctx context.Context, owner string) (model.RateLimit, error)
+	GetRateLimits(ctx context.Context, owner string) (model.RateLimits, error)
 
 	GetUser(ctx context.Context, owner string, login string) (model.User, error)
 
@@ -42,6 +48,7 @@ type InstallationClient interface {
 	PostLabels(ctx context.Context, owner string, repoNames []string, labels map[string]model.Label) []error
 
 	AddInstallation(owner string, installationID int64) error
+	AddGitHubClient(owner string, client *github.Client)
 	CheckInstallation(owner string) bool
 }
 
@@ -66,9 +73,12 @@ func (s safeClientMap) add(owner string, client *github.Client) {
 }
 
 // get gets an owner client pair from the safeClientMap.
-func (s safeClientMap) get(owner string) (*github.Client, bool) {
+func (s safeClientMap) get(owner string) (*github.Client, error) {
 	client, ok := s.m[strings.ToLower(owner)]
-	return client, ok
+	if !ok {
+		return nil, ErrNoGithubClient
+	}
+	return client, nil
 }
 
 // add adds an GraphQL owner client pair to the safeClientMap.
@@ -77,9 +87,12 @@ func (s safeClientMap) addGql(owner string, client *githubv4.Client) {
 }
 
 // get gets an GraphQL owner client pair from the safeClientMap.
-func (s safeClientMap) getGql(owner string) (*githubv4.Client, bool) {
+func (s safeClientMap) getGql(owner string) (*githubv4.Client, error) {
 	client, ok := s.qlM[strings.ToLower(owner)]
-	return client, ok
+	if !ok {
+		return nil, ErrNoGithubGQLClient
+	}
+	return client, nil
 }
 
 type safeUserMap struct {
@@ -140,7 +153,7 @@ func NewInstallationClient(baseURL string, appClient AppClient, installations ma
 	return client, nil
 }
 
-// AddInstallation adds a new GitHub to the githubInstallationClient.
+// AddInstallation adds a new GitHub client to the githubInstallationClient map.
 func (c *githubInstallationClient) AddInstallation(owner string, installationID int64) error {
 	ts := NewGithubTokenSource(c.appClient, installationID)
 	oAuthClient := oauth2.NewClient(context.Background(), ts)
@@ -151,7 +164,7 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 		return err
 	}
 
-	c.clients.add(owner, client)
+	c.AddGitHubClient(owner, client)
 
 	// GraphQL client for missing "pull_requests" field workaround https://github.community/t/get-referenced-pull-request-from-issue/14027
 	gQLClient := githubv4.NewClient(oAuthClient)
@@ -160,8 +173,14 @@ func (c *githubInstallationClient) AddInstallation(owner string, installationID 
 	return nil
 }
 
+// AddGitHubClient adds a new github.Client to the githubInstallationClient map.
+// Mainly used for testing purposes.
+func (c *githubInstallationClient) AddGitHubClient(owner string, client *github.Client) {
+	c.clients.add(owner, client)
+}
+
 // CheckInstallation checks if an installations is present in the githubInstallationClient.
 func (c *githubInstallationClient) CheckInstallation(owner string) bool {
-	_, ok := c.clients.get(owner)
-	return ok
+	_, err := c.clients.get(owner)
+	return err != nil
 }
