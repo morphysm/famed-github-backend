@@ -18,7 +18,7 @@ import (
 
 var testTime = time.Date(2022, 4, 20, 0, 0, 0, 0, time.UTC)
 
-func TestGetRateLimit(t *testing.T) {
+func TestGetRateLimits(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {

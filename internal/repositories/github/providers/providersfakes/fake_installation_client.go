@@ -6,11 +6,18 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/google/go-github/v41/github"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
 	"github.com/morphysm/famed-github-backend/internal/repositories/github/providers"
 )
 
 type FakeInstallationClient struct {
+	AddGitHubClientStub        func(string, *github.Client)
+	addGitHubClientMutex       sync.RWMutex
+	addGitHubClientArgsForCall []struct {
+		arg1 string
+		arg2 *github.Client
+	}
 	AddInstallationStub        func(string, int64) error
 	addInstallationMutex       sync.RWMutex
 	addInstallationArgsForCall []struct {
@@ -273,6 +280,39 @@ type FakeInstallationClient struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeInstallationClient) AddGitHubClient(arg1 string, arg2 *github.Client) {
+	fake.addGitHubClientMutex.Lock()
+	fake.addGitHubClientArgsForCall = append(fake.addGitHubClientArgsForCall, struct {
+		arg1 string
+		arg2 *github.Client
+	}{arg1, arg2})
+	stub := fake.AddGitHubClientStub
+	fake.recordInvocation("AddGitHubClient", []interface{}{arg1, arg2})
+	fake.addGitHubClientMutex.Unlock()
+	if stub != nil {
+		fake.AddGitHubClientStub(arg1, arg2)
+	}
+}
+
+func (fake *FakeInstallationClient) AddGitHubClientCallCount() int {
+	fake.addGitHubClientMutex.RLock()
+	defer fake.addGitHubClientMutex.RUnlock()
+	return len(fake.addGitHubClientArgsForCall)
+}
+
+func (fake *FakeInstallationClient) AddGitHubClientCalls(stub func(string, *github.Client)) {
+	fake.addGitHubClientMutex.Lock()
+	defer fake.addGitHubClientMutex.Unlock()
+	fake.AddGitHubClientStub = stub
+}
+
+func (fake *FakeInstallationClient) AddGitHubClientArgsForCall(i int) (string, *github.Client) {
+	fake.addGitHubClientMutex.RLock()
+	defer fake.addGitHubClientMutex.RUnlock()
+	argsForCall := fake.addGitHubClientArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeInstallationClient) AddInstallation(arg1 string, arg2 int64) error {
@@ -1462,6 +1502,8 @@ func (fake *FakeInstallationClient) ValidateWebHookEventReturnsOnCall(i int, res
 func (fake *FakeInstallationClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.addGitHubClientMutex.RLock()
+	defer fake.addGitHubClientMutex.RUnlock()
 	fake.addInstallationMutex.RLock()
 	defer fake.addInstallationMutex.RUnlock()
 	fake.checkInstallationMutex.RLock()
