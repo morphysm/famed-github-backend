@@ -37,14 +37,8 @@ func TestGetRateLimits(t *testing.T) {
 			Owner: "testOwner",
 			GitHubResponseBody: fmt.Sprintf(`{"resources":{
 					"core": {"limit":2,"remaining":1,"reset":%d},
-					"search": {"limit":3,"remaining":2,"reset":%d},
-					"graphql": {"limit":4,"remaining":3,"reset":%d},
-					"integration_manifest": {"limit":5,"remaining":4,"reset":%d},
-					"source_import": {"limit":6,"remaining":5,"reset":%d},
-					"code_scanning_upload": {"limit":7,"remaining":6,"reset":%d},
-					"actions_runner_registration": {"limit":8,"remaining":7,"reset":%d},
-					"scim": {"limit":9,"remaining":8,"reset":%d}
-				}}`, testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix(), testTime.Unix()),
+					"search": {"limit":3,"remaining":2,"reset":%d}
+				}}`, testTime.Unix(), testTime.Unix()),
 			ExpectedResponse: model.RateLimits{
 				Core: model.Rate{
 					Limit:     2,
@@ -54,6 +48,22 @@ func TestGetRateLimits(t *testing.T) {
 					Limit:     3,
 					Remaining: 2,
 					Reset:     testTime}},
+		},
+		{
+			Name:  "Missing Search",
+			Owner: "testOwner",
+			GitHubResponseBody: fmt.Sprintf(`{"resources":{
+					"core": {"limit":2,"remaining":1,"reset":%d}
+				}}`, testTime.Unix()),
+			ExpectErr: true,
+		},
+		{
+			Name:  "Missing Core",
+			Owner: "testOwner",
+			GitHubResponseBody: fmt.Sprintf(`{"resources":{
+					"search": {"limit":2,"remaining":1,"reset":%d}
+				}}`, testTime.Unix()),
+			ExpectErr: true,
 		},
 		{
 			Name:                 "GitHub Error",
