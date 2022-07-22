@@ -1,7 +1,8 @@
-package buildinfo
+package buildinfo_test
 
 import (
 	"github.com/Masterminds/semver/v3"
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
 	"reflect"
 	"runtime"
 	"testing"
@@ -37,7 +38,7 @@ func TestBuildInfo_UserAgent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := BuildInfo{
+			i := buildinfo.BuildInfo{
 				Version:         tt.fields.Version,
 				Date:            tt.fields.Date,
 				Revision:        tt.fields.Revision,
@@ -54,7 +55,7 @@ func TestBuildInfo_UserAgent(t *testing.T) {
 func TestNewBuildInfo(t *testing.T) {
 	tests := []struct {
 		name    string
-		want    *BuildInfo
+		want    *buildinfo.BuildInfo
 		wantErr bool
 	}{
 		{
@@ -65,7 +66,7 @@ func TestNewBuildInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewBuildInfo()
+			got, err := buildinfo.NewBuildInfo()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewBuildInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return

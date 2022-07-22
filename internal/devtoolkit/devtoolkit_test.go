@@ -1,13 +1,14 @@
-package devtoolkit
+package devtoolkit_test
 
 import (
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"testing"
 )
 
 func TestNewDevToolkit(t *testing.T) {
 	tests := []struct {
 		name        string
-		wantToolkit *DevToolkit
+		wantToolkit *devtoolkit.DevToolkit
 		wantErr     bool
 	}{
 		{
@@ -18,7 +19,7 @@ func TestNewDevToolkit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewDevToolkit()
+			_, err := devtoolkit.NewDevToolkit()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDevToolkit() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -1,9 +1,7 @@
-package config
+package config_test
 
 import (
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/json"
-	"github.com/morphysm/famed-github-backend/internal/repositories/github/model"
+	"github.com/morphysm/famed-github-backend/internal/config"
 	"os"
 	"testing"
 )
@@ -20,7 +18,7 @@ func TestNewConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       args
-		wantConfig *Config
+		wantConfig *config.Config
 		wantErr    bool
 	}{
 		{
@@ -42,240 +40,13 @@ func TestNewConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotConfig, err := NewConfig(tt.args.filePath)
+			gotConfig, err := config.NewConfig(tt.args.filePath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && gotConfig.Admin.Password != "foobar" {
 				t.Errorf("NewConfig() gotConfig = %v, want %v", gotConfig, tt.wantConfig)
-			}
-		})
-	}
-}
-
-func Test_loadConfigFile(t *testing.T) {
-	k := koanf.New(delimiter)
-
-	type args struct {
-		koanf    *koanf.Koanf
-		filePath string
-		parser   koanf.Parser
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "without_config",
-			args: args{
-				koanf:    k,
-				filePath: "noconfig.json",
-				parser:   json.Parser(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "with_config",
-			args: args{
-				koanf:    k,
-				filePath: "config_test.json",
-				parser:   json.Parser(),
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := loadConfigFile(tt.args.koanf, tt.args.filePath, tt.args.parser); (err != nil) != tt.wantErr {
-				t.Errorf("loadConfigFile() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_loadDefaultValues(t *testing.T) {
-	k := koanf.New(delimiter)
-
-	type args struct {
-		koanf *koanf.Koanf
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "load_default",
-			args: args{
-				koanf: k,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := loadDefaultValues(tt.args.koanf); (err != nil) != tt.wantErr {
-				t.Errorf("loadDefaultValues() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-// Todo: find a way to test env var ?
-func Test_loadEnvVars(t *testing.T) {
-	type args struct {
-		koanf *koanf.Koanf
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := loadEnvVars(tt.args.koanf); (err != nil) != tt.wantErr {
-				t.Errorf("loadEnvVars() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_verifyLabel(t *testing.T) {
-	cfg := Config{}
-
-	k := koanf.New(delimiter)
-	loadDefaultValues(k)
-
-	k.Unmarshal("", &cfg)
-
-	type args struct {
-		cfg   Config
-		label string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "exist",
-			args: args{
-				cfg:   cfg,
-				label: string(model.Info),
-			},
-			wantErr: false,
-		},
-		{
-			name: "not_exist",
-			args: args{
-				cfg:   cfg,
-				label: "foo",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyLabel(tt.args.cfg, tt.args.label); (err != nil) != tt.wantErr {
-				t.Errorf("verifyLabel() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_verifyReward(t *testing.T) {
-	cfg := Config{}
-
-	cfg2 := Config{}
-
-	k := koanf.New(delimiter)
-	loadDefaultValues(k)
-
-	k.Unmarshal("", &cfg2)
-
-	type args struct {
-		cfg  Config
-		cvss model.IssueSeverity
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "empty",
-			args: args{
-				cfg:  cfg,
-				cvss: "",
-			},
-			wantErr: true,
-		},
-		{
-			name: "default",
-			args: args{
-				cfg:  cfg2,
-				cvss: model.Info,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyReward(tt.args.cfg, tt.args.cvss); (err != nil) != tt.wantErr {
-				t.Errorf("verifyReward() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_verifyConfig(t *testing.T) {
-	cfg := Config{}
-
-	cfg2 := Config{}
-
-	k := koanf.New(delimiter)
-	loadDefaultValues(k)
-
-	cfg2.Github.Key = "fookey"
-	cfg2.Github.WebhookSecret = "webhook"
-	cfg2.Github.AppID = 1337
-	cfg2.Github.BotLogin = "bot"
-	cfg2.Admin.Username = "foousername"
-	cfg2.Admin.Password = "foopassword"
-
-	k.Unmarshal("", &cfg2)
-
-	type args struct {
-		cfg Config
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "empty_struct",
-			args: args{
-				cfg: cfg,
-			},
-			wantErr: true,
-		},
-		{
-			name: "full_struct",
-			args: args{
-				cfg: cfg2,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyConfig(tt.args.cfg); (err != nil) != tt.wantErr {
-				t.Errorf("verifyConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

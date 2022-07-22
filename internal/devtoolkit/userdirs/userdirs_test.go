@@ -1,6 +1,7 @@
-package userdirs
+package userdirs_test
 
 import (
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/userdirs"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestNewUserDirs(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *UserDirs
+		want    *userdirs.UserDirs
 		wantErr bool
 	}{
 		{
@@ -33,7 +34,7 @@ func TestNewUserDirs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewUserDirs(tt.args.programName)
+			got, err := userdirs.NewUserDirs(tt.args.programName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewUserDirs() error = %v, wantErr %v", err, tt.wantErr)
 				return
