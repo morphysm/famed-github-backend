@@ -22,6 +22,10 @@ type UserDirs struct {
 func NewUserDirs(programName string) (*UserDirs, error) {
 	userDirs := &UserDirs{}
 
+	if programName == "" {
+		return nil, eris.New("program name cannot be empty")
+	}
+
 	// ConfigHome
 	userConfigDir, err := os.UserConfigDir()
 	if err != nil {
