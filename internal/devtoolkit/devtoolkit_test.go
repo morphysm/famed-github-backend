@@ -1,8 +1,9 @@
 package devtoolkit_test
 
 import (
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"testing"
+
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 )
 
 func TestNewDevToolkit(t *testing.T) {

@@ -1,14 +1,16 @@
 package server_test
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/labstack/echo/v4"
+
 	"github.com/morphysm/famed-github-backend/internal/devtoolkit"
 	"github.com/morphysm/famed-github-backend/internal/famed"
 	"github.com/morphysm/famed-github-backend/internal/github"
 	"github.com/morphysm/famed-github-backend/internal/health"
 	"github.com/morphysm/famed-github-backend/internal/server"
-	"reflect"
-	"testing"
 )
 
 func TestFamedAdminRoutes(t *testing.T) {

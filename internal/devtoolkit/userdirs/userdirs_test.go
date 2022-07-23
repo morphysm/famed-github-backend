@@ -1,8 +1,9 @@
 package userdirs_test
 
 import (
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit/userdirs"
 	"testing"
+
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/userdirs"
 )
 
 func TestNewUserDirs(t *testing.T) {

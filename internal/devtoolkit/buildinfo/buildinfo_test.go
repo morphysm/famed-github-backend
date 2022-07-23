@@ -1,12 +1,14 @@
 package buildinfo_test
 
 import (
-	"github.com/Masterminds/semver/v3"
-	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
 	"reflect"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/Masterminds/semver/v3"
+
+	"github.com/morphysm/famed-github-backend/internal/devtoolkit/buildinfo"
 )
 
 func TestBuildInfo_UserAgent(t *testing.T) {
